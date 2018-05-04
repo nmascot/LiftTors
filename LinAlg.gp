@@ -13,9 +13,9 @@ Hsort(A,p)=
  matconcat(Vec(B));
 }
 matkerMod(A,p,T,n)=if(n==1,Mod(liftint(matker(A)),p),Mod(Hsort(matkerzq(liftall(A),T,p,n),p),p^n)*Mod(1,T));
-matimageMod(A,p,T,n)=if(n==1,matimage(A),Mod(Hsort(matimagezq(liftall(A),T,p,n),p),T)*Mod(1,p^n));
-matdetMod(A,p,T,n)=if(n==1,matdet(A),Mod(matdetzq(liftall(A),T,p,n),T)*Mod(1,p^n));
-matinvMod(A,p,T,n)=if(n==1,A^(-1),Mod(matinvzq(liftall(A),T,p,n),T)*Mod(1,p^n));
+matimageMod(A,p,T,n)=if(n==1,Mod(liftint(matimage(A)),p),Mod(Hsort(matimagezq(liftall(A),T,p,n),p),T)*Mod(1,p^n));
+matdetMod(A,p,T,n)=if(n==1,Mod(liftint(matdet(A)),p),Mod(matdetzq(liftall(A),T,p,n),T)*Mod(1,p^n));
+matinvMod(A,p,T,n)=if(n==1,Mod(liftint(A^(-1)),p),Mod(matinvzq(liftall(A),T,p,n),T)*Mod(1,p^n));
 
 matF(A,p,T,n)=
 { \\ transpose of L matrix of transpose of A, assuming the rows of A are indep mod p
