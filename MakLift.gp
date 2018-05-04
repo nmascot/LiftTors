@@ -99,7 +99,9 @@ PicLiftTors_2(X2,W1,e1,l)=
   K=matkerMod(matconcat([V1,W1[,j]]),p,T,e1);
   W[,j]=-K[1..#V,1]/K[1+#V,1]
  );
- W=V*Mod(liftint(W),p^e2); \\ Lift W as a supspace of V
+ \\W=V*Mod(liftint(W),p^e2); \\ Lift W as a supspace of V
+ \\ TODO rasinnable ?
+ W=Mod(liftint(V*liftint(W)),p^e2); \\ Lift W as a supspace of V
  print("Calcul de rho");
  wV=V;for(P=1,nZ,wV[P,]*=W[P,1]); \\ w*V, w = 1st col of W
  KwV=matkerMod(wV~,p,T,e2)~;
