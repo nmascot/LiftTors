@@ -83,14 +83,15 @@ PicDefEqn(j,d0,nW,neqnsV,nZ,KwVlist,VFlist,uv,AinvB,CAinv)=
  res;
 }
 
-PicLift_2(X2,W1,e1)=
+PicLiftTors_2(X2,W1,e1,l)=
 {
  \\ TODO some steps can be done at lower prec
  my([f,df,V,KV,W0,Z,FrobCyc,g,d0,p,T,e2,Frob]=X2,nZ=#Z,r=nZ-(d0+1-g),neqnsV=nZ-#V,neqns=(#W1)*neqnsV);
  my(V1,W,wV,KwV,Kj,K);
  my(A,B,C,D,Ainv,CAinv,AinvB,rho,HA,HB,HC,HD,Mj); \\ TODO
- my(Trho,n,VF,VFlist,V0,M,KMq,H);
+ my(Trho,n,VF,VFlist,V0,M,KM,H,Q);
  my(Vmn,KwVmn,cW,sW);
+ my(Wlifts,K,k,c0,c);
  V1=Mod(V,p^e1);
  \\ Express W1 as a subspace of V1
  W=matrix(#V,#W1);
@@ -118,7 +119,7 @@ PicLift_2(X2,W1,e1)=
  \\return([R,rho,W,S]);
  /* Compute the deformation of EqnW when an entry of W changes */
  print("Preparation pour Trho");
- Vmn=Mod(V,p^(e2-e1));
+ Vmn=Mod(liftall(V),T)*Mod(1,p^(e2-e1));
  VF=Vmn*matF(Mod(wV,p^(e2-e1)),p,T,e2-e1);
  VFlist=vector(#W,i,if(i==1,0,VF));
  for(i=2,#W,
@@ -138,13 +139,13 @@ PicLift_2(X2,W1,e1)=
    KwVlist[k][,Q]=V0[Q,k]*KwVmn[,Q]
   )
  );
- Trho=matrix(nZ,#W,i,j,matrix(neqns-r,nZ-r));
+ \\Trho=matrix(nZ,#W,i,j,matrix(neqns-r,nZ-r));
  print("Calcul de Trho");
  \\TK=matrix(#W,nZ,Q,j,matrix(neqns,nZ));
  M=matrix((nZ-r)*(neqns-r),1+d0*(#W));
- M[,d0*(#W)+1]=mat2col(Mod(liftint(rho)/p^e1,p^(e2-e1)));
+ M[,d0*(#W)+1]=mat2col(Mod(liftall(rho)/p^e1,T)*Mod(1,p^(e2-e1)));
  n=0;
- my(PicDefEqn=PicDefEqn,nW=#W,d0=d0,neqnsV=neqnsV,nZ=nZ,KwVlist=KwVlist,VFlist=VFlist,uv=uv,AinvB=AinvB,CAinv=CAinv);
+ my(PicDefEqn=PicDefEqn,nW=#W,d0=d0,neqnsV=neqnsV,nZ=nZ,KwVlist=KwVlist,VFlist=VFlist,uv=uv,AinvB=Mod(liftint(AinvB),p^e1),CAinv=Mod(liftint(CAinv),p^e1));
  Mj=parvector(#W,j,PicDefEqn(j,d0,nW,neqnsV,nZ,KwVlist,VFlist,uv,AinvB,CAinv));
  for(j=1,#W,
   \\print("w",j);
@@ -166,36 +167,55 @@ PicLift_2(X2,W1,e1)=
   )
  );
  print("Noyau");
- KM=if(e1==1,matker(Mod(liftpol(M),T)),matkerMod(M,p,T,e2-e1));
+ KM=matkerMod(M,p,T,e2-e1);
  print("Dim noyau: ",#KM);
- \\ Find col whose last entry is nonzero
- for(k=1,#KM,
-  if(Mod(KM[1+d0*(#W),k],p),
-   K=KM[1..d0*(#W),k]/KM[1+d0*(#W),k];
-   break
+ \\ Find g+1 correct lifts
+ H=vector(g+1,i,matrix(nZ,#W));
+ for(i=1,g+1,
+  K=RandVec(KM,Mod(T,p^(e2-e1)));
+  K=K[1..d0*(#W)]*Zqinv(K[1+d0*(#W)],p,T,e2-e1); 
+  n=0;
+  for(j=1,#W,
+   for(k=1,d0,
+    n+=1;
+    H[i][,j]+=K[n]*V0[,k]
+   )
   )
  );
- n=0;
- H=matrix(nZ,#W);
- for(j=1,#W,
-  for(k=1,d0,
-   n+=1;
-   H[,j]+=K[n]*V0[,k]
-  )
+ Wlifts=apply(h->W+(Mod(p^e1*liftall(h),T)*Mod(1,p^e2)),H);
+ \\ Make the lift l-torsion
+ \\ First, see coords
+ c0=PicChart(X2,W0);
+ \\ Find place to de-homogeneise coords
+ k=0;
+ for(i=1,#W0,
+  if(Mod(c0[i],p),k=i;break)
  );
- W+Mod(p^e1*liftint(H),p^e2);
+ c0*=Zqinv(c0[k],p,T,e2);
+ \\ Now, see coords of lifts
+ c=apply(w->PicChart(X2,PicMul(X2,w,l)),Wlifts);
+ c=apply(d->Mod(liftall(d*Zqinv(d[k],p,T,e2)-c0)/p^e1,T)*Mod(1,p^(e2-e1)),c);
+ \\ Find the l-tors comibnation
+ K=matrix(#c0,g+1);
+ K[,1]=c[1];
+ for(i=2,g+1,K[,i]=c[i]-c[1]); 
+ K=matkerMod(K,p,T,e2-e1);
+ print("dim ker tors: ",#K);
+ K=Mod(liftall(K[,1]*Zqinv(K[1,1],p,T,e2-e1)),T)*Mod(1,p^e2);
+ Wlifts[1]+sum(i=1,g+1,K[i]*(Wlifts[i]-Wlifts[1]));
+ \\W+Mod(p^e1*liftint(H[1]+),p^e2);
 }
 
-PicLiftTors(X,W,eini=1)=
+PicLiftTors(X,W,l,eini=1)=
 {
  my([f,df,V,KV,W0,Z,FrobCyc,g,d0,p,T,eX,Frob]=X,e=eini,e2,W2=W,Xe);
  while(e<eX,
   e2=min(2*e,eX);
   print("Lift from O(",p,"^",e,") to O(",p,"^",e2,")");
   Xe=PicRed(X,e2);
-  W2=PicLift_2(Xe,W2,e);
-  print("Mul by ",p,"^",e2-e,"...");
-  W2=PicMul(Xe,W2,p^(e2-e));
+  W2=PicLiftTors_2(Xe,W2,e,l);
+  /*print("Mul by ",p,"^",e2-e,"...");
+  W2=PicMul(Xe,W2,p^(e2-e));*/
   e=e2
  );
  W2;

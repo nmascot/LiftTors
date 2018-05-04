@@ -1,3 +1,6 @@
+RandVec(A,typ)= \\ Random vector in the col span of A
+ sum(i=1,#A,random(typ)*A[,i]);
+
 \\ Ca ca marche (mais pourquoi?)
 Hsort(A,p)=
 {
@@ -9,7 +12,7 @@ Hsort(A,p)=
  \\print("Hsort out ",#B);
  matconcat(Vec(B));
 }
-matkerMod(A,p,T,n)=if(n==1,matker(A),Mod(Hsort(matkerzq(liftall(A),T,p,n),p),T)*Mod(1,p^n));
+matkerMod(A,p,T,n)=if(n==1,matker(A),Mod(Hsort(matkerzq(liftall(A),T,p,n),p),p^n)*Mod(1,T));
 matimageMod(A,p,T,n)=if(n==1,matimage(A),Mod(Hsort(matimagezq(liftall(A),T,p,n),p),T)*Mod(1,p^n));
 matdetMod(A,p,T,n)=if(n==1,matdet(A),Mod(matdetzq(liftall(A),T,p,n),T)*Mod(1,p^n));
 matinvMod(A,p,T,n)=if(n==1,A^(-1),Mod(matinvzq(liftall(A),T,p,n),T)*Mod(1,p^n));

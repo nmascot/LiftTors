@@ -1,3 +1,6 @@
+install(ZpXQ_inv,GGGL);
+Zqinv(a,p,T,e)=Mod(ZpXQ_inv(liftall(a),T,p,e),p^e)*Mod(1,T);
+
 WeiRed(f,h)=
 {
  my(F=f+(h/2)^2);
@@ -26,9 +29,6 @@ RandPt(f,p,T,e)= \\ Random (x,y) on y²=f(x)
   )
  );
 }
-
-RandVec(A,typ)= \\ Random vector in the col span of A
- sum(i=1,#A,random(typ)*A[,i]);
 
 RReval1(P,n,df)= \\ Row of values of x^i and x^i*y at P
 {
