@@ -118,7 +118,6 @@ PicLiftTors_2(X2,W1,e1,l)=
  CAinv=C*Ainv;
  AinvB=Ainv*B;
  rho=D-CAinv*B;
- \\return([R,rho,W,S]);
  /* Compute the deformation of EqnW when an entry of W changes */
  print("Preparation pour Trho");
  Vmn=Mod(liftall(V),T)*Mod(1,p^(e2-e1));
@@ -141,29 +140,14 @@ PicLiftTors_2(X2,W1,e1,l)=
    KwVlist[k][,Q]=V0[Q,k]*KwVmn[,Q]
   )
  );
- \\Trho=matrix(nZ,#W,i,j,matrix(neqns-r,nZ-r));
  print("Calcul de Trho");
- \\TK=matrix(#W,nZ,Q,j,matrix(neqns,nZ));
  M=matrix((nZ-r)*(neqns-r),1+d0*(#W));
  M[,d0*(#W)+1]=mat2col(Mod(liftall(rho)/p^e1,T)*Mod(1,p^(e2-e1)));
  n=0;
  my(PicDefEqn=PicDefEqn,nW=#W,d0=d0,neqnsV=neqnsV,nZ=nZ,KwVlist=KwVlist,VFlist=VFlist,uv=uv,AinvB=Mod(liftint(AinvB),p^e1),CAinv=Mod(liftint(CAinv),p^e1));
  Mj=parvector(#W,j,PicDefEqn(j,d0,nW,neqnsV,nZ,KwVlist,VFlist,uv,AinvB,CAinv));
  for(j=1,#W,
-  \\print("w",j);
   for(k=1,d0,
-   /*\\ We now deform by adding V0[k] to W[j]
-   n+=1;
-   TK=vector(#W,j,matrix(neqnsV,nZ))~;
-   if(j==1,
-    for(i=2,#W,
-     TK[i]=-KwVlist[k]*VFlist[i]
-    )
-   ,
-    TK[j]=KwVlist[k]
-   );
-   [HA,HB,HC,HD]=M2ABCD(matconcat(TK),uv);
-   M[,n]=mat2col(HD-HC*AinvB+CAinv*(HA*AinvB-HB))*/
    n+=1;
    M[,n]=Mj[j][k];
   )
