@@ -127,16 +127,22 @@ PicFrob(X,W)=
  
 DivAdd(WA,WB,d,p,T,e,excess=0)=
 {
- my(typ=Mod(T,p^e),WAB,s,t,r);
+ my(typ=Mod(T,p^e),WAB,s,t,r,nZ);
+ nZ=matsize(WA)[1];
  while(1,
-  WAB=Mat();
+  WAB=matrix(nZ,d+excess);
   for(n=1,d+excess,
    s=RandVec(WA,typ);
    t=RandVec(WB,typ);
-   WAB=matconcat([WAB,vector(#s,k,s[k]*t[k])~]);
+   for(k=1,nZ,
+    WAB[k,n]=s[k]*t[k]
+   )
   );
-  r=#matimage(Mod(WAB,p));
-  if(r==d,return(matimageMod(WAB,p,T,e)));
+  r=matrank(Mod(WAB,p));
+  if(r==d,
+   if(excess,WAB=matimageMod(WAB,p,T,e));
+   return(WAB)
+  );
   print1("@");
   print1([r,d]);
  );
@@ -333,4 +339,23 @@ PicEval2(X,W)=
  s=matkerMod(matconcat([U2,U*s]),p,T,e)[,1];
  s=liftint(s)*(1+O(p^e));
  [s[1],s[2]]/-s[3];
+}
+
+PicChart(X,W)=
+{
+ my([f,df,V,KV,W0,Z,FrobCyc,g,d0,p,T,e,Frob]=X,n1,n2,s,sV,U);
+ n1=2*d0-g;
+ n2=d0-g;
+ s=W*matkerMod(W[1..n1,],p,T,e);
+ if(#s!=1,error("Genericity 1 failed"));
+ sV=matrix(#Z,#V);
+ for(j=1,#V,
+  for(P=n1+1,#Z,
+   sV[P,j]=s[P,1]*V[P,j]
+  )
+ );
+ U=DivSub(W,sV,KV,d0+1-g,p,T,e);
+ s=U*matkerMod(U[n1+1..n1+n2,],p,T,e);
+ if(#s!=1,error("Genericity 2 failed"));
+ s[n1+n2+1..#Z,1];
 }
