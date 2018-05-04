@@ -167,7 +167,9 @@ PicLiftTors_2(X2,W1,e1,l)=
   )
  );
  print("Noyau");
- KM=matkerMod(M,p,T,e2-e1);
+ \\ TODO loop
+ KM=matrix(d0*(#W)-g,(nZ-r)*(neqns-r),i,j,random(p));
+ KM=matkerMod(KM*M,p,T,e2-e1);
  print("Dim noyau: ",#KM);
  \\ Find g+1 correct lifts
  H=vector(g+1,i,matrix(nZ,#W));
