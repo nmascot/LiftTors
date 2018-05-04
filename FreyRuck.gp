@@ -1,3 +1,4 @@
+error!
 PicNorm(X,F,WE)= \\ prod of F(P) for P in E, or 0 if one of F(P) is 0 or oo
 \\ Assumes F in V
 {
