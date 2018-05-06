@@ -13,7 +13,7 @@
 #
 
 # change this TARGET to compile your own programs
-TARGET = extgcd
+TARGET = linalg
 SHELL  = /bin/sh
 
 DBGFLAGS   = -g -Wall
