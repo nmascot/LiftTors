@@ -76,3 +76,6 @@ $(TARGET)-dyn: $(OBJS)
 	$(CC) -c $(CFLAGS) $(EXTRACFLAGS) $(CPPFLAGS) $(DLCFLAGS) $<
 clean:
 	-$(RM) *.o $(ALL)
+
+libpic.so: pic.o
+	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) pic.o $(EXTRAMODLDFLAGS)

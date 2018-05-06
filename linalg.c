@@ -1,17 +1,38 @@
 #include<pari/pari.h>
 
-GEN RandVec(GEN A, GEN t)
+GEN Fq_rand(GEN p, unsigned long dT)
+{
+	GEN b;
+	unsigned long i;
+	b = cgetg(dT-1,t_POL);
+	for(i=2;i<dT-1;i++)
+	{
+		gel(b,i) = genrand(p);
+	}
+	return b;
+}
+
+GEN RandVec_padic(GEN A, GEN T, GEN p, GEN pe)
 {
 	pari_sp av = avma;
-	long n = lg(A);
-	GEN v;
-	unsigned long i;
-	v = cgetg(n,t_COL);
-	for(i=1;i<n;i++)
+	unsigned long m,n,i,j,dT;
+	GEN v,b,c;
+	n = lg(A);
+	m = lg(gel(A,1));
+	dT = lg(T);
+	v = cgetg(m,t_COL);
+	for(j=1;i<n;i++)
 	{
-		gel(v,i) = genrand(t);
+		b = Fq_rand(p,dT);
+		for(i=1;i<m;i++)
+		{
+			c = Fq_mul(b,gcoeff(A,i,j),T,pe);
+			if(j==1) gel(v,i) = c;
+			else gel(v,i) = Fq_add(gel(v,i),c,T,pe);
+		}
+		v = gerepilecopy(av,v);
 	}
-	return gerepileupto(av,gmul(A,v));
+	return v;
 }
 
 GEN Hsort(GEN A, GEN p)
@@ -62,6 +83,24 @@ GEN matkerpadic(GEN A, GEN T, GEN p, long e)
 	return K;
 	K = Hsort(K,p);
 	return gerepilecopy(av,K);
+}
+
+GEN mateqnpadic(GEN A, GEN T, GEN p, long e)
+{
+	pari_sp av = avma;
+	return gerepilecopy(av,shallowtrans(matkerpadic(shallowtrans(A),T,p,e)));
+}
+
+GEN matimagepadic(GEN A, GEN T, GEN p, long e)
+{
+  pari_sp av;
+  GEN K;
+  if(e==1) return FqM_image(A,T,p);
+  av = avma;
+  K = ZpXQM_image(A,T,p,e,NULL);
+  return K;
+  K = Hsort(K,p);
+  return gerepilecopy(av,K);
 }
 
 GEN matF(GEN A, GEN T, GEN p, long e)
@@ -143,7 +182,6 @@ GEN M2ABCD(GEN M, GEN uv)
 				col = cgetg(m,t_COL);
 				for(i=1;i<m;i++)
 				{
-					printf("%d %d",u[i],v[j]);
 					gel(col,i) = gcoeff(M,u[i],v[j]);
 				}
 				gel(A,j) = col;
