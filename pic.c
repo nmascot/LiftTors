@@ -1,10 +1,10 @@
 #include "linalg.h"
 
-unsigned long Jgetg(GEN J) {return gel(J,1);}
-unsigned long Jgetd0(GEN J) {return gel(J,2);}
+ulong Jgetg(GEN J) {return (ulong)gel(J,1);}
+ulong Jgetd0(GEN J) {return (ulong)gel(J,2);}
 GEN JgetT(GEN J) {return gel(J,3);}
 GEN Jgetp(GEN J) {return gel(J,4);}
-long Jgete(GEN J) {return gel(J,5);}
+long Jgete(GEN J) {return (long)gel(J,5);}
 GEN Jgetpe(GEN J) {return gel(J,6);}
 GEN JgetFrob(GEN J) {return gel(J,7);}
 GEN JgetV(GEN J) {return gel(J,8);}
@@ -120,7 +120,7 @@ GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
 	WAWB = DivAdd(WA,WB,4*d0+1-g,T,p,e,pe,0);
 	WAB = DivSub(V,WAWB,KV,d0+1-g,T,p,e,pe,2);
 	/* TODO can free some memory here */
-	if(flag & 1) s = RandVec_padic(WAB,T,p,e,pe);
+	if(flag & 1) s = RandVec_padic(WAB,T,p,pe);
 	else s = gel(WAB,1);
 	nZ = lg(s);
 	nV = lg(V);
@@ -168,7 +168,7 @@ GEN PicSub(GEN J, GEN WA, GEN WB)
 
 GEN PicNeg(GEN J, GEN W) { return PicChord(J,W,JgetW0(J),0); }
 
-Gen PicMul(GEN J, GEN W, GEN n, long flag)
+GEN PicMul(GEN J, GEN W, GEN n, long flag)
 {
 	pari_sp av = avma;
 	GEN W2;
