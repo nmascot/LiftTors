@@ -1,5 +1,18 @@
 #include "linalg.h"
 
+unsigned long Jgetg(GEN J) {return gel(J,1);}
+unsigned long Jgetd0(GEN J) {return gel(J,2);}
+GEN JgetT(GEN J) {return gel(J,3);}
+GEN Jgetp(GEN J) {return gel(J,4);}
+long Jgete(GEN J) {return gel(J,5);}
+GEN Jgetpe(GEN J) {return gel(J,6);}
+GEN JgetFrob(GEN J) {return gel(J,7);}
+GEN JgetV(GEN J) {return gel(J,8);}
+GEN JgetKV(GEN J) {return gel(J,9);}
+GEN JgetW0(GEN J) {return gel(J,10);}
+GEN JgetZ(GEN J) {return gel(J,11);}
+GEN JgetFrobCyc(GEN J) {return gel(J,12);}
+
 GEN DivAdd(GEN WA, GEN WB, unsigned long d, GEN T, GEN p, long e, GEN pe, unsigned long excess)
 {
 	pari_sp av,av1,av0=avma;
@@ -84,4 +97,96 @@ GEN DivSub(GEN WA, GEN WB, GEN KV, unsigned long d, GEN T, GEN p, long e, GEN pe
 		printf("sub%lu/%lu",r,d);
 		avma = av1;
 	}
+}
+
+GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
+{
+	pari_sp av = avma;
+	GEN WAWB,WAB,s,col,sV,WC,res;
+	GEN V,KV,T,p,pe;
+	unsigned long g,d0,nZ,nV;
+	long e;
+	unsigned long P,j;
+
+	V = JgetV(J);
+	KV = JgetKV(J);
+	T = JgetT(J);
+	p = Jgetp(J);
+	pe = Jgetpe(J);
+	g = Jgetg(J);
+	d0 = Jgetd0(J);
+	e = Jgete(J);
+
+	WAWB = DivAdd(WA,WB,4*d0+1-g,T,p,e,pe,0);
+	WAB = DivSub(V,WAWB,KV,d0+1-g,T,p,e,pe,2);
+	/* TODO can free some memory here */
+	if(flag & 1) s = RandVec_padic(WAB,T,p,e,pe);
+	else s = gel(WAB,1);
+	nZ = lg(s);
+	nV = lg(V);
+	sV = cgetg(nV,t_MAT);
+  for(j=1;j<nV;j++)
+	{
+		col = gel(V,j) = cgetg(nZ,t_COL);
+		for(P=1;P<nZ;P++)
+		{
+			gel(col,P) = Fq_mul(gel(s,P),gcoeff(V,P,j),T,pe);
+		}
+	}
+  WC = DivSub(WAB,sV,KV,2*d0+1-g,T,p,e,pe,2);
+
+	if(flag & 2)
+	{
+		res = cgetg(3,t_VEC);
+		gel(res,1) = WC;
+		gel(res,2) = s;
+		return gerepilecopy(av,res);
+	}
+	else
+	{
+		return gerepileupto(av,WC);
+	}
+}
+
+GEN PicAdd(GEN J, GEN WA, GEN WB)
+{
+	pari_sp av = avma;
+	GEN W;
+	W = PicChord(J,WA,WB,0);
+	W = PicChord(J,W,JgetW0(J),0);
+	return gerepileupto(av,W);
+}
+
+GEN PicSub(GEN J, GEN WA, GEN WB)
+{
+	pari_sp av = avma;
+	GEN W;
+	W = PicChord(J,WB,JgetW0(J),0);
+	W = PicChord(J,W,WA,0);
+	return gerepileupto(av,W);
+}
+
+GEN PicNeg(GEN J, GEN W) { return PicChord(J,W,JgetW0(J),0); }
+
+Gen PicMul(GEN J, GEN W, GEN n, long flag)
+{
+	pari_sp av = avma;
+	GEN W2;
+
+	if(signe(n)==0) return JgetW0(J);
+	if(gequal(n,gen_1)) return gcopy(W);
+	flag = (flag & 1);
+	if(gequal(n,gen_m1)) return PicChord(J,W,JgetW0(J),flag);
+	if(mpodd(n))
+	{
+		W2 = PicMul(J,W,mpdiv(mpadd(n,gen_1),gen_2),0);
+		W2 = PicChord(J,W2,W2,0);
+		W2 = PicChord(J,W2,W,flag);
+	}
+	else
+	{
+		W2 = PicMul(J,W,mpdiv(n,gen_m2),0);
+		W2 = PicChord(J,W2,W2,flag);
+	}
+	return gerepileupto(av,W2);
 }
