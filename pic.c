@@ -1,10 +1,14 @@
 #include "linalg.h"
+#include "pic.h"
 
 ulong Jgetg(GEN J) {return (ulong)gel(J,1);}
+void Jsetg(GEN J, ulong g) {gel(J,1)=g;}
 ulong Jgetd0(GEN J) {return (ulong)gel(J,2);}
+void Jsetd0(GEN J, ulong d0) {gel(J,2)=d0;}
 GEN JgetT(GEN J) {return gel(J,3);}
 GEN Jgetp(GEN J) {return gel(J,4);}
 long Jgete(GEN J) {return (long)gel(J,5);}
+void Jsete(GEN J, ulong e) {gel(J,5)=e;}
 GEN Jgetpe(GEN J) {return gel(J,6);}
 GEN JgetFrob(GEN J) {return gel(J,7);}
 GEN JgetV(GEN J) {return gel(J,8);}
@@ -13,7 +17,7 @@ GEN JgetW0(GEN J) {return gel(J,10);}
 GEN JgetZ(GEN J) {return gel(J,11);}
 GEN JgetFrobCyc(GEN J) {return gel(J,12);}
 
-GEN DivAdd(GEN WA, GEN WB, unsigned long d, GEN T, GEN p, long e, GEN pe, unsigned long excess)
+GEN DivAdd(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
 {
 	pari_sp av,av1,av0=avma;
 	unsigned long nZ,j,P,r;
@@ -49,7 +53,7 @@ GEN DivAdd(GEN WA, GEN WB, unsigned long d, GEN T, GEN p, long e, GEN pe, unsign
 	}
 }
 
-GEN DivSub(GEN WA, GEN WB, GEN KV, unsigned long d, GEN T, GEN p, long e, GEN pe, unsigned long nIGS)
+GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong nIGS)
 {
 	pari_sp av1,av = avma;
 	unsigned long nZ,P,nE,E,nV,nB,n,r;
