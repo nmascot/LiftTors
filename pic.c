@@ -6,16 +6,25 @@ void Jsetg(GEN J, ulong g) {gel(J,1)=g;}
 ulong Jgetd0(GEN J) {return (ulong)gel(J,2);}
 void Jsetd0(GEN J, ulong d0) {gel(J,2)=d0;}
 GEN JgetT(GEN J) {return gel(J,3);}
+void JsetT(GEN J, GEN T) {gel(J,3) = T;}
 GEN Jgetp(GEN J) {return gel(J,4);}
+void Jsetp(GEN J, GEN p) {gel(J,4) = p;}
 long Jgete(GEN J) {return (long)gel(J,5);}
 void Jsete(GEN J, ulong e) {gel(J,5)=e;}
 GEN Jgetpe(GEN J) {return gel(J,6);}
+void Jsetpe(GEN J, GEN pe) {gel(J,6)=pe;}
 GEN JgetFrob(GEN J) {return gel(J,7);}
+void JsetFrob(GEN J, GEN Frob) {gel(J,7)=Frob;}
 GEN JgetV(GEN J) {return gel(J,8);}
+void JsetV(GEN J, GEN Frob) {gel(J,8)=V;}
 GEN JgetKV(GEN J) {return gel(J,9);}
+void JsetKV(GEN J, GEN KV) {gel(J,9)=Frob;}
 GEN JgetW0(GEN J) {return gel(J,10);}
+void JsetW0(GEN J, GEN W0) {gel(J,10)=W0;}
 GEN JgetZ(GEN J) {return gel(J,11);}
+void JsetZ(GEN J, GEN Z) {gel(J,11)=Z;}
 GEN JgetFrobCyc(GEN J) {return gel(J,12);}
+void JsetFrobCyc(GEN J, GEN FrobCyc) {gel(J,12)=FrobCyc;}
 
 GEN DivAdd(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
 {
