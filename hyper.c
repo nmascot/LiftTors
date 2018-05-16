@@ -65,7 +65,7 @@ GEN HyperInit(GEN f, GEN p, ulong a, ulong e)
 	pari_sp avP,av = avma;
 	int newpt;
   ulong df,g,d0,nZ,n,ncyc,i;
-	GEN pe,t,T,Frob,Z,Zp,P,Q,FrobCyc,J;
+	GEN pe,t,T,Frob,Z,Zp,P,Pp,Q,FrobCyc,x,y,W0,V,KV,J;
   
 	df = degree(f);
 	/* TODO if(df%2) error0("Polynomial must be of even degree!"); */
@@ -113,14 +113,14 @@ GEN HyperInit(GEN f, GEN p, ulong a, ulong e)
 			y = FpXQ_red(poleval(y,Frob),T,pe);
 			Q = mkvec2(x,y);
 		} while(!gequal(Q,P));
-    gel(FrobCyc,ncyc) = i;
+    FrobCyc[ncyc] = i;
 	}
 	setlg(Z,n+1);
 	setlg(FrobCyc,ncyc+1);
 
 	W0 = RReval(Z,d0,df,T,pe);
 	V = RReval(Z,3*d0/2,df,T,pe);
-	KV = shallowtrans(matkerpadic(shallowtrans(V,T,p,e)));
+	KV = shallowtrans(matkerpadic(shallowtrans(V),T,p,e));
 
 	J = cgetg(lgJ,t_VEC);
 	Jsetg(J,g);
