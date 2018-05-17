@@ -123,3 +123,36 @@ GEN HyperInit(GEN f, GEN p, ulong a, long e)
 	J = mkvecn(lgJ,stoi(g),stoi(d0),T,p,stoi(e),pe,Frob,V,KV,W0,Z,FrobCyc);
 	return gerepilecopy(av,J);
 }
+
+GEN PicRand(GEN J,GEN f) /* TODO not generic */
+{
+	pari_sp av = avma;
+  GEN T,p,pe,V;
+	ulong e,d0,df,i,j;
+	GEN E[2]; 
+
+	T = JgetT(J);
+	p = Jgetp(J);
+	pe = Jgetpe(J);
+	V = JgetV(J);
+	e = Jgete(J);
+	d0 = Jgetd0(J);
+	df = degree(f);
+
+	/* Do twice : */
+	for(j=0;j<2;j++)
+	{
+		/* Take d0 random points */
+		E[j] = cgetg(d0+1,t_VEC);
+		for(i=1;i<=d0;i++)
+		{
+			gel(E[j],i) = HyperRandPt(f,T,p,e,pe);
+		}
+		/* Form the corresponding W */
+		E[j] = RReval(E[j],3*d0/2,df,T,pe);
+		E[j] = matkerpadic(E[j],T,p,e);
+		E[j] = FqM_mul(V,E[j],T,pe);
+	}
+	/* Return the chord of these two W */
+	return gerepileupto(av,PicChord(J,E[0],E[1],0));
+}
