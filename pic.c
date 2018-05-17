@@ -191,3 +191,43 @@ GEN PicMul(GEN J, GEN W, GEN n, long flag)
 	}
 	return gerepileupto(av,W2);
 }
+
+GEN PicFrob(GEN J, GEN W)
+{
+	GEN W2,T,pe,Frob,FrobCyc;
+	ulong o,i,j,k,c,nW,nZ,nCyc;
+
+	T = JgetT(J);
+	pe = Jgetpe(J);
+	Frob = JgetFrob(J);
+	FrobCyc = JgetFrobCyc(J);
+	nW = lg(W);
+	nZ = lg(JgetZ(J));
+	nCyc = lg(FrobCyc);
+	Frob = JgetFrob(J);
+
+	W2 = cgetg(nW,t_MAT);
+	for(j=1;j<nW;j++)
+	{
+		gel(W2,j) = cgetg(nZ,t_COL);
+	}
+
+	i = 0;
+	for(o=1;o<nCyc;o++)
+	{
+		c = FrobCyc[o];
+		for(k=1;k<c;k++)
+		{
+			for(j=1;j<nW;j++)
+			{
+				gcoeff(W2,i+k+1,j) = FpX_FpXQ_eval(gcoeff(W,i+k,j),Frob,T,pe);
+			}
+		}
+		for(j=1;j<nW;j++)
+		{
+			gcoeff(W2,i+1,j) = FpX_FpXQ_eval(gcoeff(W,i+c,j),Frob,T,pe);
+		}
+		i += c;
+	}
+	return W2;
+}
