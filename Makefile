@@ -13,7 +13,6 @@
 #
 
 # change this TARGET to compile your own programs
-TARGET = linalg
 SHELL  = /bin/sh
 
 DBGFLAGS   = -g -Wall
@@ -48,34 +47,19 @@ LIBS       = -lm -L/home/nicolas/pari/GP/lib -lpari
 
 RM = rm -f
 
-
-OBJS = $(TARGET).o
-DYN = lib$(TARGET).so
-ALL = $(TARGET)-sta $(TARGET)-dyn $(DYN)
-
-dft: $(TARGET)-dyn
-
-all: $(ALL)
-
-sta: $(TARGET)-sta
-
-dyn: $(TARGET)-dyn
-
-dynlib: $(DYN)
-
-$(DYN): $(OBJS)
-	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) $(OBJS) $(EXTRAMODLDFLAGS)
-
-$(TARGET)-sta: $(OBJS)
-	$(LD) -o $@ $(LDFLAGS) $(EXTRACFLAGS) $< $(EXTRALIBS) $(STATIC) $(LIBS)
-
-$(TARGET)-dyn: $(OBJS)
-	$(LD) -o $@ $(LDFLAGS) $(EXTRACFLAGS) $< $(EXTRALIBS) $(RUNPTH) $(LIBS)
+all: liblinalg.so libpic.so libhyper.so
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $(EXTRACFLAGS) $(CPPFLAGS) $(DLCFLAGS) $<
 clean:
 	-$(RM) *.o $(ALL)
+
+
+liblinalg.so: linalg.o
+	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) linalg.o $(EXTRAMODLDFLAGS)
+
+libhyper.so: hyper.o
+	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) hyper.o $(EXTRAMODLDFLAGS)
 
 libpic.so: pic.o
 	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) pic.o $(EXTRAMODLDFLAGS)
