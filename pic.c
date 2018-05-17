@@ -43,9 +43,9 @@ GEN DivAdd(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
 			{
 				WAB = gerepileupto(av0,matimagepadic(WAB,T,p,e));
 			}
-			return WA;
+			return WAB;
 		}
-		printf("add%lu/%lu",r,d);
+		printf("add(%lu/%lu)",r,d);
 		avma = av1;
 	}
 }
@@ -54,7 +54,7 @@ GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong 
 {
 	pari_sp av1,av = avma;
 	unsigned long nZ,P,nE,E,nV,nB,n,r;
-	GEN KB,K,col,s;
+	GEN KB,K,col,s,res;
 	nZ = lg(KV);
 	nV = lg(gel(KV,1))-1;
 	KB = mateqnpadic(WB,T,p,e);
@@ -87,15 +87,15 @@ GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong 
 				}
 			}
 		}
-		r = lg(FqM_ker(K,T,p)); /* TODO faut-il reduire K d'abord? */
+		res = FqM_ker(K,T,p); /* TODO faut-il reduire K d'abord? */
 		/* TODO take rand subset of eqns */
 		/* TODO write fn for that */
-		/* TODO case e==1 */
+		r = lg(res)-1;
 		if(r==d)
 		{
-			return gerepileupto(av,matkerpadic(K,T,p,e));
+			return gerepileupto(av,e==1?res:matkerpadic(K,T,p,e));
 		}
-		printf("sub%lu/%lu",r,d);
+		printf("sub(%lu/%lu)",r,d);
 		avma = av1;
 	}
 }
@@ -127,20 +127,21 @@ GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
 	sV = cgetg(nV,t_MAT);
   for(j=1;j<nV;j++)
 	{
-		col = gel(V,j) = cgetg(nZ,t_COL);
+		col = cgetg(nZ,t_COL);
 		for(P=1;P<nZ;P++)
 		{
 			gel(col,P) = Fq_mul(gel(s,P),gcoeff(V,P,j),T,pe);
 		}
+		gel(sV,j) = col;
 	}
   WC = DivSub(WAB,sV,KV,2*d0+1-g,T,p,e,pe,2);
 
 	if(flag & 2)
 	{
 		res = cgetg(3,t_VEC);
-		gel(res,1) = WC;
-		gel(res,2) = s;
-		return gerepilecopy(av,res);
+		gel(res,1) = gcopy(WC);
+		gel(res,2) = gcopy(s);
+		return gerepileupto(av,res);
 	}
 	else
 	{

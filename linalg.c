@@ -1,29 +1,21 @@
 #include<pari/pari.h>
 
-GEN Fq_rand(GEN p, unsigned long dT)
-{
-	GEN b;
-	unsigned long i;
-	b = cgetg(dT-1,t_POL);
-	for(i=2;i<dT-1;i++)
-	{
-		gel(b,i) = genrand(p);
-	}
-	return b;
-}
-
 GEN RandVec_padic(GEN A, GEN T, GEN p, GEN pe)
 {
 	pari_sp av = avma;
-	unsigned long m,n,i,j,dT;
+	unsigned long m,n,i,j;
+	long dT,vT;
 	GEN v,b,c;
+
+	dT = degree(T);
+	vT = varn(T);
 	n = lg(A);
 	m = lg(gel(A,1));
 	dT = lg(T);
 	v = cgetg(m,t_COL);
-	for(j=1;i<n;i++)
+	for(j=1;j<n;j++)
 	{
-		b = Fq_rand(p,dT);
+		b = random_FpX(dT-1,vT,p);
 		for(i=1;i<m;i++)
 		{
 			c = Fq_mul(b,gcoeff(A,i,j),T,pe);
