@@ -1,6 +1,6 @@
 #include<pari/pari.h>
 
-#define lgJ 13
+#define lgJ 12
 
 long Jgetg(GEN J);
 long Jgetd0(GEN J);

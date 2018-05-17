@@ -58,7 +58,7 @@ GEN RReval(GEN Ps, ulong n, ulong d, GEN T, GEN pe)
 	return gerepilecopy(av,R);
 }
 
-GEN HyperInit(GEN f, GEN p, ulong a, ulong e)
+GEN HyperInit(GEN f, GEN p, ulong a, long e)
 {
 	pari_sp avP,av = avma;
 	int newpt;
@@ -82,6 +82,7 @@ GEN HyperInit(GEN f, GEN p, ulong a, ulong e)
 	n = ncyc = 0;
 	Z = cgetg(nZ+a,t_VEC);
 	Zp = cgetg(nZ+a,t_VEC);
+	/* TODO sort Zp -> quasilin complexity */
 	FrobCyc = cgetg(nZ+1,t_VECSMALL);
 	while(n<nZ)
 	{
@@ -94,7 +95,6 @@ GEN HyperInit(GEN f, GEN p, ulong a, ulong e)
 	  newpt = 1;
 		for(i=1;i<=n;i++)
 		{
-			printf("Verif doublon %lu\n",i);
 			if(gequal(Pp,gel(Zp,i)))
 			{
 				newpt = 0;
@@ -134,21 +134,8 @@ GEN HyperInit(GEN f, GEN p, ulong a, ulong e)
 	KV = shallowtrans(matkerpadic(shallowtrans(V),T,p,e));
 	printf("E");
 
-	J = cgetg(lgJ,t_VEC);
-	Jsetg(J,g);
-	Jsetd0(J,d0);
-	JsetT(J,T);
-	Jsetp(J,p);
-	Jsete(J,e);
-	Jsetpe(J,pe);
-	JsetFrob(J,Frob);
-	JsetV(J,V);
-	JsetKV(J,KV);
-	JsetW0(J,W0);
-	JsetZ(J,Z);
-	JsetFrobCyc(J,FrobCyc);
+	J = mkvecn(lgJ,stoi(g),stoi(d0),T,p,stoi(e),pe,Frob,V,KV,W0,Z,FrobCyc);
 	printf("F");
 
-	return J;
 	return gerepilecopy(av,J);
 }
