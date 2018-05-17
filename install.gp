@@ -9,10 +9,14 @@ install("PicAdd","GGG","PicAdd","./libpic.so");
 install("PicSub","GGG","PicSub","./libpic.so");
 install("PicNeg","GG","PicNeg","./libpic.so");
 install("PicMul","GGGL","PicMul","./libpic.so");
-install("DivAdd","GGUGGLGU","DivAdd","./libpic.so");
-install("RandVec_padic","GGGG","RandVec_padic","./liblinalg.so");
+install("PicFrob","GG","PicFrob","./libpic.so");
+install("PicFrobPoly","GGG","PicFrobPoly","./libpic.so");
+install("PicEq","lGGG","PicEq","./libpic.so");
+install("PicIsZero","lGG","PicIsZero","./libpic.so");
+install("PicRand","GG","PicRand","./libhyper.so");
 
-p=7;f=x^6-2*x+3;e=1;a=6;
+
+p=7;f=x^6-2*x+3;e=3;a=4;
 J=HyperInit(f,p,a,e);
 T=J[3];
 nZ=#J[11];

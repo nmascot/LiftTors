@@ -231,3 +231,93 @@ GEN PicFrob(GEN J, GEN W)
 	}
 	return W2;
 }
+
+GEN PicFrobPoly(GEN J, GEN W, GEN F)
+{
+	pari_sp av = avma;
+	ulong d,i;
+	GEN n,FW,res;
+
+	d = degree(F);
+	FW = W;
+	n = truecoeff(F,0);
+	if(d&1L) n = negi(n);
+	res = PicMul(J,W,n,0);
+	for(i=1;i<=d;i++)
+	{
+		FW = PicFrob(J,FW);
+		n = truecoeff(F,i);
+		if((d+1-i)&1L) n = negi(n);
+		res = PicChord(J,res,PicMul(J,FW,n,0),0);
+	}
+	return gerepileupto(av,res);
+}
+
+long PicEq(GEN J, GEN WA, GEN WB)
+{
+	pari_sp av = avma;
+	long e,r;
+	GEN s,sWB,KsWB,K,KV,col,T,p,pe;
+	ulong P,i,j,nZ,nW,nKV,nKsB,nK;
+
+	T = JgetT(J);
+	p = Jgetp(J);
+	e = Jgete(J);
+	pe = Jgetpe(J);
+	KV = JgetKV(J);
+
+	s = gel(WA,1);
+	nZ = lg(s)-1;
+	nW = lg(WA)-1;
+	nKV = lg(gel(KV,1))-1;
+	nKsB = nZ-nW;
+	nK = nKV+nW*nKsB;
+
+	sWB = cgetg(nW+1,t_MAT);
+	for(j=1;j<=nW;j++)
+	{
+		col = cgetg(nZ+1,t_COL);
+		for(i=1;i<=nZ;i++)
+		{
+			gel(col,i) = Fq_mul(gel(s,i),gcoeff(WB,i,j),T,pe);
+		}
+		gel(sWB,j) = col;
+	}
+
+	KsWB = mateqnpadic(sWB,T,p,e);
+
+	K = cgetg(nZ+1,t_MAT);
+	for(j=1;j<=nZ;j++)
+	{
+		gel(K,j) = cgetg(nK+1,t_COL);
+	}
+
+
+	for(j=1;j<=nW;j++)
+	{
+		for(i=1;i<=nKsB;i++)
+		{
+			for(P=1;P<=nZ;P++)
+			{
+				gcoeff(K,(j-1)*nKsB+i,P) = Fq_mul(gcoeff(WA,P,j),gcoeff(KsWB,i,P),T,pe);
+			}
+		}
+	}
+	for(i=1;i<=nKV;i++)
+	{
+		for(P=1;P<=nZ;P++)
+		{
+			gcoeff(K,nW*nKsB+i,P) = gcoeff(KV,i,P);
+		}
+	}
+
+	r = lg(matkerpadic(K,T,p,e))-1;
+
+	avma = av;
+	return r;
+}
+
+long PicIsZero(GEN J, GEN W)
+{
+	return PicEq(J,W,JgetW0(J));
+}
