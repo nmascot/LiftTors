@@ -26,10 +26,10 @@ GEN DivAdd(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
 		av1 = avma;
 		for(j=1;j<=d+excess;j++)
 		{ 
-      av = avma;
+			av = avma;
 			s = RandVec_padic(WA,T,p,pe); /* random fn in WA */
 			t = RandVec_padic(WB,T,p,pe); /* random fn in WB */
-      st = cgetg(nZ,t_COL); /* Product */
+			st = cgetg(nZ,t_COL); /* Product */
 			for(P=1;P<nZ;P++)
 			{
 				gel(st,P) = Fq_mul(gel(s,P),gel(t,P),T,pe);
@@ -58,7 +58,7 @@ GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong 
 	nZ = lg(KV);
 	nV = lg(gel(KV,1))-1;
 	KB = mateqnpadic(WB,T,p,e);
-  nB = lg(gel(KB,1))-1;
+	nB = lg(gel(KB,1))-1;
 	/* Prepare a mat K of size a v stack of KV + nIGS copies of KB */
 	/* and copy KV at the top */
 	nE = nV + nIGS*nB;
@@ -125,7 +125,7 @@ GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
 	nZ = lg(s);
 	nV = lg(V);
 	sV = cgetg(nV,t_MAT);
-  for(j=1;j<nV;j++)
+	for(j=1;j<nV;j++)
 	{
 		col = cgetg(nZ,t_COL);
 		for(P=1;P<nZ;P++)
@@ -134,7 +134,7 @@ GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
 		}
 		gel(sV,j) = col;
 	}
-  WC = DivSub(WAB,sV,KV,2*d0+1-g,T,p,e,pe,2);
+	WC = DivSub(WAB,sV,KV,2*d0+1-g,T,p,e,pe,2);
 
 	if(flag & 2)
 	{

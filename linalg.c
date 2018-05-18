@@ -37,8 +37,8 @@ GEN Hsort(GEN A, GEN p)
 	for(j=1;j<n;j++)
 	{
 		all0 = 1;							
-  	m = lg(gel(A,j));
-  	for(i=1;i<m;i++)
+	  	m = lg(gel(A,j));
+  		for(i=1;i<m;i++)
 		{
 			avma = av;
 			red = gcoeff(A,i,j);
@@ -53,7 +53,7 @@ GEN Hsort(GEN A, GEN p)
 			}
 		}
 		if(all0 == 1)
-    {
+		{
 			off++;
 		}
 		else
@@ -104,7 +104,7 @@ GEN matF(GEN A, GEN T, GEN p, long e)
 	/* reduce A mod p, and supplement */
 	B = FpXT_red(A,p);
 	B = FqM_suppl(B,T,p);
-	/* Un-reduce the A-part */
+	/* TODO necessary? Un-reduce the A-part */
 	for(j=1;j<r;j++)
 	{
 		gel(B,j) = gel(A,j);
@@ -112,7 +112,7 @@ GEN matF(GEN A, GEN T, GEN p, long e)
 	/* invert */
 	B = ZpXQM_inv(A,T,p,e);
 	/* return the first #A rows */
-  n = lg(B);
+	n = lg(B);
 	for(j=1;j<n;j++)
 	{
 		setlg(gel(B,j),r);
@@ -159,7 +159,7 @@ GEN M2ABCD(GEN M, GEN uv)
 {
 	GEN u,v,res,A,col;
 	unsigned long m,n,i,j,p,q;
-  res = cgetg(5,t_VEC);
+  	res = cgetg(5,t_VEC);
 	for(p=1;p<=2;p++)
 	{
 		u = gmael(uv,1,p);
@@ -168,7 +168,7 @@ GEN M2ABCD(GEN M, GEN uv)
 		{
 			v = gmael(uv,2,q);
 			n = lg(v);
-  		A = cgetg(n,t_MAT);
+			A = cgetg(n,t_MAT);
 			for(j=1;j<n;j++)
 			{
 				col = cgetg(m,t_COL);

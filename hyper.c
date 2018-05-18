@@ -28,7 +28,7 @@ GEN RReval(GEN Ps, ulong n, ulong d, GEN T, GEN pe)
 {
 	pari_sp av = avma;
 	ulong l,m,i,j;
-  GEN R,P,x,y,xpow;
+	GEN R,P,x,y,xpow;
 
 	/* Size of matrix */
 	l = 2*n-d/2+3;
@@ -62,7 +62,7 @@ GEN HyperInit(GEN f, GEN p, ulong a, long e)
 {
 	pari_sp avP,av = avma;
 	int newpt;
-  ulong df,g,d0,nZ,n,ncyc,i;
+	ulong df,g,d0,nZ,n,ncyc,i;
 	GEN pe,t,T,Frob,Z,Zp,P,Pp,Q,FrobCyc,x,y,W0,V,KV,J;
   
 	df = degree(f);
@@ -72,7 +72,7 @@ GEN HyperInit(GEN f, GEN p, ulong a, long e)
 	nZ = 6*d0+1;
 
 	t = varlower("t",varn(f));
-  T = liftint(ffinit(p,a,varn(t)));
+ 	T = liftint(ffinit(p,a,varn(t)));
 	Frob = ZpX_Frobenius(T,p,e);
 	pe = powiu(p,e);
 	
@@ -87,7 +87,7 @@ GEN HyperInit(GEN f, GEN p, ulong a, long e)
 		P = HyperRandPt(f,T,p,e,pe);
 		/* Already have it ? */
 		Pp = FpXV_red(P,p);
-	  newpt = 1;
+		newpt = 1;
 		for(i=1;i<=n;i++)
 		{
 			if(gequal(Pp,gel(Zp,i)))
@@ -111,7 +111,7 @@ GEN HyperInit(GEN f, GEN p, ulong a, long e)
 			y = FpX_FpXQ_eval(gel(Q,2),Frob,T,pe);
 			Q = mkvec2(x,y);
 		} while(!gequal(Q,P));
-    FrobCyc[ncyc] = i;
+	FrobCyc[ncyc] = i;
 	}
 	setlg(Z,n+1);
 	setlg(FrobCyc,ncyc+1);
@@ -127,7 +127,7 @@ GEN HyperInit(GEN f, GEN p, ulong a, long e)
 GEN PicRand(GEN J,GEN f) /* TODO not generic */
 {
 	pari_sp av = avma;
-  GEN T,p,pe,V;
+	GEN T,p,pe,V;
 	ulong e,d0,df,i,j;
 	GEN E[2]; 
 
