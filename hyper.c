@@ -156,3 +156,21 @@ GEN PicRand(GEN J,GEN f) /* TODO not generic */
 	/* Return the chord of these two W */
 	return gerepileupto(av,PicChord(J,E[0],E[1],0));
 }
+
+GEN ordJ(GEN f, GEN p, ulong a) /* Cardinal of Jac(y^2=f(x))(F_q), where q=p^a */
+{
+	pari_sp av = avma;
+	GEN fp,chi,xa1,N;
+	ulong i;
+
+	fp = gmodulo(f,p);
+	chi = hyperellcharpoly(fp);
+	xa1 = cgetg(a+3,t_POL);
+	for(i=1;i<a;i++) gel(xa1,i+2) = gen_0;
+	gel(xa1,2) = gen_1;
+	gel(xa1,a+2) = gen_m1;
+	setvarn(xa1,varn(f));
+	N = ZX_resultant(chi,xa1);
+
+	return gerepileupto(av,N);
+}
