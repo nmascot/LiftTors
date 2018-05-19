@@ -4,6 +4,8 @@ install("mateqnpadic","GGGL",,"./liblinalg.so");
 install("HyperInit","GGUL","HyperInit","./libhyper.so");
 install("HyperRandPt","GGGUG","HyperRandPt","./libhyper.so");
 install("ordJ","GGU","ordJ","./libhyper.so");
+install("HyperPicRand","GG","HyperPicRand","./libhyper.so");
+install("HyperPicRandTors","GGGG","HyperPicRandTors","./libhyper.so");
 
 install("PicChord","GGG","PicChord","./libpic.so");
 install("PicAdd","GGG","PicAdd","./libpic.so");
@@ -14,10 +16,9 @@ install("PicFrob","GG","PicFrob","./libpic.so");
 install("PicFrobPoly","GGG","PicFrobPoly","./libpic.so");
 install("PicEq","lGGG","PicEq","./libpic.so");
 install("PicIsZero","lGG","PicIsZero","./libpic.so");
-install("PicRand","GG","PicRand","./libhyper.so");
 
 
-p=7;f=x^6-2*x+3;e=1;a=4;
+p=7;f=x^6-2*x+3;e=1;a=3;
 J=HyperInit(f,p,a,e);
 T=J[3];
 nZ=#J[11];

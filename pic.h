@@ -22,3 +22,7 @@ GEN PicAdd(GEN J, GEN WA, GEN WB);
 GEN PicSub(GEN J, GEN WA, GEN WB);
 GEN PicNeg(GEN J, GEN W);
 GEN PicMul(GEN J, GEN W, GEN n, long flag);
+GEN PicFrob(GEN J, GEN W);
+GEN PicFrobPoly(GEN J, GEN W, GEN F);
+long PicEq(GEN J, GEN WA, GEN WB);
+long PicIsZero(GEN J, GEN W);

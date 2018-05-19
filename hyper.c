@@ -124,11 +124,11 @@ GEN HyperInit(GEN f, GEN p, ulong a, long e)
 	return gerepilecopy(av,J);
 }
 
-GEN PicRand(GEN J,GEN f) /* TODO not generic */
+GEN HyperPicRand(GEN J,GEN f) /* TODO not generic */
 {
 	pari_sp av = avma;
 	GEN T,p,pe,V;
-	ulong e,d0,df,i,j;
+	ulong g,e,d0,df,i,j;
 	GEN E[2]; 
 
 	T = JgetT(J);
@@ -138,19 +138,23 @@ GEN PicRand(GEN J,GEN f) /* TODO not generic */
 	e = Jgete(J);
 	d0 = Jgetd0(J);
 	df = degree(f);
+	g = Jgetg(J);
 
 	/* Do twice : */
 	for(j=0;j<2;j++)
 	{
-		/* Take d0 random points */
-		E[j] = cgetg(d0+1,t_VEC);
-		for(i=1;i<=d0;i++)
+		do
 		{
-			gel(E[j],i) = HyperRandPt(f,T,p,e,pe);
-		}
-		/* Form the corresponding W */
-		E[j] = RReval(E[j],3*d0/2,df,T,pe);
-		E[j] = matkerpadic(E[j],T,p,e);
+			/* Take d0 random points */
+			E[j] = cgetg(d0+1,t_VEC);
+			for(i=1;i<=d0;i++)
+			{
+				gel(E[j],i) = HyperRandPt(f,T,p,e,pe);
+			}
+			/* Form the corresponding W */
+			E[j] = RReval(E[j],3*d0/2,df,T,pe);
+			E[j] = matkerpadic(E[j],T,p,e);
+		} while(lg(E[j])!=2*d0+1-g+1); /* Check that the random points are independent */
 		E[j] = FqM_mul(V,E[j],T,pe);
 	}
 	/* Return the chord of these two W */
@@ -173,4 +177,58 @@ GEN ordJ(GEN f, GEN p, ulong a) /* Cardinal of Jac(y^2=f(x))(F_q), where q=p^a *
 	N = ZX_resultant(chi,xa1);
 
 	return gerepileupto(av,N);
+}
+
+GEN HyperPicRandTors(GEN J, GEN f, GEN l, GEN C)
+{
+	pari_sp av1,av = avma;
+	GEN T,p,fp,chi,xa1,chiC,N,M,W,lW;
+	long v,a;
+	ulong i;
+
+	T = JgetT(J);
+	p = Jgetp(J);
+	a = degree(T);
+
+	fp = gmodulo(f,p);
+  chi = hyperellcharpoly(fp);
+  xa1 = cgetg(a+3,t_POL);
+  for(i=1;i<a;i++) gel(xa1,i+2) = gen_0;
+  gel(xa1,2) = gen_1;
+  gel(xa1,a+2) = gen_m1;
+  setvarn(xa1,varn(f));
+  N = gerepileupto(av,ZX_resultant(chi,xa1));
+
+	v = Z_pvalrem(N,l,&M); /* N = p^v*M */
+	if(v==0) pari_err(e_MISC,"No rational %Ps-torsion",l);
+	if(signe(C))
+	{
+		av1 = avma;
+		if(!gdvd(chi,C)) pari_err(e_MISC,"Incorrect characteristic polynomial");
+		avma = av1;
+		chiC = gdiv(chi,C);
+		av1 = avma;
+		if(degree(ZX_gcd(chiC,C))) pari_err(e_MISC,"Eigen multiplicity");
+		avma = av1;
+	}
+	else chiC = 0;
+
+	do
+	{
+		W = HyperPicRand(J,f);
+		W = PicMul(J,W,M,0);
+		if(signe(C)) W = PicFrobPoly(J,W,chiC);
+	} while(PicIsZero(J,W));
+
+	lW = PicMul(J,W,l,0);
+	av1 = avma;
+	while(PicIsZero(J,lW)==0)
+	{
+		W = lW;
+		av1 = avma;
+		lW = PicMul(J,W,l,0);
+	}
+	
+	avma = av1;
+	return gerepileupto(av,W);
 }
