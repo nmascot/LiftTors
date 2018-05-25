@@ -25,6 +25,7 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 	T = JgetT(J2);
 	p = Jgetp(J2);
 	pe1 = powiu(p,e1);
+	e2 = Jgete(J2);
 	pe2 = Jgetpe(J2);
 	pe21=powiu(p,e2-e1);
 
@@ -68,16 +69,15 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 	r = nZ-(d0+1-g);
 	uv = FqM_MinorCompl(K,T,p); /* TODO */
 	ABCD = M2ABCD(K,uv);
-	Ainv = ZpXQM_inv(gel(ABCD,1),T,pe2);
+	Ainv = ZpXQM_inv(gel(ABCD,1),T,p,e2);
 	CAinv = FqM_mul(gel(ABCD,3),Ainv,T,pe2);
 	AinvB = FqM_mul(Ainv,gel(ABCD,2),T,pe2);
 	rho = FqM_mul(CAinv,gel(ABCD,2),T,pe2);
-	rho = FpXM_sub(gel(ABCD,4),rho,pe2);
+	rho = RgM_sub(gel(ABCD,4),rho);
 	/*for(j=1;j<=nZ-r;j++)
 	{
 		for(i=1;i<=nW*nKV;i++)
 		{
 	*/
-
-
+	return gerepileupto(av,rho);
 }

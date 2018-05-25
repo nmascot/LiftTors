@@ -15,6 +15,8 @@ GEN JgetW0(GEN J);
 GEN JgetZ(GEN J);
 GEN JgetFrobCyc(GEN J);
 
+GEN PicRed(GEN J, ulong e);
+
 GEN DivAdd(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess);
 GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong nIGS);
 GEN PicChord(GEN J, GEN WA, GEN WB, long flag);

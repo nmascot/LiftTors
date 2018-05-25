@@ -14,6 +14,26 @@ GEN JgetW0(GEN J) {return gel(J,10);}
 GEN JgetZ(GEN J) {return gel(J,11);}
 GEN JgetFrobCyc(GEN J) {return gel(J,12);}
 
+GEN PicRed(GEN J, ulong e)
+{
+	GEN Je,p,pe;
+	if(Jgete(J)<e) pari_err(e_MISC,"Cannot perform this reduction");
+	Je = cgetg(13,t_VEC);
+	gel(Je,1) = stoi(Jgetg(J));
+	gel(Je,2) = stoi(Jgetd0(J));
+	gel(Je,3) = gcopy(JgetT(J));
+	gel(Je,4) = p = gcopy(Jgetp(J));
+	gel(Je,5) = utoi(e);
+	gel(Je,6) = pe = powiu(p,e);
+	gel(Je,7) = FpX_red(JgetFrob(J),pe);
+	gel(Je,8) = FpXM_red(JgetV(J),pe);
+	gel(Je,9) = FpXM_red(JgetKV(J),pe);
+	gel(Je,10) = FpXM_red(JgetW0(J),pe);
+	gel(Je,11) = FpXT_red(JgetZ(J),pe);
+	gel(Je,12) = gcopy(JgetFrobCyc(J));
+	return Je;
+}
+
 GEN DivAdd(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
 {
 	pari_sp av,av1,av0=avma;

@@ -1,5 +1,6 @@
 #include<pari/pari.h>
 
+GEN FpXM_red(GEN,GEN);
 GEN RandVec_padic(GEN,GEN,GEN,GEN);
 GEN matkerpadic(GEN,GEN,GEN,long);
 GEN mateqnpadic(GEN,GEN,GEN,long);

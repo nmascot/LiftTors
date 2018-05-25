@@ -7,6 +7,7 @@ install("ordJ","GGU","ordJ","./libhyper.so");
 install("HyperPicRand","GG","HyperPicRand","./libhyper.so");
 install("HyperPicRandTors","GGGG","HyperPicRandTors","./libhyper.so");
 
+install("PicRed","GU","PicRed","./libpic.so");
 install("PicChord","GGG","PicChord","./libpic.so");
 install("PicAdd","GGG","PicAdd","./libpic.so");
 install("PicSub","GGG","PicSub","./libpic.so");
@@ -17,12 +18,15 @@ install("PicFrobPoly","GGG","PicFrobPoly","./libpic.so");
 install("PicEq","lGGG","PicEq","./libpic.so");
 install("PicIsZero","lGG","PicIsZero","./libpic.so");
 
+install("PicLiftTors_2","GGUG","PicLiftTors_2","./liblift.so");
 
-p=7;f=x^6-2*x+3;e=1;a=3;
+
+p=7;f=x^6-2*x+3;e=2;a=3;
 J=HyperInit(f,p,a,e);
 T=J[3];
 nZ=#J[11];
 Fqred(x)=Mod(x,T)*Mod(1,p);
 V=J[8];
 KV=J[9];
-W=J[10];
+J1 = PicRed(J,1);
+W1=HyperPicRand(J1,f);

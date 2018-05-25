@@ -1,5 +1,22 @@
 #include<pari/pari.h>
 
+GEN FpXM_red(GEN A, GEN p)
+{
+	long m,n,i,j;
+	GEN B;
+	RgM_dimensions(A,&m,&n);
+	B = cgetg(n+1,t_MAT);
+	for(j=1;j<=n;j++)
+	{
+		gel(B,j) = cgetg(m+1,t_COL);
+		for(i=1;i<=m;i++)
+		{
+			gcoeff(B,i,j) = FpX_red(gcoeff(A,i,j),p);
+		}
+	}
+	return B;
+}
+
 GEN RandVec_padic(GEN A, GEN T, GEN p, GEN pe)
 {
 	pari_sp av = avma;
@@ -37,8 +54,8 @@ GEN Hsort(GEN A, GEN p)
 	for(j=1;j<n;j++)
 	{
 		all0 = 1;							
-	  	m = lg(gel(A,j));
-  		for(i=1;i<m;i++)
+		m = lg(gel(A,j));
+		for(i=1;i<m;i++)
 		{
 			avma = av;
 			red = gcoeff(A,i,j);

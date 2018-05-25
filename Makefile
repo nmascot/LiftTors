@@ -47,7 +47,7 @@ LIBS       = -lm -L/home/nicolas/pari/GP/lib -lpari
 
 RM = rm -f
 
-all: liblinalg.so libpic.so libhyper.so
+all: liblinalg.so libpic.so libhyper.so liblift.so
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $(EXTRACFLAGS) $(CPPFLAGS) $(DLCFLAGS) $<
@@ -63,3 +63,6 @@ libhyper.so: hyper.o
 
 libpic.so: pic.o
 	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) pic.o $(EXTRAMODLDFLAGS)
+
+liblift.so: lift.o
+	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) lift.o $(EXTRAMODLDFLAGS)
