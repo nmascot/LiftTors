@@ -2,6 +2,7 @@ install("matkerpadic","GGGL",,"./liblinalg.so");
 install("mateqnpadic","GGGL",,"./liblinalg.so");
 install("VecSmallCompl","GU","VecSmallCompl","./liblinalg.so");
 install("FqM_MinorCompl","GGG","FqM_MinorCompl","./liblinalg.so");
+install("matF","GGGU","matF","./liblinalg.so");
 
 install("HyperInit","GGUL","HyperInit","./libhyper.so");
 install("HyperRandPt","GGGUG","HyperRandPt","./libhyper.so");

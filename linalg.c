@@ -3,7 +3,7 @@
 GEN FpXM_red(GEN A, GEN p)
 {
 	long m,n,i,j;
-	GEN B;
+	GEN B,c;
 	RgM_dimensions(A,&m,&n);
 	B = cgetg(n+1,t_MAT);
 	for(j=1;j<=n;j++)
@@ -11,10 +11,45 @@ GEN FpXM_red(GEN A, GEN p)
 		gel(B,j) = cgetg(m+1,t_COL);
 		for(i=1;i<=m;i++)
 		{
-			gcoeff(B,i,j) = FpX_red(gcoeff(A,i,j),p);
+			c = gcoeff(A,i,j);
+			gcoeff(B,i,j) = (typ(c)==t_POL?FpX_red(c,p):Fp_red(c,p));
 		}
 	}
 	return B;
+}
+
+GEN FpXM_add(GEN A, GEN B, GEN p)
+{
+	long m,n,i,j;
+	GEN C;
+	RgM_dimensions(A,&m,&n);
+	C = cgetg(n+1,t_MAT);
+	for(j=1;j<=n;j++)
+  {
+    gel(C,j) = cgetg(m+1,t_COL);
+    for(i=1;i<=m;i++)
+    {
+      gcoeff(C,i,j) = FpX_add(gcoeff(A,i,j),gcoeff(B,i,j),p);
+    }
+  }
+  return C;
+}
+
+GEN FpXM_sub(GEN A, GEN B, GEN p)
+{
+  long m,n,i,j;
+  GEN C;
+  RgM_dimensions(A,&m,&n);
+	C = cgetg(n+1,t_MAT);
+  for(j=1;j<=n;j++)
+  {
+    gel(C,j) = cgetg(m+1,t_COL);
+    for(i=1;i<=m;i++)
+    {
+      gcoeff(C,i,j) = FpX_sub(gcoeff(A,i,j),gcoeff(B,i,j),p);
+    }
+  }
+  return C;
 }
 
 GEN RandVec_padic(GEN A, GEN T, GEN p, GEN pe)
@@ -116,10 +151,10 @@ GEN matF(GEN A, GEN T, GEN p, long e)
 {
 	pari_sp av = avma;
 	GEN B;
-	unsigned long r,n,j;
+	ulong r,n,j;
 	r = lg(A);
 	/* reduce A mod p, and supplement */
-	B = FpXT_red(A,p);
+	B = FpXM_red(A,p);
 	B = FqM_suppl(B,T,p);
 	/* TODO necessary? Un-reduce the A-part */
 	for(j=1;j<r;j++)
