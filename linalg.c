@@ -209,7 +209,7 @@ GEN VecSmallCompl(GEN v, ulong n)
 	iv = ic = 1;
 	for(m=1;m<=n;m++)
 	{
-		if(v[iv]<m) c[ic++]=m;
+		if(m<v[iv])	c[ic++]=m;
 		else iv++;
 	}
 	return c;
@@ -219,13 +219,12 @@ GEN FqM_MinorCompl(GEN A, GEN T, GEN p)
 {
 	pari_sp av=avma;
 	GEN IJ,uv;
-	ulong m,n;
-	n = lg(A)-1;
-	m = lg(gel(A,1))-1;
+	long m,n;
+	RgM_dimensions(A,&m,&n);
 	IJ = FqM_indexrank(A,T,p);
 	uv = cgetg(3,t_VEC);
 	gel(uv,1) = cgetg(3,t_VEC);
-	gel(uv,1) = cgetg(3,t_VEC);
+	gel(uv,2) = cgetg(3,t_VEC);
 	gmael(uv,1,1) = gel(IJ,1);
 	gmael(uv,1,2) = VecSmallCompl(gel(IJ,1),m);
 	gmael(uv,2,1) = gel(IJ,2);
