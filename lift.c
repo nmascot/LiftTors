@@ -66,9 +66,9 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 		}
 	}
 	r = nZ-(d0+1-g);
-	uv = FindMinorCompl(K,T,p); /* TODO */
+	uv = FqM_MinorCompl(K,T,p); /* TODO */
 	ABCD = M2ABCD(K,uv);
-	Ainv = matinvzq(gel(ABCD,1),T,pe2);
+	Ainv = ZpXQM_inv(gel(ABCD,1),T,pe2);
 	CAinv = FqM_mul(gel(ABCD,3),Ainv,T,pe2);
 	AinvB = FqM_mul(Ainv,gel(ABCD,2),T,pe2);
 	rho = FqM_mul(CAinv,gel(ABCD,2),T,pe2);

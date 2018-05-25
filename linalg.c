@@ -183,3 +183,35 @@ GEN M2ABCD(GEN M, GEN uv)
 	}
 	return res;
 }
+
+GEN VecSmallCompl(GEN v, ulong n)
+{
+	ulong iv,ic,m;
+	GEN c;
+	c = cgetg(n+2-lg(v),t_VECSMALL);
+	iv = ic = 1;
+	for(m=1;m<=n;m++)
+	{
+		if(v[iv]<m) c[ic++]=m;
+		else iv++;
+	}
+	return c;
+}
+
+GEN FqM_MinorCompl(GEN A, GEN T, GEN p)
+{
+	pari_sp av=avma;
+	GEN IJ,uv;
+	ulong m,n;
+	n = lg(A)-1;
+	m = lg(gel(A,1))-1;
+	IJ = FqM_indexrank(A,T,p);
+	uv = cgetg(3,t_VEC);
+	gel(uv,1) = cgetg(3,t_VEC);
+	gel(uv,1) = cgetg(3,t_VEC);
+	gmael(uv,1,1) = gel(IJ,1);
+	gmael(uv,1,2) = VecSmallCompl(gel(IJ,1),m);
+	gmael(uv,2,1) = gel(IJ,2);
+	gmael(uv,2,2) = VecSmallCompl(gel(IJ,2),n);
+	return gerepilecopy(av,uv);
+}
