@@ -341,3 +341,71 @@ long PicIsZero(GEN J, GEN W)
 {
 	return PicEq(J,W,JgetW0(J));
 }
+
+GEN PicChart(GEN J, GEN W) /* /!\ Not Galois-equivariant ! */
+{
+	pari_sp av = avma;
+	ulong d0,g,n1,n2,nZ,nW;
+	ulong j,P;
+	long e;
+	GEN V,KV,T,p,pe;
+	GEN K,col,s,sV,U,res;
+
+	g = Jgetg(J);
+	d0 = Jgetd0(J);
+	n1 = 2*d0-g;
+	n2 = d0-g;
+	V = JgetV(J);
+	KV = JgetKV(J);
+	nZ = lg(gel(V,1))-1;
+	nW = lg(W)-1;
+	T = JgetT(J);
+	p = Jgetp(J);
+	e = Jgete(J);
+	pe = Jgetpe(J);
+
+	K = cgetg(nW+1,t_MAT);
+	for(j=1;j<=nW;j++)
+	{
+		col = cgetg(n1+1,t_COL);
+		for(P=1;P<=n1;P++) gel(col,P) = gcoeff(W,P,j);
+		gel(K,j) = col;
+	}
+	K = matkerpadic(K,T,p,e);
+	if(lg(K)!=2)
+	{
+		pari_printf("Genericity 1 failed in PicChart\n");
+		avma = av;
+		return NULL;
+	}
+	s = FqM_FqC_mul(W,gel(K,1),T,pe);
+
+	sV = cgetg(nZ+1,t_MAT);
+	for(j=1;j<=nZ;j++)
+	{
+		col = cgetg(nZ+1,t_COL);
+		for(P=1;P<=n1;P++) gel(col,P) = gen_0;
+		for(P=n1+1;P<=nZ;P++) gel(col,P) = Fq_mul(gel(s,P),gcoeff(V,P,j),T,pe);
+		gel(sV,j) = col;
+	}
+	U = DivSub(W,sV,KV,d0+1-g,T,p,e,pe,2);
+	K = cgetg(d0+2-g,t_MAT);
+  for(j=1;j<=d0+2-g;j++)
+  { 
+    col = cgetg(n2+1,t_COL);
+    for(P=1;P<=n2;P++) gel(col,P) = gcoeff(U,P,n1+j);
+    gel(K,j) = col;
+  }
+	K = matkerpadic(K,T,p,e);
+	if(lg(K)!=2) 
+  {
+    pari_printf("Genericity 2 failed in PicChart\n");
+    avma = av;
+    return NULL;
+  }
+	s = FqM_FqC_mul(U,gel(K,1),T,pe);
+	res = cgetg(nZ-n1-n2,t_COL);
+	for(j=n1+n2+1;j<=nZ;j++) gel(res,j-n1-n2) = gel(s,j);
+
+	return gerepileupto(av,res);
+}
