@@ -73,7 +73,6 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 	}
 	r = nZ-(d0+1-g);
 	uv = FqM_MinorCompl(K,T,p);
-	printf("a1");
 	ABCD = M2ABCD(K,uv);
 	Ainv = ZpXQM_inv(gel(ABCD,1),T,p,e2);
 	CAinv = FqM_mul(gel(ABCD,3),Ainv,T,pe2);
@@ -122,7 +121,6 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 		gel(Vs,j) = col;
 	}
 	V0 = FqM_mul(V,matkerpadic(Vs,T,p,e21),T,pe21); /* subspace of V whose rows in sW are 0 */
-	pari_printf("\nsW=%Ps\ncW=%Ps\nV0=%Ps\n",sW,cW,V0);
 	V0 = gerepileupto(av1,V0); /* # = nV-nW = d0 */
 	KwVlist = cgetg(d0+1,t_VEC); /* [i] = KwV * diag(V0[i]) */ 
 	for(i=1;i<=d0;i++)
@@ -172,7 +170,7 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 		}
 	}
 	KM = matkerpadic(M,T,p,e21); /* TODO accel */ /* TODO varn */
-	printf("Dim ker M=%ld",lg(KM)-1);
+	printf("Dim ker M = %ld\n",lg(KM)-1);
 	
 	/* FInd coords of 0 */
 	c0 = PicChart(J2,W0);
@@ -222,26 +220,26 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 		}
 		/* Find a combination of them which is l-torsion */
 		K = cgetg(g+2,t_MAT);
-		for(j=1;j<=g;j++)
+		for(j=1;j<=g+1;j++)
 		{
-			c = PicChart(J2,PicMul(J2,gel(Wlifts,1),l,0));
-			c = FqV_Fq_mul(c,ZpXQ_inv(gel(c,k),T,p,e2),T,pe2);
+			c = PicChart(J2,PicMul(J2,gel(Wlifts,j),l,0));
+			c = FqV_Fq_mul(c,ZpXQ_inv(gel(c,k0),T,p,e2),T,pe2);
 			for(i=1;i<=nc;i++)
 			{
 				gel(c,i) = ZX_Z_divexact(FpX_sub(gel(c,i),gel(c0,i),pe2),pe1);
 			}
-			if(j>1)
+			gel(K,j)=c;
+		}
+		for(j=2;j<=g+1;j++)
+		{
+			for(i=1;i<=nc;i++)
 			{
-				for(i=1;i<=nc;i++)
-				{
-					gel(K,j) = FpX_sub(gel(c,i),gcoeff(K,i,1),pe21);
-				}
+				gcoeff(K,i,j) = FpX_sub(gcoeff(K,i,j),gcoeff(K,i,1),pe21);
 			}
-			gel(K,i) = c;
 		}
 		K = matkerpadic(K,T,p,e21);
 		i = lg(K)-1;
-		printf("Dim ker tors = %ld",i);
+		printf("Dim ker tors = %ld\n",i);
 		/* Find a col in K with 1st entry invertible */
 		k = 0;
 		for(j=1;j<=i;j++)
@@ -264,18 +262,20 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 	return gerepileupto(av,W);
 }
 
-GEN PicLiftTors(GEN J, GEN W, GEN l, ulong eini)
+GEN PicLiftTors(GEN J, GEN W, ulong eini, GEN l)
 {
 	pari_sp av=avma;
 	ulong e,efin,e2;
-	GEN Je;
+	GEN Je,p;
 
 	efin = Jgete(J);
 	e = eini;
+	p = Jgetp(J);
 	while(e<efin)
 	{
 		e2 = 2*e;
 		if(e2>efin) e2 = efin;
+		pari_printf("Lifting from prec O(%Ps^%lu) to O(%Ps^%lu)\n",p,e,p,e2);
 		Je = e2<efin ? PicRed(J,e2) : J;
 		W = gerepileupto(av,PicLiftTors_2(Je,W,e,l));
 		e = e2;

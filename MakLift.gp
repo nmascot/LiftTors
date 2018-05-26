@@ -176,7 +176,7 @@ PicLiftTors_2(X2,W1,e1,l)=
  c0=PicChart(X2,W0);
  \\ Find place to de-homogeneise coords
  k=0;
- for(i=1,#W0,
+ for(i=1,#c0,
   if(Mod(c0[i],p),k=i;break)
  );
  c0*=Zqinv(c0[k],p,T,e2);

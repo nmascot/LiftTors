@@ -23,9 +23,10 @@ install("PicIsZero","lGG","PicIsZero","./libpic.so");
 install("PicChart","GG","PicChart","./libpic.so");
 
 install("PicLiftTors_2","GGUG","PicLiftTors_2","./liblift.so");
+install("PicLiftTors","GGUG","PicLiftTors","./liblift.so");
 
 
-p=7;f=x^6-2*x+3;e=2;a=3;
+p=7;f=x^6-2*x+3;e=100;a=3;
 J=HyperInit(f,p,a,e);
 T=J[3];
 nZ=#J[11];
@@ -33,4 +34,4 @@ Fqred(x)=Mod(x,T)*Mod(1,p);
 V=J[8];
 KV=J[9];
 J1 = PicRed(J,1);
-W1=HyperPicRand(J1,f);
+W1=HyperPicRandTors(J1,f,5,0);

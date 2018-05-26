@@ -102,7 +102,7 @@ GEN ZXM_Z_mul(GEN A, GEN a)
 		{
 			gel(col,i) = ZX_Z_mul(gcoeff(A,i,j),a);
 		}
-		gel(B,i) = col;
+		gel(B,j) = col;
 	}
 	return B;
 }
