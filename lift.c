@@ -3,12 +3,13 @@
 
 GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 {
-	pari_sp av1,av=avma;
-	GEN V,KV,T,p,pe1,pe2,pe21;
+	pari_sp av1,av2,av=avma;
+	GEN V,KV,W0,T,p,pe1,pe2,pe21;
 	GEN col,K,wV,KwV,Ainv,AinvB,CAinv,rho,ABCD,uv;
 	GEN F,VF,VFlist,sW,cW,Vs,V0,KwVlist,M,KM,dK,dKi;
-	ulong g,d0,nW,nV,nKV,nZ,e2,e21,r;
-	ulong e,i,j,k,n,P;
+	GEN c0,c,Wlifts,W,red;
+	ulong g,d0,nW,nV,nKV,nZ,nc,e2,e21,r;
+	ulong e,i,j,k,n,P,k0;
 
 	e2 = Jgete(J2);
 	pe2 = Jgetpe(J2);
@@ -19,6 +20,7 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 
 	V = JgetV(J2);
 	KV = JgetKV(J2);
+	W0 = JgetW0(J2);
 	g = Jgetg(J2);
 	d0 = Jgetd0(J2);
 	nW = lg(W1)-1;
@@ -69,7 +71,6 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 			gel(K,P) = col;
 		}
 	}
-	printf("a0");
 	r = nZ-(d0+1-g);
 	uv = FqM_MinorCompl(K,T,p);
 	printf("a1");
@@ -106,7 +107,6 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 			gmael(VFlist,j,P) = FqC_Fq_mul(gel(VF,P),gcoeff(W1,P,j),T,pe21);
 		}
 	}
-	printf("b");
 	/* Now find defs that leave a minor of W fixed */
 	sW = gel(FqM_indexrank(W1,T,p),1); /* # = nW */
 	cW = VecSmallCompl(sW,nZ);
@@ -124,7 +124,6 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 	V0 = FqM_mul(V,matkerpadic(Vs,T,p,e21),T,pe21); /* subspace of V whose rows in sW are 0 */
 	pari_printf("\nsW=%Ps\ncW=%Ps\nV0=%Ps\n",sW,cW,V0);
 	V0 = gerepileupto(av1,V0); /* # = nV-nW = d0 */
-	printf("c");
 	KwVlist = cgetg(d0+1,t_VEC); /* [i] = KwV * diag(V0[i]) */ 
 	for(i=1;i<=d0;i++)
 	{
@@ -136,7 +135,6 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 		}
 	}
 
-	printf("d");
 	M = cgetg(2+d0*nW,t_MAT);
 	gel(M,1+d0*nW) = mat2col(rho);
 
@@ -173,8 +171,114 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 			gel(M,++n) = mat2col(dK);
 		}
 	}
-	printf("f");
 	KM = matkerpadic(M,T,p,e21); /* TODO accel */ /* TODO varn */
 	printf("Dim ker M=%ld",lg(KM)-1);
-	return gerepilecopy(av,mkvec2(M,KM));
+	
+	/* FInd coords of 0 */
+	c0 = PicChart(J2,W0);
+	nc = lg(c0)-1;
+	/* TODO could be NULL */
+	/* Find index to dehomogenise */
+	red = NULL;
+	for(k0=1;k0<=nc;k0++)
+	{
+		red = gel(c0,k0);
+		if(!FpX_is0modp(red,p)) break;
+	}
+	c0 = FqV_Fq_mul(c0,ZpXQ_inv(red,T,p,e2),T,pe2);
+
+	Wlifts = cgetg(g+2,t_VEC);
+	av1 = avma;
+	do
+	{
+		/* Find g+1 lifts */
+		avma = av1;
+		for(i=1;i<=g+1;i++)
+		{
+			av2 = avma;
+			do
+			{
+				avma = av2;
+				K = RandVec_padic(KM,T,p,pe21);
+				red = gel(K,1+d0*nW);
+			}while(FpX_is0modp(red,p));
+			red = ZpXQ_inv(red,T,p,e21);
+			setlg(K,d0*nW+1);
+			K = FqV_Fq_mul(K,red,T,pe21);
+			n = 0;
+			W = zeromatcopy(nZ,nW);
+			for(j=1;j<=nW;j++)
+			{
+				for(k=1;k<=d0;k++)
+				{
+					n++;
+					for(P=1;P<=nZ;P++)
+					{
+						gcoeff(W,P,j) = FpX_add(gcoeff(W,P,j),Fq_mul(gel(K,n),gcoeff(V0,P,k),T,pe21),pe21);
+					}
+				}
+			}
+			gel(Wlifts,i) = FpXM_add(W1,ZXM_Z_mul(W,pe1),pe2);
+		}
+		/* Find a combination of them which is l-torsion */
+		K = cgetg(g+2,t_MAT);
+		for(j=1;j<=g;j++)
+		{
+			c = PicChart(J2,PicMul(J2,gel(Wlifts,1),l,0));
+			c = FqV_Fq_mul(c,ZpXQ_inv(gel(c,k),T,p,e2),T,pe2);
+			for(i=1;i<=nc;i++)
+			{
+				gel(c,i) = ZX_Z_divexact(FpX_sub(gel(c,i),gel(c0,i),pe2),pe1);
+			}
+			if(j>1)
+			{
+				for(i=1;i<=nc;i++)
+				{
+					gel(K,j) = FpX_sub(gel(c,i),gcoeff(K,i,1),pe21);
+				}
+			}
+			gel(K,i) = c;
+		}
+		K = matkerpadic(K,T,p,e21);
+		i = lg(K)-1;
+		printf("Dim ker tors = %ld",i);
+		/* Find a col in K with 1st entry invertible */
+		k = 0;
+		for(j=1;j<=i;j++)
+		{
+			red = gcoeff(K,1,j);
+			if(!FpX_is0modp(red,p))
+			{
+				k = j;
+				K = gel(K,k);
+				break;
+			}
+		}
+	} while(k==0);
+	K = FqC_Fq_mul(K,ZpXQ_inv(red,T,p,e21),T,pe21);
+	W = gel(Wlifts,1);
+	for(i=2;i<=g+1;i++)
+	{
+		W = FpXM_add(W,FqM_Fq_mul(FpXM_sub(gel(Wlifts,i),gel(Wlifts,1),pe2),gel(K,i),T,pe2),pe2);
+	}
+	return gerepileupto(av,W);
+}
+
+GEN PicLiftTors(GEN J, GEN W, GEN l, ulong eini)
+{
+	pari_sp av=avma;
+	ulong e,efin,e2;
+	GEN Je;
+
+	efin = Jgete(J);
+	e = eini;
+	while(e<efin)
+	{
+		e2 = 2*e;
+		if(e2>efin) e2 = efin;
+		Je = e2<efin ? PicRed(J,e2) : J;
+		W = gerepileupto(av,PicLiftTors_2(Je,W,e,l));
+		e = e2;
+	}
+	return W;
 }

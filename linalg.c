@@ -1,5 +1,16 @@
 #include<pari/pari.h>
 
+long FpX_is0modp(GEN x,GEN p)
+{
+	pari_sp av = avma;
+	GEN red;
+	long res;
+	red = (typ(x)==t_POL?FpX_red(x,p):Fp_red(x,p));
+	res = gequal0(red);
+	avma = av;
+	return res;
+}
+
 GEN FpXM_red(GEN A, GEN p)
 {
 	long m,n,i,j;
@@ -52,6 +63,50 @@ GEN FpXM_sub(GEN A, GEN B, GEN p)
   return C;
 }
 
+GEN FqV_Fq_mul(GEN v, GEN a, GEN T, GEN p)
+{
+	ulong n,i;
+	GEN av;
+	n = lg(v);
+	av = cgetg(n,t_VEC);
+	for(i=1;i<n;i++)
+	{
+		gel(av,i) = Fq_mul(a,gel(v,i),T,p);
+	}
+	return av;
+}
+
+GEN FqM_Fq_mul(GEN v, GEN a, GEN T, GEN p)
+{
+  ulong n,i;
+  GEN av;
+  n = lg(v);
+  av = cgetg(n,t_MAT);
+  for(i=1;i<n;i++)
+  {
+    gel(av,i) = FqC_Fq_mul(gel(v,i),a,T,p);
+  }
+  return av;
+}
+
+GEN ZXM_Z_mul(GEN A, GEN a)
+{
+	long m,n,i,j;
+	GEN B,col;
+	RgM_dimensions(A,&m,&n);
+	B = cgetg(n+1,t_MAT);
+	for(j=1;j<=n;j++)
+	{
+		col = cgetg(m+1,t_COL);
+		for(i=1;i<=m;i++)
+		{
+			gel(col,i) = ZX_Z_mul(gcoeff(A,i,j),a);
+		}
+		gel(B,i) = col;
+	}
+	return B;
+}
+
 GEN RandVec_padic(GEN A, GEN T, GEN p, GEN pe)
 {
 	pari_sp av = avma;
@@ -81,24 +136,15 @@ GEN RandVec_padic(GEN A, GEN T, GEN p, GEN pe)
 
 GEN Hsort(GEN A, GEN p)
 {
-	pari_sp av;
-	GEN red;
-	unsigned long off=0,i=1,j=1,n,m,all0=1;
+	ulong off=0,i=1,j=1,n,m,all0=1;
 	n = lg(A);
-	av = avma;
 	for(j=1;j<n;j++)
 	{
 		all0 = 1;							
 		m = lg(gel(A,j));
 		for(i=1;i<m;i++)
 		{
-			avma = av;
-			red = gcoeff(A,i,j);
-			if(typ(red) == t_INT)
-				red = Fp_red(red,p);
-			else
-			 red = FpX_red(red,p);
-			if(!gequal0(red))
+			if(!FpX_is0modp(gcoeff(A,i,j),p))
 			{
 				all0 = 0;
 				break;
