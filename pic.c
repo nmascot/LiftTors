@@ -365,7 +365,6 @@ GEN PicChart(GEN J, GEN W) /* /!\ Not Galois-equivariant ! */
 	e = Jgete(J);
 	pe = Jgetpe(J);
 
-	printf("a");
 	K = cgetg(nW+1,t_MAT);
 	for(j=1;j<=nW;j++)
 	{
@@ -374,7 +373,6 @@ GEN PicChart(GEN J, GEN W) /* /!\ Not Galois-equivariant ! */
 		gel(K,j) = col;
 	}
 	K = matkerpadic(K,T,p,e);
-	printf("b");
 	if(lg(K)!=2)
 	{
 		pari_printf("Genericity 1 failed in PicChart\n");
@@ -383,7 +381,6 @@ GEN PicChart(GEN J, GEN W) /* /!\ Not Galois-equivariant ! */
 	}
 	s = FqM_FqC_mul(W,gel(K,1),T,pe);
 
-	printf("c");
 	sV = cgetg(nV+1,t_MAT);
 	for(j=1;j<=nV;j++)
 	{
@@ -393,7 +390,6 @@ GEN PicChart(GEN J, GEN W) /* /!\ Not Galois-equivariant ! */
 		gel(sV,j) = col;
 	}
 	U = DivSub(W,sV,KV,d0+1-g,T,p,e,pe,2);
-	printf("d");
 	K = cgetg(d0+2-g,t_MAT);
   for(j=1;j<=d0+1-g;j++)
   { 
@@ -402,7 +398,6 @@ GEN PicChart(GEN J, GEN W) /* /!\ Not Galois-equivariant ! */
     gel(K,j) = col;
   }
 	K = matkerpadic(K,T,p,e);
-	printf("e");
 	if(lg(K)!=2) 
   {
     pari_printf("Genericity 2 failed in PicChart\n");
@@ -410,7 +405,6 @@ GEN PicChart(GEN J, GEN W) /* /!\ Not Galois-equivariant ! */
     return NULL;
   }
 	s = FqM_FqC_mul(U,gel(K,1),T,pe);
-	printf("f");
 	res = cgetg(nZ-n1-n2,t_COL);
 	for(j=n1+n2+1;j<=nZ;j++) gel(res,j-n1-n2) = gcopy(gel(s,j));
 
