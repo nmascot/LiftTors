@@ -1,8 +1,6 @@
 #include "linalg.h"
 #include "pic.h"
 
-GEN PicRed(GEN J, ulong e1); /* TODO in pic.c ? */
-
 GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 {
 	pari_sp av1,av=avma;
@@ -32,8 +30,18 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 	pe1 = powiu(p,e1);
 	e21 = e2-e1;
 	pe21=powiu(p,e21);
-	pari_printf("%Ps\n",pe21);
 
+	/* Lift W1 as a subspace of V */
+	av1 = avma;
+	K = cgetg(nV+nW+1,t_MAT);
+	for(j=1;j<=nV;j++) gel(K,j) = gel(V,j);
+	for(j=1;j<=nW;j++) gel(K,nV+j) = gel(W1,j);
+	K = matkerpadic(K,T,p,e1);
+  for(j=1;j<=nW;j++) setlg(gel(K,j),nV+1);
+	W1 = FqM_mul(V,K,T,pe2);
+	W1 = gerepileupto(av1,W1);
+
+	/* Write matrix K */
 	wV = cgetg(nV+1,t_MAT);
 	for(j=1;j<=nV;j++)
 	{
@@ -50,34 +58,27 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 	K = cgetg(nZ+1,t_MAT);
 	for(P=1;P<=nZ;P++)
 	{
-		gel(K,P) = cgetg(nW*nKV+1,t_COL);
-		for(j=1;j<=nW;j++)
+		col = cgetg(nW*nKV+1,t_COL);
+		for(e=1;e<=nKV;e++)
 		{
-			if(j==1)
+			gel(col,e) = gcoeff(KV,e,P);
+			for(j=2;j<=nW;j++)
 			{
-				for(e=1;e<=nKV;e++)
-				{
-					gcoeff(K,e,P) = gcoeff(KV,e,P);
-				}
+				gel(col,(j-1)*nKV+e) = Fq_mul(gcoeff(KwV,e,P),gcoeff(W1,P,j),T,pe2);
 			}
-			else
-			{
-				for(e=1;e<=nKV;e++)
-				{
-					gcoeff(K,(j-1)*nKV+e,P) = Fq_mul(gcoeff(W1,P,j),gcoeff(KwV,e,P),T,pe2);
-				}
-			}
+			gel(K,P) = col;
 		}
 	}
+	printf("a0");
 	r = nZ-(d0+1-g);
 	uv = FqM_MinorCompl(K,T,p);
+	printf("a1");
 	ABCD = M2ABCD(K,uv);
 	Ainv = ZpXQM_inv(gel(ABCD,1),T,p,e2);
 	CAinv = FqM_mul(gel(ABCD,3),Ainv,T,pe2);
 	AinvB = FqM_mul(Ainv,gel(ABCD,2),T,pe2);
 	rho = FqM_mul(CAinv,gel(ABCD,2),T,pe2);
 	rho = FpXM_sub(gel(ABCD,4),rho,pe2); /* size nW*nKV-r,(d0+1-g=nZ-r) */
-	/*rho = gdiv(rho,pe1);*/
 	for(i=1;i<=nW*nKV-r;i++)
 	{
 		for(j=1;j<=nZ-r;j++)
