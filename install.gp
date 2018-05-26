@@ -20,6 +20,7 @@ install("PicFrob","GG","PicFrob","./libpic.so");
 install("PicFrobPoly","GGG","PicFrobPoly","./libpic.so");
 install("PicEq","lGGG","PicEq","./libpic.so");
 install("PicIsZero","lGG","PicIsZero","./libpic.so");
+install("PicChart","GG","PicChart","./libpic.so");
 
 install("PicLiftTors_2","GGUG","PicLiftTors_2","./liblift.so");
 
