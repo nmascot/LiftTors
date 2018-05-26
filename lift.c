@@ -76,8 +76,15 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 	CAinv = FqM_mul(gel(ABCD,3),Ainv,T,pe2);
 	AinvB = FqM_mul(Ainv,gel(ABCD,2),T,pe2);
 	rho = FqM_mul(CAinv,gel(ABCD,2),T,pe2);
-	rho = RgM_sub(gel(ABCD,4),rho); /* size d0+1-g,nW*nKV-r */
-	rho = gdiv(rho,pe1);
+	rho = FpXM_sub(gel(ABCD,4),rho,pe2); /* size nW*nKV-r,(d0+1-g=nZ-r) */
+	/*rho = gdiv(rho,pe1);*/
+	for(i=1;i<=nW*nKV-r;i++)
+	{
+		for(j=1;j<=nZ-r;j++)
+		{
+			gcoeff(rho,i,j) = ZX_Z_divexact(gcoeff(rho,i,j),pe1);
+		}
+	}
 
 	F = matF(wV,T,p,e21);
 	/* Negate */
@@ -113,7 +120,8 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 		}
 		gel(Vs,j) = col;
 	}
-	V0 = FqM_mul(V,matkerpadic(Vs,T,p,e21),T,pe21); /* subspace f V whose rows in sW are 0 */
+	V0 = FqM_mul(V,matkerpadic(Vs,T,p,e21),T,pe21); /* subspace of V whose rows in sW are 0 */
+	pari_printf("\nsW=%Ps\ncW=%Ps\nV0=%Ps\n",sW,cW,V0);
 	V0 = gerepileupto(av1,V0); /* # = nV-nW = d0 */
 	printf("c");
 	KwVlist = cgetg(d0+1,t_VEC); /* [i] = KwV * diag(V0[i]) */ 
@@ -136,9 +144,10 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 	{
 		for(k=1;k<=d0;k++)
 		{
-			dK = zeromatcopy(nW*nKV,nZ);
 			if(j==1)
 			{
+				dK = cgetg(nZ+1,t_MAT);
+				for(P=1;P<=nZ;P++) gel(dK,P) = cgetg(nKV*(nW-1)+1,t_COL);
 				for(i=2;i<=nW;i++)
 				{
 					dKi = FqM_mul(gel(KwVlist,k),gel(VFlist,i),T,pe21);
@@ -146,22 +155,16 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 					{
 						for(e=1;e<=nKV;e++)
 						{
-							gcoeff(dK,(i-1)*nKV+e,P) = gcoeff(dKi,e,P);
+							gcoeff(dK,(i-2)*nKV+e,P) = gcoeff(dKi,e,P);
 						}
 					}
 				}
+				ABCD = M2ABCD_1block(dK,nKV,0,uv);
 			}
 			else
 			{
-				for(P=1;P<=nZ;P++)
-				{
-					for(e=1;e<=nKV;e++)
-					{
-						gcoeff(dK,(j-1)*nKV+e,P) = gcoeff(gel(KwVlist,k),e,P);
-					}
-				}
+				ABCD = M2ABCD_1block(gel(KwVlist,k),(j-1)*nKV,0,uv);
 			}
-			ABCD = M2ABCD(dK,uv);
 			dK = FpXM_sub(FqM_mul(gel(ABCD,1),AinvB,T,pe21),gel(ABCD,2),pe21);
 			dK = FqM_mul(CAinv,dK,T,pe21);
 			dK = FpXM_add(gel(ABCD,4),dK,pe21);
@@ -172,5 +175,5 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 	printf("f");
 	KM = matkerpadic(M,T,p,e21); /* TODO accel */ /* TODO varn */
 	printf("Dim ker M=%ld",lg(KM)-1);
-	return gerepileupto(av,KM);
+	return gerepilecopy(av,mkvec2(M,KM));
 }

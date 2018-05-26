@@ -124,7 +124,6 @@ GEN matkerpadic(GEN A, GEN T, GEN p, long e)
 	if(e==1) return FqM_ker(A,T,p);
 	av = avma;
 	K = ZpXQM_ker(A,T,p,e,NULL);
-	return K;
 	K = Hsort(K,p);
 	return gerepilecopy(av,K);
 }
@@ -162,7 +161,7 @@ GEN matF(GEN A, GEN T, GEN p, long e)
 		gel(B,j) = gel(A,j);
 	}
 	/* invert */
-	B = ZpXQM_inv(A,T,p,e);
+	B = ZpXQM_inv(B,T,p,e);
 	/* return the first #A rows */
 	n = lg(B);
 	for(j=1;j<n;j++)
@@ -211,7 +210,7 @@ GEN M2ABCD(GEN M, GEN uv)
 {
 	GEN u,v,res,A,col;
 	unsigned long m,n,i,j,p,q;
-  	res = cgetg(5,t_VEC);
+	res = cgetg(5,t_VEC);
 	for(p=1;p<=2;p++)
 	{
 		u = gmael(uv,1,p);
@@ -234,6 +233,44 @@ GEN M2ABCD(GEN M, GEN uv)
 		}
 	}
 	return res;
+}
+
+GEN M2ABCD_1block(GEN M, ulong top, ulong left, GEN uv)
+/* Same as above, but all zeros except for block M starting at top+1,left+1 */
+/* /!\ Not suitable for gerepile */
+{
+  GEN u,v,res,A,col;
+	long m,n;
+  ulong bot,right,i,j,p,q,ui,vj;
+  res = cgetg(5,t_VEC);
+	RgM_dimensions(M,&m,&n);
+	bot = top+m;
+	right = left+n;
+  for(p=1;p<=2;p++)
+  {
+    u = gmael(uv,1,p);
+    m = lg(u);
+    for(q=1;q<=2;q++)
+    {
+      v = gmael(uv,2,q);
+      n = lg(v);
+      A = cgetg(n,t_MAT);
+      for(j=1;j<n;j++)
+      {
+				col = cgetg(m,t_COL);
+				vj = v[j];
+        for(i=1;i<m;i++)
+        {
+					ui = u[i];
+					if(vj>left && vj<=right && ui>top && ui<=bot) gel(col,i) = gcoeff(M,ui-top,vj-left);
+					else gel(col,i) = gen_0;
+        }
+				gel(A,j) = col;
+      }
+      gel(res,q+2*(p-1)) = A;
+    }
+  }
+  return res;
 }
 
 GEN VecSmallCompl(GEN v, ulong n)

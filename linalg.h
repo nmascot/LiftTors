@@ -11,5 +11,6 @@ GEN matF(GEN,GEN,GEN,long);
 GEN mat2col(GEN);
 GEN col2mat(GEN,long,long);
 GEN M2ABCD(GEN,GEN);
+GEN M2ABCD_1block(GEN,ulong,ulong,GEN);
 GEN VecSmallCompl(GEN,ulong);
 GEN FqM_MinorCompl(GEN,GEN,GEN);
