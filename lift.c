@@ -169,7 +169,7 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 			gel(M,++n) = mat2col(dK);
 		}
 	}
-	KM = matkerpadic(M,T,p,e21); /* TODO accel */ /* TODO varn */
+	KM = matkerpadic_hint(M,T,p,e21,pe21,d0+1);
 	printf("Dim ker M = %ld\n",lg(KM)-1);
 	
 	/* FInd coords of 0 */

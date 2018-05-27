@@ -9,6 +9,7 @@ GEN FqM_Fq_mul(GEN,GEN,GEN,GEN);
 GEN ZXM_Z_mul(GEN,GEN);
 GEN RandVec_padic(GEN,GEN,GEN,GEN);
 GEN matkerpadic(GEN,GEN,GEN,long);
+GEN matkerpadic_hint(GEN,GEN,GEN,long,GEN,ulong);
 GEN mateqnpadic(GEN,GEN,GEN,long);
 GEN matimagepadic(GEN,GEN,GEN,long);
 GEN matF(GEN,GEN,GEN,long);

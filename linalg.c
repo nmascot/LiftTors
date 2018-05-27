@@ -1,6 +1,6 @@
 #include<pari/pari.h>
 
-long FpX_is0modp(GEN x,GEN p)
+long FpX_is0modp(GEN x, GEN p)
 {
 	pari_sp av = avma;
 	GEN red;
@@ -173,6 +173,32 @@ GEN matkerpadic(GEN A, GEN T, GEN p, long e)
 	K = Hsort(K,p);
 	return gerepilecopy(av,K);
 }
+
+GEN matkerpadic_hint(GEN A, GEN T, GEN p, long e, GEN pe, ulong dimker)
+{
+  pari_sp av=avma;
+	long m,n,r,j;
+  GEN K,B;
+	RgM_dimensions(A,&m,&n);
+	r = n-dimker;
+	do 
+	{
+		avma = av;
+		B = cgetg(m+1,t_MAT);
+		for(j=1;j<=m;j++)
+		{
+			gel(B,j) = random_FpC(r,p);
+		}
+		B = FqM_mul(B,A,T,pe);
+		K = FqM_ker(B,T,p);
+	} while(lg(K)!=dimker+1);
+  if(e==1) return K;
+  K = ZpXQM_ker(A,T,p,e,NULL);
+	if(lg(K)==dimker+1) return gerepileupto(av,K);
+	K = Hsort(K,p);
+  return gerepilecopy(av,K);
+}
+
 
 GEN mateqnpadic(GEN A, GEN T, GEN p, long e)
 {
