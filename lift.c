@@ -181,7 +181,7 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 	for(k0=1;k0<=nc;k0++)
 	{
 		red = gel(c0,k0);
-		if(!FpX_is0modp(red,p)) break;
+		if(!ZX_is0mod(red,p)) break;
 	}
 	c0 = FqV_Fq_mul(c0,ZpXQ_inv(red,T,p,e2),T,pe2);
 
@@ -199,7 +199,7 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 				avma = av2;
 				K = RandVec_padic(KM,T,p,pe21);
 				red = gel(K,1+d0*nW);
-			}while(FpX_is0modp(red,p));
+			}while(ZX_is0mod(red,p));
 			red = ZpXQ_inv(red,T,p,e21);
 			setlg(K,d0*nW+1);
 			K = FqV_Fq_mul(K,red,T,pe21);
@@ -245,7 +245,7 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 		for(j=1;j<=i;j++)
 		{
 			red = gcoeff(K,1,j);
-			if(!FpX_is0modp(red,p))
+			if(!ZX_is0mod(red,p))
 			{
 				k = j;
 				K = gel(K,k);

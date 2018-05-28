@@ -1,6 +1,6 @@
 #include<pari/pari.h>
 
-long FpX_is0modp(GEN,GEN);
+long ZX_is0mod(GEN,GEN);
 GEN FpXM_red(GEN,GEN);
 GEN FpXM_add(GEN,GEN,GEN);
 GEN FpXM_sub(GEN,GEN,GEN);
