@@ -1,6 +1,6 @@
 #include<pari/pari.h>
 
-long FpX_is0modp(GEN x, GEN p)
+long ZX_is0mod(GEN x, GEN p)
 {
 	pari_sp av = avma;
 	GEN red;
@@ -144,7 +144,7 @@ GEN Hsort(GEN A, GEN p)
 		m = lg(gel(A,j));
 		for(i=1;i<m;i++)
 		{
-			if(!FpX_is0modp(gcoeff(A,i,j),p))
+			if(!ZX_is0mod(gcoeff(A,i,j),p))
 			{
 				all0 = 0;
 				break;

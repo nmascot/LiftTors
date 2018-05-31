@@ -105,3 +105,50 @@ GEN PicNorm(GEN J, GEN F, GEN WE)
 	
 	return gerepileupto(av,ZpXQ_div(M2,M1,T,pe,p,e));
 }
+
+GEN AddChain(GEN n); /* TODO */
+
+GEN PicFreyRuckMulti(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C);
+
+GEN PicTorsRels(GEN J, GEN Wtors, GEN l, ulong excess)
+{
+	pari_sp av = avma;
+	ulong ntors,ntest,n,i,j;
+	GEN T,p,q,q1,z,m;
+	GEN W0,C,Wtest,R,x,zn;
+
+	if(Jgete(J)>1) pari_err(e_IMPL,"case e>1");
+	T = JgetT(J);
+	p = Jgetp(J);
+	q = powiu(p,degree(T));
+	q1 = subii(q,gen_1);
+	if(!gequal0(modii(q1,l))) pari_err(e_MISC,"No l-th roots of 1");
+	m = divii(q1,l);
+	z = gener_FpXQ(T,p,NULL);
+	z = powii(z,m);
+	W0 = JgetW0(J);
+	W0 = PicChord(J,W0,W0,1);
+	C = AddChain(l);
+	ntors = lg(Wtors)-1;
+	ntest = ntors+excess;
+	Wtest = cgetg(ntest+1,t_VEC);
+	for(i=1;i<=ntest;i++) gel(Wtest,i) = PicChord(J,PicRand0(J),PicRand0(J),1); /* TODO sufficient? */ 
+	R = cgetg(ntors+1,t_MAT);
+	for(j=1;j<=ntors;j++)
+	{
+		gel(R,j) = PicFreyRuckMulti(J,gel(Wtors,j),l,Wtest,W0,C);
+		for(i=1;i<=ntest;i++)
+		{
+			x = Fq_pow(gcoeff(R,i,j),m,T,p);
+			n = 0;
+			zn = gen_1;
+			while(!gequal(x,zn))
+			{
+				zn= Fq_mul(zn,z,T,p);
+				n++;
+			}
+			gcoeff(R,i,j) = utoi(n);
+		}
+	}
+	return gerepileupto(av,FpM_ker(R,l));
+}

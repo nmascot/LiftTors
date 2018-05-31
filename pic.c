@@ -410,3 +410,60 @@ GEN PicChart(GEN J, GEN W) /* /!\ Not Galois-equivariant ! */
 
 	return gerepileupto(av,res);
 }
+
+GEN rand_subset(ulong n, ulong r)
+{
+	pari_sp av;
+	GEN X,S;
+	ulong m,i;
+	S = cgetg(r+1,t_VECSMALL);
+	av = avma;
+	X = cgetg(n+1,t_VECSMALL);
+	for(i=1;i<=n;i++) X[i] = 1;
+	m = 0;
+	while(m<r)
+	{
+		i = random_Fl(n)+1;
+		if(X[i])
+		{
+			X[i] = 0;
+			m++;
+			S[m] = i;
+		}
+	}
+	avma = av;
+	return S;
+}
+
+GEN PicRand0(GEN J)
+{
+	pari_sp av = avma;
+	ulong d0,e,nZ,nV;
+	ulong i,j;
+	GEN T,p,pe,V;
+	GEN S,col,K;
+
+	d0 = Jgetd0(J);
+	T = JgetT(J);
+	p = Jgetp(J);
+	e = Jgete(J);
+	pe = Jgetpe(J);
+	V = JgetV(J);
+	nV = lg(V);
+	nZ = lg(gel(V,1));
+
+	K = cgetg(nV,t_MAT);
+	S = rand_subset(nZ,d0);
+	for(j=1;j<nV;j++)
+	{
+		col = cgetg(nZ,t_COL);
+		for(i=1;i<=d0;i++)
+		{
+			gel(col,i) = gcoeff(V,S[i],j);
+		}
+		gel(K,j) = col;
+	}
+	K = matkerpadic_hint(K,T,p,e,pe,nV-d0);
+	K = FqM_mul(V,K,T,pe);
+	return gerepileupto(av,K);
+}

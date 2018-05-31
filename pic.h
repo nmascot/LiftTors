@@ -28,5 +28,6 @@ GEN PicFrob(GEN J, GEN W);
 GEN PicFrobPoly(GEN J, GEN W, GEN F);
 long PicEq(GEN J, GEN WA, GEN WB);
 long PicIsZero(GEN J, GEN W);
+GEN PicRand0(GEN J);
 
 GEN PicChart(GEN J, GEN W);
