@@ -29,13 +29,14 @@ install("PicLiftTors_2","GGUG","PicLiftTors_2","./liblift.so");
 install("PicLiftTors","GGUG","PicLiftTors","./liblift.so");
 
 
-/*p=7;f=x^6-2*x+3;e=20;a=3;
+p=7;f=x^6-2*x+3;e=20;a=3;
 f=x^8 + x + 3;
 J=HyperInit(f,p,a,e);
+W=HyperPicRand(J,f);
 T=J[3];
 nZ=#J[11];
 Fqred(x)=Mod(x,T)*Mod(1,p);
 V=J[8];
 KV=J[9];
 J1 = PicRed(J,1);
-W1=HyperPicRandTors(J1,f,5,0);*/
+W1=HyperPicRandTors(J1,f,5,0);

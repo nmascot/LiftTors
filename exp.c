@@ -22,7 +22,7 @@ GEN NAF(GEN n)
 		N[i] = B2[i]+C[i]-2*C[i+1];
 	}
 	if(N[l]==0) setlg(N,l);
-	return gerepileupto(av,N);
+	return gerepilecopy(av,N);
 }
 
 GEN AddChain(GEN n, long signmatters)
@@ -67,5 +67,5 @@ GEN AddChain(GEN n, long signmatters)
 	}
 	setlg(A,j+1);
 	avma = av;
-	return gerepileupto(av,A);
+	return gerepilecopy(av,A);
 }

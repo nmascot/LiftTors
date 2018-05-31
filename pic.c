@@ -1,4 +1,5 @@
 #include "linalg.h"
+#include "exp.c"
 #include "pic.h"
 
 long Jgetg(GEN J) {return itos(gel(J,1));}
@@ -192,24 +193,63 @@ GEN PicNeg(GEN J, GEN W) { return PicChord(J,W,JgetW0(J),0); }
 GEN PicMul(GEN J, GEN W, GEN n, long flag)
 {
 	pari_sp av = avma;
-	GEN W2;
+	GEN C,Wlist,Wm1,WA,WB;
+	ulong nC,i;
+	long a,b;
 
-	if(signe(n)==0) return JgetW0(J);
+	if(gequal0(n)) return JgetW0(J);
 	if(gequal(n,gen_1)) return gcopy(W);
-	flag = (flag & 1);
-	if(gequal(n,gen_m1)) return PicChord(J,W,JgetW0(J),flag);
-	if(mpodd(n))
+	Wm1 = NULL;
+	pari_printf("n=%Ps\n",n);
+	C = AddChain(n,flag&2);
+	printf("OK");
+	pari_printf("C=%Ps\n",C);
+	nC = lg(C);
+	Wlist = cgetg(nC,t_VEC);
+	gel(Wlist,1) = W;
+	for(i=2;i<nC;i++)
 	{
-		W2 = PicMul(J,W,mpdiv(mpadd(n,gen_1),gen_2),0);
-		W2 = PicChord(J,W2,W2,0);
-		W2 = PicChord(J,W2,W,flag);
+		pari_printf("%Ps\n",gel(C,i));
+		a = gel(C,i)[2];
+		printf("a=%ld\n",a);
+		switch(a)
+		{
+			case 1:
+				WA = W;
+				break;
+			case 0:
+				WA = JgetW0(J);
+				break;
+			case -1:
+				if(Wm1==NULL) Wm1 = PicChord(J,W,JgetW0(J),0);
+				WA = Wm1;
+				break;
+			default:
+				WA = gel(Wlist,a);
+				break;
+		}
+		b = gel(C,i)[3];
+		printf("b=%ld\n",b);
+    switch(b)
+    {
+      case 1:
+        WB = W;
+				break;
+      case 0:
+        WB = JgetW0(J);
+				break;
+      case -1:
+        if(Wm1==NULL) Wm1 = PicChord(J,W,JgetW0(J),0);
+        WB = Wm1;
+				break;
+      default:
+        WB = gel(Wlist,b);
+				break;
+    }
+		printf("Chord\n");
+		gel(Wlist,i) = PicChord(J,WA,WB,(i==nC-1)&&(flag&1));
 	}
-	else
-	{
-		W2 = PicMul(J,W,mpdiv(n,gen_m2),0);
-		W2 = PicChord(J,W2,W2,flag);
-	}
-	return gerepileupto(av,W2);
+	return gerepileupto(av,gel(Wlist,nC-1));
 }
 
 GEN PicFrob(GEN J, GEN W)
