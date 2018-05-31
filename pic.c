@@ -15,7 +15,7 @@ GEN JgetW0(GEN J) {return gel(J,10);}
 GEN JgetZ(GEN J) {return gel(J,11);}
 GEN JgetFrobCyc(GEN J) {return gel(J,12);}
 
-void JgetTpe(GEN J, GEN* T, GEN* p, long* e, GEN* pe)
+void JgetTpe(GEN J, GEN* T, GEN* pe, GEN* p, long* e)
 {
 	*T = gel(J,3);
 	*p = gel(J,4);
@@ -140,12 +140,9 @@ GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
 
 	V = JgetV(J);
 	KV = JgetKV(J);
-	T = JgetT(J);
-	p = Jgetp(J);
-	pe = Jgetpe(J);
+	JgetTpe(J,&T,&pe,&p,&e);
 	g = Jgetg(J);
 	d0 = Jgetd0(J);
-	e = Jgete(J);
 
 	WAWB = DivAdd(WA,WB,4*d0+1-g,T,p,e,pe,0);
 	WAB = DivSub(V,WAWB,KV,d0+1-g,T,p,e,pe,2);
@@ -292,10 +289,7 @@ long PicEq(GEN J, GEN WA, GEN WB)
 	GEN s,sWB,KsWB,K,KV,col,T,p,pe;
 	ulong P,i,j,nZ,nW,nKV,nKsB,nK;
 
-	T = JgetT(J);
-	p = Jgetp(J);
-	e = Jgete(J);
-	pe = Jgetpe(J);
+	JgetTpe(J,&T,&pe,&p,&e);
 	KV = JgetKV(J);
 
 	s = gel(WA,1);
@@ -372,10 +366,7 @@ GEN PicChart(GEN J, GEN W) /* /!\ Not Galois-equivariant ! */
 	nV = lg(V)-1;
 	nZ = lg(gel(V,1))-1;
 	nW = lg(W)-1;
-	T = JgetT(J);
-	p = Jgetp(J);
-	e = Jgete(J);
-	pe = Jgetpe(J);
+	JgetTpe(J,&T,&pe,&p,&e);
 
 	K = cgetg(nW+1,t_MAT);
 	for(j=1;j<=nW;j++)
@@ -450,16 +441,14 @@ GEN rand_subset(ulong n, ulong r)
 GEN PicRand0(GEN J)
 {
 	pari_sp av = avma;
-	ulong d0,e,nZ,nV;
+	ulong d0,nZ,nV;
 	ulong i,j;
+	long e;
 	GEN T,p,pe,V;
 	GEN S,col,K;
 
 	d0 = Jgetd0(J);
-	T = JgetT(J);
-	p = Jgetp(J);
-	e = Jgete(J);
-	pe = Jgetpe(J);
+	JgetTpe(J,&T,&pe,&p,&e);
 	V = JgetV(J);
 	nV = lg(V);
 	nZ = lg(gel(V,1));

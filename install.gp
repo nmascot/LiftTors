@@ -25,8 +25,8 @@ install("PicEq","lGGG","PicEq","./libpic.so");
 install("PicIsZero","lGG","PicIsZero","./libpic.so");
 install("PicChart","GG","PicChart","./libpic.so");
 
-install("PicLiftTors_2","GGUG","PicLiftTors_2","./liblift.so");
-install("PicLiftTors","GGUG","PicLiftTors","./liblift.so");
+install("PicLiftTors_2","GGLG","PicLiftTors_2","./liblift.so");
+install("PicLiftTors","GGLG","PicLiftTors","./liblift.so");
 
 
 p=7;f=x^6-2*x+3;e=20;a=3;

@@ -38,7 +38,7 @@ GEN FindSuppl(GEN V, GEN W, GEN T, GEN p, GEN pe, int sq, ulong nV2)
 	return S;
 }
 
-GEN detratio(GEN K, GEN T, GEN p, ulong e, GEN pe)
+GEN detratio(GEN K, GEN T, GEN p, long e, GEN pe)
 {
 	pari_sp av = avma;
 	GEN K1,K2,col1,col2,M;
@@ -66,18 +66,16 @@ GEN detratio(GEN K, GEN T, GEN p, ulong e, GEN pe)
 GEN PicNorm(GEN J, GEN F, GEN WE)
 {
 	pari_sp av = avma;
-	ulong g,d0,e,nS1,nV2,nZ;
+	ulong g,d0,nS1,nV2,nZ;
 	ulong i,j;
+	long e;
 	GEN V,T,p,pe;
 	GEN WEV,V1,V2,M1,M2,M;
 
 	g = Jgetg(J);
 	d0 = Jgetd0(J);
 	V = JgetV(J);
-	T = JgetT(J);
-	p = Jgetp(J);
-	e = Jgete(J);
-	pe = Jgetpe(J);
+	JgetTpe(J,&T,&pe,&p,&e);
 	d0 = Jgetd0(J);
 	g = Jgetg(J);
 	nS1 = d0;
@@ -117,7 +115,7 @@ GEN PicFreyRuckMulti(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C)
 	ulong nC,ntest;
 	ulong c,d,i,j;
 	
-	JgetTpe(J,&T,&p,&e,&pe);
+	JgetTpe(J,&T,&pe,&p,&e);
 	W0 = JgetW0(J);
 	KV = JgetKV(J);
 	nC = lg(C);

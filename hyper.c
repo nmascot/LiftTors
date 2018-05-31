@@ -131,11 +131,8 @@ GEN HyperPicRand(GEN J,GEN f) /* TODO not generic */
 	ulong g,e,d0,df,i,j;
 	GEN E[2]; 
 
-	T = JgetT(J);
-	p = Jgetp(J);
-	pe = Jgetpe(J);
+	JgetTpe(J,&T,&pe,&p,&e);
 	V = JgetV(J);
-	e = Jgete(J);
 	d0 = Jgetd0(J);
 	df = degree(f);
 	g = Jgetg(J);

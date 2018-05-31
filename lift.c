@@ -1,18 +1,18 @@
 #include "linalg.h"
 #include "pic.h"
 
-GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
+GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l)
 {
 	pari_sp av1,av2,av=avma;
 	GEN V,KV,W0,T,p,pe1,pe2,pe21;
 	GEN col,K,wV,KwV,Ainv,AinvB,CAinv,rho,ABCD,uv;
 	GEN F,VF,VFlist,sW,cW,Vs,V0,KwVlist,M,KM,dK,dKi;
 	GEN c0,c,Wlifts,W,red;
-	ulong g,d0,nW,nV,nKV,nZ,nc,e2,e21,r;
+	ulong g,d0,nW,nV,nKV,nZ,nc,r;
+	long e2,e21;
 	ulong e,i,j,k,n,P,k0;
 
-	e2 = Jgete(J2);
-	pe2 = Jgetpe(J2);
+	JgetTpe(J2,&T,&pe2,&p,&e2);
 	if(e2<=e1)
 	{
 		return FpXM_red(W1,pe2);
@@ -27,8 +27,6 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 	nV = lg(V)-1;
 	nKV = lg(gel(KV,1))-1;
 	nZ = lg(gel(V,1))-1;
-	T = JgetT(J2);
-	p = Jgetp(J2);
 	pe1 = powiu(p,e1);
 	e21 = e2-e1;
 	pe21=powiu(p,e21);
@@ -262,7 +260,7 @@ GEN PicLiftTors_2(GEN J2, GEN W1, ulong e1, GEN l)
 	return gerepileupto(av,W);
 }
 
-GEN PicLiftTors(GEN J, GEN W, ulong eini, GEN l)
+GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 {
 	pari_sp av=avma;
 	ulong e,efin,e2;
