@@ -1,4 +1,5 @@
-# include "linalg.h"
+#include "linalg.h"
+#include "exp.h"
 #include "pic.h"
 
 GEN FindSuppl(GEN V, GEN W, GEN T, GEN p, GEN pe, int sq, ulong nV2)
@@ -106,9 +107,53 @@ GEN PicNorm(GEN J, GEN F, GEN WE)
 	return gerepileupto(av,ZpXQ_div(M2,M1,T,pe,p,e));
 }
 
-GEN AddChain(GEN n); /* TODO */
-
-GEN PicFreyRuckMulti(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C);
+GEN PicFreyRuckMulti(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C)
+/* Pair the l-tors pt Wtors against the pts in Wtest */ 
+{
+	pari_sp av = avma;
+	GEN WtorsM,H,col,WA,WB,res,s;
+	GEN T,p,pe,KV;
+	long e;
+	ulong nC,ntest;
+	ulong c,d,i,j;
+	
+	JgetTpe(J,&T,&p,&e,&pe);
+	W0 = JgetW0(J);
+	KV = JgetKV(J);
+	nC = lg(C);
+	ntest = lg(Wtest);
+	WtorsM = cgetg(nC,t_VEC);
+	gel(WtorsM,1) = Wtors;
+	H = cgetg(nC,t_MAT);
+	gel(H,1) = cgetg(ntest,t_COL);
+	for(d=1;d<ntest;d++) gcoeff(H,d,1) = gen_1;
+	for(c=2;c<nC;c++)
+	{
+		i = gel(C,c)[2];
+		j = gel(C,c)[3];
+		WA = i?gel(WtorsM,i):W0;
+		WB = j?gel(WtorsM,j):W0;
+		res = PicChord(J,WA,WB,3);
+		gel(WtorsM,c) = gel(res,1);
+		s = gel(res,2);
+		col = cgetg(ntest,t_COL);
+		for(d=1;d<ntest;d++)
+		{
+			gel(col,d) = ZpXQ_div(PicNorm(J,s,gel(Wtest,d)),gcoeff(H,d,i),T,pe,p,e);
+			if(j) gel(col,d) = Fq_mul(gel(col,d),gcoeff(H,d,j),T,pe);
+		}
+		gel(H,c) = FqC_Fq_mul(col,PicNorm(J,s,W0),T,pe);
+	}
+	s = DivSub(JgetW0(J),gel(WtorsM,nC-1),KV,1,T,p,e,pe,2); /* TODO which W0 ? */
+	s = gel(s,1);
+	col = gel(H,nC-1);
+	for(d=1;d<ntest;d++)
+	{
+		gel(col,d) = Fq_mul(gel(col,d),PicNorm(J,s,gel(Wtest,d)),T,pe);
+	}
+	col = FqC_Fq_mul(col,ZpXQ_inv(PicNorm(J,s,W0),T,p,e),T,pe);
+	return gerepileupto(av,col);
+}
 
 GEN PicTorsRels(GEN J, GEN Wtors, GEN l, ulong excess)
 {
@@ -128,7 +173,7 @@ GEN PicTorsRels(GEN J, GEN Wtors, GEN l, ulong excess)
 	z = powii(z,m);
 	W0 = JgetW0(J);
 	W0 = PicChord(J,W0,W0,1);
-	C = AddChain(l);
+	C = AddChain(l,0);
 	ntors = lg(Wtors)-1;
 	ntest = ntors+excess;
 	Wtest = cgetg(ntest+1,t_VEC);

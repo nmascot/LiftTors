@@ -14,6 +14,7 @@ GEN JgetKV(GEN J);
 GEN JgetW0(GEN J);
 GEN JgetZ(GEN J);
 GEN JgetFrobCyc(GEN J);
+void JgetTpe(GEN J, GEN* T, GEN* p, long* e, GEN* pe);
 
 GEN PicRed(GEN J, ulong e);
 

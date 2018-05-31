@@ -29,7 +29,7 @@ GEN AddChain(GEN n, long signmatters)
 {
 	pari_sp av = avma;
 	GEN N,A;
-	ulong l,i,j;
+	ulong l,i,j,jm1;
 	long sn,m;
 
 	sn = signe(n);
@@ -39,6 +39,7 @@ GEN AddChain(GEN n, long signmatters)
 	A = cgetg(2*l,t_VEC);
 	gel(A,1) = mkvecsmall3(1,0,-1);
 	j = 1;
+	jm1 = 0;
 	m = 1;
 	for(i=l-2;i;i--)
 	{
@@ -56,7 +57,14 @@ GEN AddChain(GEN n, long signmatters)
 			else
 			{
 				m = 1-m;
-				gel(A,j) = mkvecsmall3(m,j-1,-1);
+				if(jm1==0)
+				{
+					jm1 = j;
+					gel(A,jm1) = mkvecsmall3(-1,1,0);
+					j++;
+					gel(A,j) = mkvecsmall3(m,j-2,jm1);
+				}
+				else gel(A,j) = mkvecsmall3(m,j-1,jm1);
 			}
 		}
 	}

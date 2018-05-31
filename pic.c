@@ -1,5 +1,5 @@
 #include "linalg.h"
-#include "exp.c"
+#include "exp.h"
 #include "pic.h"
 
 long Jgetg(GEN J) {return itos(gel(J,1));}
@@ -14,6 +14,15 @@ GEN JgetKV(GEN J) {return gel(J,9);}
 GEN JgetW0(GEN J) {return gel(J,10);}
 GEN JgetZ(GEN J) {return gel(J,11);}
 GEN JgetFrobCyc(GEN J) {return gel(J,12);}
+
+void JgetTpe(GEN J, GEN* T, GEN* p, long* e, GEN* pe)
+{
+	*T = gel(J,3);
+	*p = gel(J,4);
+	*e = itos(gel(J,5));
+	*pe = gel(J,6);
+}
+
 
 GEN PicRed(GEN J, ulong e)
 {
@@ -193,60 +202,23 @@ GEN PicNeg(GEN J, GEN W) { return PicChord(J,W,JgetW0(J),0); }
 GEN PicMul(GEN J, GEN W, GEN n, long flag)
 {
 	pari_sp av = avma;
-	GEN C,Wlist,Wm1,WA,WB;
+	GEN W0,C,Wlist,WA,WB;
 	ulong nC,i;
 	long a,b;
 
-	if(gequal0(n)) return JgetW0(J);
+	W0 = JgetW0(J);
+	if(gequal0(n)) return W0;
 	if(gequal(n,gen_1)) return gcopy(W);
-	Wm1 = NULL;
-	pari_printf("n=%Ps\n",n);
 	C = AddChain(n,flag&2);
-	printf("OK");
-	pari_printf("C=%Ps\n",C);
 	nC = lg(C);
 	Wlist = cgetg(nC,t_VEC);
 	gel(Wlist,1) = W;
 	for(i=2;i<nC;i++)
 	{
-		pari_printf("%Ps\n",gel(C,i));
 		a = gel(C,i)[2];
-		printf("a=%ld\n",a);
-		switch(a)
-		{
-			case 1:
-				WA = W;
-				break;
-			case 0:
-				WA = JgetW0(J);
-				break;
-			case -1:
-				if(Wm1==NULL) Wm1 = PicChord(J,W,JgetW0(J),0);
-				WA = Wm1;
-				break;
-			default:
-				WA = gel(Wlist,a);
-				break;
-		}
+		WA = a?gel(Wlist,a):W0;
 		b = gel(C,i)[3];
-		printf("b=%ld\n",b);
-    switch(b)
-    {
-      case 1:
-        WB = W;
-				break;
-      case 0:
-        WB = JgetW0(J);
-				break;
-      case -1:
-        if(Wm1==NULL) Wm1 = PicChord(J,W,JgetW0(J),0);
-        WB = Wm1;
-				break;
-      default:
-        WB = gel(Wlist,b);
-				break;
-    }
-		printf("Chord\n");
+		WB = b?gel(Wlist,b):W0;
 		gel(Wlist,i) = PicChord(J,WA,WB,(i==nC-1)&&(flag&1));
 	}
 	return gerepileupto(av,gel(Wlist,nC-1));
