@@ -263,3 +263,67 @@ GEN HyperPicRandTors(GEN J, GEN f, GEN l, GEN C)
 	avma = av1;
 	return gerepileupto(av,W);
 }
+
+GEN HyperPicEval(GEN J, GEN W)
+{
+	pari_sp av = avma;
+	long e;
+	ulong g,nV,nZ;
+	GEN T,p,pe,V,KV,Z,Fq1;
+	ulong i,j;
+	GEN U,EqU,K,s,col,sV,U2,inv;
+	
+	JgetTpe(J,&T,&pe,&p,&e);
+	g = Jgetg(J);
+	V = JgetV(J);
+	KV = JgetKV(J);
+	Z = JgetZ(J);
+	nV = lg(V);
+	nZ = lg(Z);
+	Fq1 = mkpoln(1,gen_1);
+	setvarn(Fq1,varn(T));
+
+	if(g!=2) pari_err(e_IMPL,"g<>2");
+	U = RReval(Z,4,6,T,pe);
+	EqU = mateqnpadic(U,T,p,e);
+	K = matkerpadic(FqM_mul(EqU,W,T,pe),T,p,e);
+	if(lg(K)>2) pari_err(e_MISC,"Genericity 1 failed");
+	s = FqM_FqC_mul(W,gel(K,1),T,pe);
+	sV = cgetg(nV,t_MAT);
+	for(j=1;j<nV;j++)
+	{
+		col = cgetg(nZ,t_COL);
+		for(i=1;i<nZ;i++)
+		{
+			gel(col,i) = Fq_mul(gcoeff(V,i,j),gel(s,i),T,pe);
+		}
+		gel(sV,j) = col;
+	}
+	U = DivSub(W,sV,KV,5,T,p,e,pe,2);
+	U2 = cgetg(4,t_MAT);
+	for(j=1;j<4;j++)
+	{
+		col = cgetg(nZ,t_COL);
+		for(i=1;i<nZ;i++)
+		{
+			gel(col,i) = j==1?Fq1:gmael(Z,i,j-1);
+		}
+		gel(U2,j) = col;
+	}
+	EqU = mateqnpadic(U2,T,p,e);
+	K = matkerpadic(FqM_mul(EqU,U,T,pe),T,p,e);
+	if(lg(K)>2) pari_err(e_MISC,"Genericity 2 failed");
+	s = gel(K,1);
+	K = cgetg(5,t_MAT);
+	for(j=1;j<4;j++)
+	{
+		gel(K,j) = gel(U2,j);
+	}
+	gel(K,4) = FqM_FqC_mul(U,s,T,pe);
+	s = matkerpadic(K,T,p,e);
+	s = gel(s,1);
+	inv = ZpXQ_inv(gel(s,3),T,p,e);
+	U = mkvec2(Fq_mul(gel(s,1),inv,T,pe),Fq_mul(gel(s,2),inv,T,pe));
+	return gerepilecopy(av,U);
+}
+
