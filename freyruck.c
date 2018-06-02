@@ -84,11 +84,11 @@ GEN PicNorm(GEN J, GEN F, GEN WE)
 
 	WEV = DivAdd(V,WE,5*d0+1-g,T,p,e,pe,0);
 	V1 = FindSuppl(V,WE,T,p,pe,0,0);
-	V2 = FindSuppl(V,WEV,T,p,pe,1,g);
+	V2 = FindSuppl(V,WEV,T,p,pe,1,6*d0+1-g);
 
 	M = cgetg(nS1+nV2+1,t_MAT);
 	for(j=1;j<=nS1;j++) gel(M,j) = gel(V1,j);
-	for(j=1;j<=nV2;j++) gel(M,nV2+j) = gel(V2,j);
+	for(j=1;j<=nV2;j++) gel(M,nS1+j) = gel(V2,j);
 	M1 = detratio(matkerpadic(M,T,p,e),T,p,e,pe);
 	if(ZX_is0mod(M1,p)) pari_err(e_MISC,"D intersects D0");
 
@@ -109,22 +109,24 @@ GEN PicFreyRuckMulti(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C)
 /* Pair the l-tors pt Wtors against the pts in Wtest */ 
 {
 	pari_sp av = avma;
-	GEN WtorsM,H,col,WA,WB,res,s;
+	GEN WtorsM,Fq1,H,col,WA,WB,res,s;
 	GEN T,p,pe,KV;
 	long e;
 	ulong nC,ntest;
 	ulong c,d,i,j;
 	
 	JgetTpe(J,&T,&pe,&p,&e);
-	W0 = JgetW0(J);
+	Fq1 = mkpoln(1,gen_1);
+	setvarn(Fq1,varn(T));
 	KV = JgetKV(J);
 	nC = lg(C);
 	ntest = lg(Wtest);
 	WtorsM = cgetg(nC,t_VEC);
 	gel(WtorsM,1) = Wtors;
-	H = cgetg(nC,t_MAT);
+	/*H = cgetg(nC,at_MAT);*/
+	H = zeromatcopy(ntest-1,nC-1);
 	gel(H,1) = cgetg(ntest,t_COL);
-	for(d=1;d<ntest;d++) gcoeff(H,d,1) = gen_1;
+	for(d=1;d<ntest;d++) gcoeff(H,d,1) = Fq1;
 	for(c=2;c<nC;c++)
 	{
 		i = gel(C,c)[2];
@@ -137,12 +139,13 @@ GEN PicFreyRuckMulti(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C)
 		col = cgetg(ntest,t_COL);
 		for(d=1;d<ntest;d++)
 		{
-			gel(col,d) = ZpXQ_div(PicNorm(J,s,gel(Wtest,d)),gcoeff(H,d,i),T,pe,p,e);
+			gel(col,d) = Fq_mul(PicNorm(J,s,gel(Wtest,d)),gcoeff(H,d,i),T,pe);
 			if(j) gel(col,d) = Fq_mul(gel(col,d),gcoeff(H,d,j),T,pe);
+			gel(col,d) = ZpXQ_inv(gel(col,d),T,p,e);
 		}
 		gel(H,c) = FqC_Fq_mul(col,PicNorm(J,s,W0),T,pe);
 	}
-	s = DivSub(JgetW0(J),gel(WtorsM,nC-1),KV,1,T,p,e,pe,2); /* TODO which W0 ? */
+	s = DivSub(JgetW0(J),gel(WtorsM,nC-1),KV,1,T,p,e,pe,2);
 	s = gel(s,1);
 	col = gel(H,nC-1);
 	for(d=1;d<ntest;d++)
@@ -168,7 +171,7 @@ GEN PicTorsRels(GEN J, GEN Wtors, GEN l, ulong excess)
 	if(!gequal0(modii(q1,l))) pari_err(e_MISC,"No l-th roots of 1");
 	m = divii(q1,l);
 	z = gener_FpXQ(T,p,NULL);
-	z = powii(z,m);
+	z = Fq_pow(z,m,T,p);
 	W0 = JgetW0(J);
 	W0 = PicChord(J,W0,W0,1);
 	C = AddChain(l,0);

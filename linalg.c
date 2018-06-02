@@ -189,7 +189,7 @@ GEN matkerpadic_hint(GEN A, GEN T, GEN p, long e, GEN pe, ulong dimker)
 		{
 			gel(B,j) = random_FpC(r,p);
 		}
-		B = FqM_mul(B,A,T,pe);
+		B = FqM_mul(B,A,T,p);
 		K = FqM_ker(B,T,p);
 	} while(lg(K)!=dimker+1);
   if(e==1) return K;

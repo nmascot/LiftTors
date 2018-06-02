@@ -126,9 +126,10 @@ GEN HyperInit(GEN f, GEN p, ulong a, long e)
 
 GEN HyperPicRand(GEN J,GEN f) /* TODO not generic */
 {
-	pari_sp av = avma;
+	pari_sp av1,av = avma;
 	GEN T,p,pe,V;
-	ulong g,e,d0,df,i,j;
+	long e;
+	ulong g,d0,df,i,j;
 	GEN E[2]; 
 
 	JgetTpe(J,&T,&pe,&p,&e);
@@ -140,8 +141,10 @@ GEN HyperPicRand(GEN J,GEN f) /* TODO not generic */
 	/* Do twice : */
 	for(j=0;j<2;j++)
 	{
+		av1 = avma;
 		do
 		{
+			avma = av1;
 			/* Take d0 random points */
 			E[j] = cgetg(d0+1,t_VEC);
 			for(i=1;i<=d0;i++)
@@ -157,6 +160,37 @@ GEN HyperPicRand(GEN J,GEN f) /* TODO not generic */
 	/* Return the chord of these two W */
 	return gerepileupto(av,PicChord(J,E[0],E[1],0));
 }
+
+GEN HyperPicRandDbg(GEN J, GEN f)
+{
+	pari_sp av = avma;
+  GEN T,p,pe,V;
+	long e;
+  ulong g,d0,df,i;
+  GEN E,W;
+
+  JgetTpe(J,&T,&pe,&p,&e);
+  V = JgetV(J);
+  d0 = Jgetd0(J);
+  df = degree(f);
+  g = Jgetg(J);
+	do
+	{
+		/* Take d0 random points */
+		E = cgetg(d0+1,t_VEC);
+		for(i=1;i<=d0;i++)
+		{
+			gel(E,i) = HyperRandPt(f,T,p,e,pe);
+		}
+		/* Form the corresponding W */
+		W = RReval(E,3*d0/2,df,T,pe);
+		W = matkerpadic(W,T,p,e);
+	} while(lg(W)!=2*d0+1-g+1); /* Check that the random points are independent */
+	W = FqM_mul(V,W,T,pe);
+  /* Return the chord of these two W */
+  return gerepilecopy(av,mkvec2(W,E));
+}
+
 
 GEN ordJ(GEN f, GEN p, ulong a) /* Cardinal of Jac(y^2=f(x))(F_q), where q=p^a */
 {

@@ -454,17 +454,17 @@ GEN PicRand0(GEN J)
 	nZ = lg(gel(V,1));
 
 	K = cgetg(nV,t_MAT);
-	S = rand_subset(nZ,d0);
+	S = rand_subset(nZ-1,d0);
 	for(j=1;j<nV;j++)
 	{
-		col = cgetg(nZ,t_COL);
+		col = cgetg(d0+1,t_COL);
 		for(i=1;i<=d0;i++)
 		{
 			gel(col,i) = gcoeff(V,S[i],j);
 		}
 		gel(K,j) = col;
 	}
-	K = matkerpadic_hint(K,T,p,e,pe,nV-d0);
+	K = matkerpadic_hint(K,T,p,e,pe,nV-1-d0);
 	K = FqM_mul(V,K,T,pe);
 	return gerepileupto(av,K);
 }
