@@ -271,13 +271,13 @@ GEN PicFrobPoly(GEN J, GEN W, GEN F)
 	FW = W;
 	n = truecoeff(F,0);
 	if(d&1L) n = negi(n);
-	res = PicMul(J,W,n,0);
+	res = PicMul(J,W,n,2);
 	for(i=1;i<=d;i++)
 	{
 		FW = PicFrob(J,FW);
 		n = truecoeff(F,i);
 		if((d+1-i)&1L) n = negi(n);
-		res = PicChord(J,res,PicMul(J,FW,n,0),0);
+		res = PicChord(J,res,PicMul(J,FW,n,2),0);
 	}
 	return gerepileupto(av,res);
 }
