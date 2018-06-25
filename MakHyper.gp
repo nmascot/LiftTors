@@ -90,6 +90,17 @@ PicInput(X,P1,P2)= \\ W representing [P1+P2-OO]
  A*matkerMod(B,p,T,e);
 }
 
+PicRand0(X)=
+{
+	my([f,df,V,KV,W0,Z,FrobCyc,g,d0,p,T,e,Frob]=X,S,K);
+	S = vector(d0);
+	while(#Set(S)<d0,
+		for(i=1,d0,S[i]=random(#Z)+1)
+	);
+	K = matconcat(vector(d0,i,V[i,])~);
+	V*matkerMod(K,p,T,e);
+}
+
 PicRand(X)=
 {
  \\ TODO not generic

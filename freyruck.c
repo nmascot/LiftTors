@@ -1,6 +1,7 @@
 #include "linalg.h"
 #include "exp.h"
 #include "pic.h"
+#include "hyper.h"
 
 GEN FindSuppl(GEN V, GEN W, GEN T, GEN p, GEN pe, int sq, ulong nV2)
 /* /!\ Shallow */
@@ -131,8 +132,8 @@ GEN PicFreyRuckMulti(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C)
 	{
 		i = gel(C,c)[2];
 		j = gel(C,c)[3];
-		WA = i?gel(WtorsM,i):W0;
-		WB = j?gel(WtorsM,j):W0;
+		WA = i?gel(WtorsM,i):JgetW0(J);
+		WB = j?gel(WtorsM,j):JgetW0(J);
 		res = PicChord(J,WA,WB,3);
 		gel(WtorsM,c) = gel(res,1);
 		s = gel(res,2);
@@ -178,7 +179,7 @@ GEN PicTorsRels(GEN J, GEN Wtors, GEN l, ulong excess)
 	ntors = lg(Wtors)-1;
 	ntest = ntors+excess;
 	Wtest = cgetg(ntest+1,t_VEC);
-	for(i=1;i<=ntest;i++) gel(Wtest,i) = PicChord(J,PicRand0(J),PicRand0(J),1); /* TODO sufficient? */ 
+	for(i=1;i<=ntest;i++) gel(Wtest,i) = PicChord(J,PicRand0(J),PicRand0(J),1); /* TODO sufficient? */
 	R = cgetg(ntors+1,t_MAT);
 	for(j=1;j<=ntors;j++)
 	{
