@@ -213,7 +213,7 @@ GEN ordJ(GEN f, GEN p, ulong a) /* Cardinal of Jac(y^2=f(x))(F_q), where q=p^a *
 GEN HyperPicRandTors(GEN J, GEN f, GEN l, GEN C)
 {
 	pari_sp av1,av = avma;
-	GEN T,p,fp,chi,xa1,chiC,N,M,W,lW;
+	GEN T,p,fp,chi,chirem,xa1,chiC,N,M,W,lW;
 	long v,a;
 	ulong i;
 
@@ -234,10 +234,8 @@ GEN HyperPicRandTors(GEN J, GEN f, GEN l, GEN C)
 	if(v==0) pari_err(e_MISC,"No rational %Ps-torsion",l);
 	if(signe(C))
 	{
-		av1 = avma;
-		if(!gdvd(chi,C)) pari_err(e_MISC,"Incorrect characteristic polynomial");
-		avma = av1;
-		chiC = gdiv(chi,C);
+		chiC = FpX_divrem(chi,C,l,&chirem);
+		if(signe(chirem)) pari_err(e_MISC,"Incorrect characteristic polynomial");
 		av1 = avma;
 		if(degree(ZX_gcd(chiC,C))) pari_err(e_MISC,"Eigen multiplicity");
 		avma = av1;
