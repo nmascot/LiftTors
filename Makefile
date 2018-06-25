@@ -70,5 +70,8 @@ libpic.so: pic.o
 liblift.so: lift.o
 	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) lift.o $(EXTRAMODLDFLAGS)
 
+libtest-mt.so: test-mt.o
+	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) test-mt.o $(EXTRAMODLDFLAGS)
+
 libfreyruck.so: freyruck.o
 	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) freyruck.o $(EXTRAMODLDFLAGS)
