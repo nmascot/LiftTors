@@ -13,5 +13,5 @@ NJp=ordJ(f,p,a);
 X=PicInit(f,p,a,1000);
 X1=PicRed(X,1);
 W1=PicRandTors(X1,l,'x^2+3*'x+7);
-\\W2=PicRandTors(X1,3,'x^2+3*'x+7);
+W2=PicRandTors(X1,3,'x^2+3*'x+7);
 W=PicLiftTors(X,W1,l);

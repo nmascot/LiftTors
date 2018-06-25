@@ -45,21 +45,21 @@ GEN detratio(GEN K, GEN T, GEN p, long e, GEN pe)
 	ulong d0,i,j;
 	d0 = lg(K)-1;
 	K1 = cgetg(d0+1,t_MAT);
-  K2 = cgetg(d0+1,t_MAT);
-  for(j=1;j<=d0;j++)
-  {
-    col1 = cgetg(d0+1,t_COL);
-    col2 = cgetg(d0+1,t_COL);
-    for(i=1;i<=d0;i++)
-    {
-      gel(col1,i) = gcoeff(K,i,j);
-      gel(col2,i) = gcoeff(K,d0+i,j);
-    }
-    gel(K1,j) = col1;
-    gel(K2,j) = col2;
-  }
-  M = FqM_mul(K2,ZpXQM_inv(K1,T,p,e),T,pe);
-  M = ZpXQM_det(M,T,p,e);
+	K2 = cgetg(d0+1,t_MAT);
+	for(j=1;j<=d0;j++)
+	{
+		col1 = cgetg(d0+1,t_COL);
+		col2 = cgetg(d0+1,t_COL);
+		for(i=1;i<=d0;i++)
+		{
+			gel(col1,i) = gcoeff(K,i,j);
+			gel(col2,i) = gcoeff(K,d0+i,j);
+		}
+		gel(K1,j) = col1;
+		gel(K2,j) = col2;
+	}
+	M = FqM_mul(K2,ZpXQM_inv(K1,T,p,e),T,pe);
+	M = ZpXQM_det(M,T,p,e);
 	return gerepileupto(av,M);
 }
 
