@@ -2,12 +2,14 @@
 
 GEN bnf3(GEN n)
 {
-	pari_sp av=avma;
+	/*pari_sp av=avma;*/
+	printf("Into worker\n");
 	GEN pol,K;
 	pol = mkpoln(4,gen_1,gen_0,gen_0,n);
 	pari_printf("%Ps\n",pol);
 	K = bnfinit0(pol,0,NULL,100);
-	return gerepileupto(av,K);
+	return K;
+	/*return gerepileupto(av,K);*/
 }
 
 GEN testmt(ulong t, GEN N0)
@@ -16,7 +18,7 @@ GEN testmt(ulong t, GEN N0)
 	GEN vN,done,worker,output;
 	long i,workid,pending;
 	struct pari_mt pt;
-	entree ep_worker={"_workernico",0,(void*)bnf3,14,"G",""};
+	entree ep_worker={"_workernico",0,(void*)bnf3,0,"G",""};
 	pari_add_function(&ep_worker);
 	vN = cgetg(t+1,t_VEC);
 	output = cgetg(t+1,t_VEC);
@@ -34,7 +36,7 @@ GEN testmt(ulong t, GEN N0)
 		printf("i=%ld\n",i);
     /* submit job (input) */
 		printf("sub\n");
-    mt_queue_submit(&pt, i, i<=t?gel(vN,i):NULL);
+    mt_queue_submit(&pt, i, i<=t?mkvec(gel(vN,i)):NULL);
     /* get result (output) */
 		printf("get\n");
     done = mt_queue_get(&pt, &workid, &pending);

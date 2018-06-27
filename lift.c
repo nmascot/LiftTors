@@ -1,16 +1,113 @@
 #include "linalg.h"
 #include "pic.h"
 
+GEN PicLift_worker(GEN NW, GEN NZ, GEN NKV, GEN KwVk, GEN VFlist, GEN uv, GEN AinvB, GEN CAinv, GEN T, GEN pe21)
+{
+	GEN M,dK,dKi,ABCD;
+	ulong nW,nZ,nKV;
+	ulong j,P,i,e;
+
+	nW = itou(NW);
+	nZ = itou(NZ);
+	nKV = itou(NKV);
+	M = cgetg(nW+1,t_MAT);
+  for(j=1;j<=nW;j++)
+  {
+		if(j==1)
+		{
+			dK = cgetg(nZ+1,t_MAT);
+			for(P=1;P<=nZ;P++) gel(dK,P) = cgetg(nKV*(nW-1)+1,t_COL);
+			for(i=2;i<=nW;i++)
+			{
+				dKi = FqM_mul(KwVk,gel(VFlist,i),T,pe21);
+				for(P=1;P<=nZ;P++)
+				{
+					for(e=1;e<=nKV;e++)
+					{
+						gcoeff(dK,(i-2)*nKV+e,P) = gcoeff(dKi,e,P);
+					}
+				}
+			}
+			ABCD = M2ABCD_1block(dK,nKV,0,uv);
+		}
+		else
+ 		{
+			ABCD = M2ABCD_1block(KwVk,(j-1)*nKV,0,uv);
+		}
+		dK = FpXM_sub(FqM_mul(gel(ABCD,1),AinvB,T,pe21),gel(ABCD,2),pe21);
+		dK = FqM_mul(CAinv,dK,T,pe21);
+		dK = FpXM_add(gel(ABCD,4),dK,pe21);
+		dK = FpXM_sub(dK,FqM_mul(gel(ABCD,3),AinvB,T,pe21),pe21);
+		gel(M,j) = mat2col(dK);
+  }
+	return M;
+}
+
+GEN PicLiftTors_worker(GEN J, GEN W1, GEN l, GEN KM, GEN c0, GEN V0, GEN D0, GEN NW, GEN NZ, GEN K0, GEN T, GEN p, GEN E2, GEN pe2, GEN E21, GEN pe21, GEN pe1, GEN randseed)
+{
+	pari_sp av = avma;
+	GEN K,red,W,c;
+	ulong d0,nW,nZ,nc,k0,n,i,j,k,P;
+	long e2,e21;
+	setrand(randseed);
+	d0 = itou(D0);
+	nW = itou(NW);
+	nZ = itou(NZ);
+	nc = lg(c0)-1;
+	k0 = itou(K0);
+	e2 = itos(E2);
+	e21 = itos(E21);
+	/* Find a random solution to the inhomogeneous system */
+  do
+  {
+    K = RandVec_padic(KM,T,p,pe21);
+    red = gel(K,1+d0*nW);
+  } while(ZX_is0mod(red,p));
+  red = ZpXQ_inv(red,T,p,e21);
+  setlg(K,d0*nW+1);
+  K = FqV_Fq_mul(K,red,T,pe21);
+
+  n = 0;
+  W = zeromatcopy(nZ,nW);
+  for(k=1;k<=d0;k++)
+  {
+    for(j=1;j<=nW;j++)
+    {
+      n++;
+      for(P=1;P<=nZ;P++)
+      {
+        gcoeff(W,P,j) = FpX_add(gcoeff(W,P,j),Fq_mul(gel(K,n),gcoeff(V0,P,k),T,pe21),pe21);
+      }
+    }
+  }
+  W = FpXM_add(W1,ZXM_Z_mul(W,pe1),pe2);
+  /* Mul by l, get coordinates, and compare them to those of W0 */
+  c = PicChart(J,PicMul(J,W,l,0));
+  c = FqV_Fq_mul(c,ZpXQ_inv(gel(c,k0),T,p,e2),T,pe2);
+  for(i=1;i<=nc;i++)
+  {
+    gel(c,i) = ZX_Z_divexact(FpX_sub(gel(c,i),gel(c0,i),pe2),pe1);
+  }
+	return gcopy(mkvec2(W,c));
+	return gerepilecopy(av,mkvec2(W,c));
+}
+
 GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l)
 {
-	pari_sp av1,av2,av=avma;
+	pari_sp av1,av=avma;
 	GEN V,KV,W0,T,p,pe1,pe2,pe21;
 	GEN col,K,wV,KwV,Ainv,AinvB,CAinv,rho,ABCD,uv;
-	GEN F,VF,VFlist,sW,cW,Vs,V0,KwVlist,M,KM,dK,dKi;
-	GEN c0,c,Wlifts,W,red;
+	GEN F,VF,VFlist,sW,cW,Vs,V0,KwVlist,M,KM,worker,done;
+	GEN c0,Wlifts,W,red;
+	GEN NW,NZ,NKV,D0,K0,E2,E21,randseed,args;
 	ulong g,d0,nW,nV,nKV,nZ,nc,r;
-	long e2,e21;
-	ulong e,i,j,k,n,P,k0;
+	long e2,e21,pending,workid;
+	ulong e,i,j,k,P,k0;
+	struct pari_mt pt;
+  entree ep_worker_1={"PicLift_worker",0,(void*)PicLift_worker,1,"GGGGGGGGGG",""};
+  entree ep_worker_2={"PicLiftTors_worker",0,(void*)PicLiftTors_worker,1,"GGGGGGGGGGGGGGGGGG",""};
+	pari_add_function(&ep_worker_1);
+	pari_add_function(&ep_worker_2);
 
 	JgetTpe(J2,&T,&pe2,&p,&e2);
 	if(e2<=e1)
@@ -30,6 +127,12 @@ GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l)
 	pe1 = powiu(p,e1);
 	e21 = e2-e1;
 	pe21=powiu(p,e21);
+	E2 = stoi(e2);
+	E21 = stoi(e21);
+	NW = utoi(nW);
+	NKV = utoi(nKV);
+	NZ = utoi(nZ);
+	D0 = utoi(d0);
 
 	/* Lift W1 as a subspace of V */
 	av1 = avma;
@@ -104,6 +207,7 @@ GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l)
 			gmael(VFlist,j,P) = FqC_Fq_mul(gel(VF,P),gcoeff(W1,P,j),T,pe21);
 		}
 	}
+	gel(VFlist,1) = gen_0;
 	/* Now find defs that leave a minor of W fixed */
 	sW = gel(FqM_indexrank(W1,T,p),1); /* # = nW */
 	cW = VecSmallCompl(sW,nZ);
@@ -134,43 +238,28 @@ GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l)
 	M = cgetg(2+d0*nW,t_MAT);
 	gel(M,1+d0*nW) = mat2col(rho);
 
-	n = 0;
-	for(j=1;j<=nW;j++)
+	pending = 0;
+  worker = strtofunction("PicLift_worker");
+  mt_queue_start(&pt, worker);
+	for(k=1; k<=d0 || pending; k++)
 	{
-		for(k=1;k<=d0;k++)
-		{
-			if(j==1)
+		mt_queue_submit(&pt,k,k>d0?NULL:mkvecn(10,NW,NZ,NKV,gel(KwVlist,k),VFlist,uv,AinvB,CAinv,T,pe21));
+		done = mt_queue_get(&pt, &workid, &pending);
+    if(done)
+    {
+			for(j=1;j<=nW;j++)
 			{
-				dK = cgetg(nZ+1,t_MAT);
-				for(P=1;P<=nZ;P++) gel(dK,P) = cgetg(nKV*(nW-1)+1,t_COL);
-				for(i=2;i<=nW;i++)
-				{
-					dKi = FqM_mul(gel(KwVlist,k),gel(VFlist,i),T,pe21);
-					for(P=1;P<=nZ;P++)
-					{
-						for(e=1;e<=nKV;e++)
-						{
-							gcoeff(dK,(i-2)*nKV+e,P) = gcoeff(dKi,e,P);
-						}
-					}
-				}
-				ABCD = M2ABCD_1block(dK,nKV,0,uv);
+				gel(M,(workid-1)*nW+j) = gel(done,j);
 			}
-			else
-			{
-				ABCD = M2ABCD_1block(gel(KwVlist,k),(j-1)*nKV,0,uv);
-			}
-			dK = FpXM_sub(FqM_mul(gel(ABCD,1),AinvB,T,pe21),gel(ABCD,2),pe21);
-			dK = FqM_mul(CAinv,dK,T,pe21);
-			dK = FpXM_add(gel(ABCD,4),dK,pe21);
-			dK = FpXM_sub(dK,FqM_mul(gel(ABCD,3),AinvB,T,pe21),pe21);
-			gel(M,++n) = mat2col(dK);
-		}
+    }
 	}
+	mt_queue_end(&pt);
+	printf("Ker...\n");
 	KM = matkerpadic_hint(M,T,p,e21,pe21,d0+1);
 	printf("Dim ker M = %ld\n",lg(KM)-1);
 	
-	/* FInd coords of 0 */
+	/* Find coords of 0 */
+	/* TODO pass this as argument */
 	c0 = PicChart(J2,W0);
 	nc = lg(c0)-1;
 	/* TODO could be NULL */
@@ -182,52 +271,35 @@ GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l)
 		if(!ZX_is0mod(red,p)) break;
 	}
 	c0 = FqV_Fq_mul(c0,ZpXQ_inv(red,T,p,e2),T,pe2);
+	K0 = utoi(k0);
 
 	Wlifts = cgetg(g+2,t_VEC);
+	K = cgetg(g+2,t_MAT);
+	worker = strtofunction("PicLiftTors_worker");
 	av1 = avma;
 	do
 	{
 		/* Find g+1 lifts */
 		avma = av1;
-		for(i=1;i<=g+1;i++)
+		pending = 0;
+		mt_queue_start(&pt,worker);
+		for(i=1;i<=g+1||pending;i++)
 		{
-			av2 = avma;
-			do
+			if(i<=g+1)
 			{
-				avma = av2;
-				K = RandVec_padic(KM,T,p,pe21);
-				red = gel(K,1+d0*nW);
-			}while(ZX_is0mod(red,p));
-			red = ZpXQ_inv(red,T,p,e21);
-			setlg(K,d0*nW+1);
-			K = FqV_Fq_mul(K,red,T,pe21);
-			n = 0;
-			W = zeromatcopy(nZ,nW);
-			for(j=1;j<=nW;j++)
-			{
-				for(k=1;k<=d0;k++)
-				{
-					n++;
-					for(P=1;P<=nZ;P++)
-					{
-						gcoeff(W,P,j) = FpX_add(gcoeff(W,P,j),Fq_mul(gel(K,n),gcoeff(V0,P,k),T,pe21),pe21);
-					}
-				}
+				randseed = utoi(i);
+				args = mkvecn(18,J2,W1,l,KM,c0,V0,D0,NW,NZ,K0,T,p,E2,pe2,E21,pe21,pe1,randseed);
+				mt_queue_submit(&pt,i,args);
 			}
-			gel(Wlifts,i) = FpXM_add(W1,ZXM_Z_mul(W,pe1),pe2);
-		}
-		/* Find a combination of them which is l-torsion */
-		K = cgetg(g+2,t_MAT);
-		for(j=1;j<=g+1;j++)
-		{
-			c = PicChart(J2,PicMul(J2,gel(Wlifts,j),l,0));
-			c = FqV_Fq_mul(c,ZpXQ_inv(gel(c,k0),T,p,e2),T,pe2);
-			for(i=1;i<=nc;i++)
+			else mt_queue_submit(&pt,i,NULL);
+			done = mt_queue_get(&pt,&workid,&pending);
+			if(done)
 			{
-				gel(c,i) = ZX_Z_divexact(FpX_sub(gel(c,i),gel(c0,i),pe2),pe1);
+				gel(Wlifts,workid) = gel(done,1);
+				gel(K,workid) = gel(done,2);
 			}
-			gel(K,j)=c;
 		}
+		mt_queue_end(&pt);
 		for(j=2;j<=g+1;j++)
 		{
 			for(i=1;i<=nc;i++)

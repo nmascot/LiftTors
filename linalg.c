@@ -181,19 +181,24 @@ GEN matkerpadic_hint(GEN A, GEN T, GEN p, long e, GEN pe, ulong dimker)
   GEN K,B;
 	RgM_dimensions(A,&m,&n);
 	r = n-dimker;
+	/*printf("By hint, for %lux%lu to %lux%lu\n",m,n,r,n);*/
 	do 
 	{
 		avma = av;
+		/*printf("ker_hint attempt\n");*/
 		B = cgetg(m+1,t_MAT);
 		for(j=1;j<=m;j++)
 		{
 			gel(B,j) = random_FpC(r,p);
 		}
-		B = FqM_mul(B,A,T,p);
-		K = FqM_ker(B,T,p);
+		K = FqM_mul(B,A,T,p);
+		K = FqM_ker(K,T,p);
 	} while(lg(K)!=dimker+1);
   if(e==1) return K;
-  K = ZpXQM_ker(A,T,p,e,NULL);
+	/*printf("Real mul\n");*/
+	K = FqM_mul(B,A,T,pe);
+	/*printf("Real ker\n");*/
+  K = ZpXQM_ker(K,T,p,e,NULL);
 	if(lg(K)==dimker+1) return gerepileupto(av,K);
 	K = Hsort(K,p);
   return gerepilecopy(av,K);
