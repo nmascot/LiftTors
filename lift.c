@@ -31,7 +31,7 @@ GEN PicLift_worker(GEN NW, GEN NZ, GEN NKV, GEN KwVk, GEN VFlist, GEN uv, GEN Ai
 			ABCD = M2ABCD_1block(dK,nKV,0,uv);
 		}
 		else
- 		{
+		{
 			ABCD = M2ABCD_1block(KwVk,(j-1)*nKV,0,uv);
 		}
 		dK = FpXM_sub(FqM_mul(gel(ABCD,1),AinvB,T,pe21),gel(ABCD,2),pe21);
