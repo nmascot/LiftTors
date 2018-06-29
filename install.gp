@@ -1,3 +1,9 @@
+WeiRed(f,h)=
+{
+ my(F=f+(h/2)^2);
+ 2^poldegree(F)*subst(F,x,x/2);
+}
+
 install("matkerpadic","GGGL",,"./liblinalg.so");
 install("mateqnpadic","GGGL",,"./liblinalg.so");
 install("VecSmallCompl","GU","VecSmallCompl","./liblinalg.so");
@@ -34,6 +40,8 @@ install("JgetT","G","JgetT","./libpic.so");
 install("Jgetpe","G","Jgetpe","./libpic.so");
 
 \\install("PicLiftTors_2","GGLG","PicLiftTors_2","./liblift.so");
+install("PicLift_worker","GGGGGGGGGG","PicLift_worker","./liblift.so");
+install("PicLiftTors_worker","GGGGGGGGGGGGGGGGGG","PicLiftTors_worker","./liblift.so");
 install("PicLiftTors","GGLG","PicLiftTors","./liblift.so");
 
 install("PicTorsRels","GGGU","PicTorsRels","./libfreyruck.so");
