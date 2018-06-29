@@ -18,9 +18,9 @@ GEN testmt(ulong t, GEN N0)
 	GEN vN,done,worker,output;
 	long i,workid,pending;
 	struct pari_mt pt;
-	static entree ep_worker={"_workernico",0,(void*)bnf3,0,"G",""};
+	/*static entree ep_worker={"_workernico",0,(void*)bnf3,0,"G",""};
 	static int entree_added = 0;
-	if(entree_added==0) {pari_add_function(&ep_worker); entree_added = 1;}
+	if(entree_added==0) {pari_add_function(&ep_worker); entree_added = 1;}*/
 	vN = cgetg(t+1,t_VEC);
 	output = cgetg(t+1,t_VEC);
 	for(i=1;i<=t;i++)
@@ -29,7 +29,7 @@ GEN testmt(ulong t, GEN N0)
 	}
 	pari_printf("%Ps\n",vN);
 	pending = 0;
-	worker = strtofunction("_workernico");
+	worker = strtofunction("bnf3");
 	printf("Appel parallele\n");
 	mt_queue_start(&pt, worker);
 	for (i=1; i<=t || pending; i++)
