@@ -103,11 +103,22 @@ GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l)
 	ulong g,d0,nW,nV,nKV,nZ,nc,r;
 	long e2,e21,pending,workid;
 	ulong e,i,j,k,P,k0;
+
 	struct pari_mt pt;
-  entree ep_worker_1={"PicLift_worker",0,(void*)PicLift_worker,1,"GGGGGGGGGG",""};
-  entree ep_worker_2={"PicLiftTors_worker",0,(void*)PicLiftTors_worker,1,"GGGGGGGGGGGGGGGGGG",""};
-	pari_add_function(&ep_worker_1);
-	pari_add_function(&ep_worker_2);
+  static entree ep_worker_1={"PicLift_worker",0,(void*)PicLift_worker,1,"GGGGGGGGGG",""};
+  static entree ep_worker_2={"PicLiftTors_worker",0,(void*)PicLiftTors_worker,1,"GGGGGGGGGGGGGGGGGG",""};
+	static int worker_1 = 0;
+	static int worker_2 = 0;
+	if(worker_1==0)
+	{
+		pari_add_function(&ep_worker_1);
+		worker_1 = 1;
+	}
+	if(worker_2==0)
+	{
+		pari_add_function(&ep_worker_2);
+		worker_2 = 1;
+	}
 
 	JgetTpe(J2,&T,&pe2,&p,&e2);
 	if(e2<=e1)
@@ -287,7 +298,7 @@ GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l)
 		{
 			if(i<=g+1)
 			{
-				randseed = utoi(i);
+				randseed = utoi(pari_rand());
 				args = mkvecn(18,J2,W1,l,KM,c0,V0,D0,NW,NZ,K0,T,p,E2,pe2,E21,pe21,pe1,randseed);
 				mt_queue_submit(&pt,i,args);
 			}

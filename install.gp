@@ -1,3 +1,9 @@
+WeiRed(f,h)=
+{
+ my(F=f+(h/2)^2);
+ 2^poldegree(F)*subst(F,x,x/2);
+}
+
 install("matkerpadic","GGGL",,"./liblinalg.so");
 install("mateqnpadic","GGGL",,"./liblinalg.so");
 install("VecSmallCompl","GU","VecSmallCompl","./liblinalg.so");

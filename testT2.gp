@@ -1,9 +1,7 @@
 read("install.gp");
 read("MakTorsSpace.gp");
-p=7;a=8;e=1000;
-f=x^8 + x + 3;
-p=11;a=8;e=512;l=3;d=4;
-f=x^6+x+1;
+p=7;a=8;e=512;l=3;C=x^2+3*x+7;d=2;
+f=WeiRed(x^6-3*x^5+2*x^4+x^3-x,1);
 J=HyperInit(f,p,a,e);
 J1=PicRed(J,1);
 
