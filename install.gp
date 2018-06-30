@@ -44,5 +44,5 @@ install("PicLift_worker","UUUGGGGGGG","PicLift_worker","./liblift.so");
 install("PicLiftTors_worker","GGGGGGUUUUGGLGLGGG","PicLiftTors_worker","./liblift.so");
 install("PicLiftTors","GGLG","PicLiftTors","./liblift.so");
 
+install("PicFreyRuckMulti","GGGGGG","PicFreyRuckMulti","./libfreyruck.so");
 install("PicTorsRels","GGGU","PicTorsRels","./libfreyruck.so");
-\\install("PicNorm","GGG","PicNorm","./libfreyruck.so");

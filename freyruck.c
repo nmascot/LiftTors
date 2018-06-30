@@ -160,9 +160,12 @@ GEN PicFreyRuckMulti(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C)
 GEN PicTorsRels(GEN J, GEN Wtors, GEN l, ulong excess)
 {
 	pari_sp av = avma;
-	ulong ntors,ntest,n,i,j;
+	ulong ntors,ntest,n,i;
 	GEN T,p,q,q1,z,m;
 	GEN W0,C,Wtest,R,x,zn;
+	struct pari_mt pt;
+	GEN worker,done;
+	long pending,j,workid;
 
 	if(Jgete(J)>1) pari_err(e_IMPL,"case e>1");
 	T = JgetT(J);
@@ -181,9 +184,17 @@ GEN PicTorsRels(GEN J, GEN Wtors, GEN l, ulong excess)
 	Wtest = cgetg(ntest+1,t_VEC);
 	for(i=1;i<=ntest;i++) gel(Wtest,i) = PicChord(J,PicRand0(J),PicRand0(J),1); /* TODO sufficient? */
 	R = cgetg(ntors+1,t_MAT);
+	pending = 0;
+	worker = strtofunction("PicFreyRuckMulti");
+	mt_queue_start(&pt,worker);
+	for(j=1;j<=ntors||pending;j++)
+	{
+		mt_queue_submit(&pt,j,j<=ntors?mkvecn(6,J,gel(Wtors,j),l,Wtest,W0,C):NULL);
+		done = mt_queue_get(&pt,&workid,&pending);
+		if(done) gel(R,workid) = done;
+	}
 	for(j=1;j<=ntors;j++)
 	{
-		gel(R,j) = PicFreyRuckMulti(J,gel(Wtors,j),l,Wtest,W0,C);
 		for(i=1;i<=ntest;i++)
 		{
 			x = Fq_pow(gcoeff(R,i,j),m,T,p);
