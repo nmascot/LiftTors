@@ -1,16 +1,14 @@
 #include "linalg.h"
 #include "pic.h"
 
-GEN PicLift_worker(GEN NW, GEN NZ, GEN NKV, GEN KwVk, GEN VFlist, GEN uv, GEN AinvB, GEN CAinv, GEN T, GEN pe21)
+GEN PicLift_worker(ulong nW, ulong nZ, ulong nKV, GEN KwVk, GEN VFlist, GEN uv, GEN AinvB, GEN CAinv, GEN T, GEN pe21)
 {
+	pari_sp av = avma;
 	GEN M,dK,dKi,ABCD;
-	ulong nW,nZ,nKV;
 	ulong j,P,i,e;
 
-	nW = itou(NW);
-	nZ = itou(NZ);
-	nKV = itou(NKV);
 	M = cgetg(nW+1,t_MAT);
+	for(j=1;j<=nW;j++) gel(M,j) = NULL;
   for(j=1;j<=nW;j++)
   {
 		if(j==1)
@@ -40,23 +38,16 @@ GEN PicLift_worker(GEN NW, GEN NZ, GEN NKV, GEN KwVk, GEN VFlist, GEN uv, GEN Ai
 		dK = FpXM_sub(dK,FqM_mul(gel(ABCD,3),AinvB,T,pe21),pe21);
 		gel(M,j) = mat2col(dK);
   }
-	return M;
+	return gerepileupto(av,M);
 }
 
-GEN PicLiftTors_worker(GEN J, GEN W1, GEN l, GEN KM, GEN c0, GEN V0, GEN D0, GEN NW, GEN NZ, GEN K0, GEN T, GEN p, GEN E2, GEN pe2, GEN E21, GEN pe21, GEN pe1, GEN randseed)
+GEN PicLiftTors_worker(GEN J, GEN W1, GEN l, GEN KM, GEN c0, GEN V0, ulong d0, ulong nW, ulong nZ, ulong k0, GEN T, GEN p, long e2, GEN pe2, long e21, GEN pe21, GEN pe1, GEN randseed)
 {
 	pari_sp av = avma;
 	GEN K,red,W,c;
-	ulong d0,nW,nZ,nc,k0,n,i,j,k,P;
-	long e2,e21;
+	ulong nc,n,i,j,k,P;
 	setrand(randseed);
-	d0 = itou(D0);
-	nW = itou(NW);
-	nZ = itou(NZ);
 	nc = lg(c0)-1;
-	k0 = itou(K0);
-	e2 = itos(E2);
-	e21 = itos(E21);
 	/* Find a random solution to the inhomogeneous system */
   do
   {
@@ -88,7 +79,6 @@ GEN PicLiftTors_worker(GEN J, GEN W1, GEN l, GEN KM, GEN c0, GEN V0, GEN D0, GEN
   {
     gel(c,i) = ZX_Z_divexact(FpX_sub(gel(c,i),gel(c0,i),pe2),pe1);
   }
-	return gcopy(mkvec2(W,c));
 	return gerepilecopy(av,mkvec2(W,c));
 }
 
