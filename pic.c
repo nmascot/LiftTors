@@ -208,13 +208,14 @@ GEN PicMul(GEN J, GEN W, GEN n, long flag)
 	if(gequal(n,gen_1)) return gcopy(W);
 	C = AddChain(n,flag&2);
 	nC = lg(C);
+	pari_printf("PicMul : Mul by %Ps in %lu steps\n",n,nC-2);
 	Wlist = cgetg(nC,t_VEC);
 	gel(Wlist,1) = W;
 	for(i=2;i<nC;i++)
 	{
-		a = gel(C,i)[2];
+		a = gmael(C,i,2)[1];
 		WA = a?gel(Wlist,a):W0;
-		b = gel(C,i)[3];
+		b = gmael(C,i,2)[2];
 		WB = b?gel(Wlist,b):W0;
 		gel(Wlist,i) = PicChord(J,WA,WB,(i==nC-1)&&(flag&1));
 	}

@@ -28,50 +28,50 @@ GEN NAF(GEN n)
 GEN AddChain(GEN n, long signmatters)
 {
 	pari_sp av = avma;
-	GEN N,A;
+	GEN N,A,m;
 	ulong l,i,j,jm1;
-	long sn,m;
+	long sn;
 
 	sn = signe(n);
 	setsigne(n,1);
 	N = NAF(n);
 	l = lg(N);
 	A = cgetg(2*l,t_VEC);
-	gel(A,1) = mkvecsmall3(1,0,-1);
+	gel(A,1) = mkvec2(gen_1,mkvecsmall2(0,-1));
 	j = 1;
 	jm1 = 0;
-	m = 1;
+	m = gen_1;
 	for(i=l-2;i;i--)
 	{
 		j++;
-		m *= -2;
-		gel(A,j) = mkvecsmall3(m,j-1,j-1);
+		m = mulii(m,gen_m2);
+		gel(A,j) = mkvec2(m,mkvecsmall2(j-1,j-1));
 		if(N[i])
 		{
 			j++;
-			if(m*N[i]>0)
+			if(signe(m)*N[i]>0)
 			{
-				m = -(m+1);
-				gel(A,j) = mkvecsmall3(m,j-1,1);
+				m = negi(addiu(m,1));
+				gel(A,j) = mkvec2(m,mkvecsmall2(j-1,1));
 			}
 			else
 			{
-				m = 1-m;
+				m = subui(1,m);
 				if(jm1==0)
 				{
 					jm1 = j;
-					gel(A,jm1) = mkvecsmall3(-1,1,0);
+					gel(A,jm1) = mkvec2(gen_m1,mkvecsmall2(1,0));
 					j++;
-					gel(A,j) = mkvecsmall3(m,j-2,jm1);
+					gel(A,j) = mkvec2(m,mkvecsmall2(j-2,jm1));
 				}
-				else gel(A,j) = mkvecsmall3(m,j-1,jm1);
+				else gel(A,j) = mkvec2(m,mkvecsmall2(j-1,jm1));
 			}
 		}
 	}
-	if(signmatters && m*sn<0)
+	if(signmatters && signe(m)*sn<0)
 	{
 		j++;
-		gel(A,j) = mkvecsmall3(-m,j-1,0);
+		gel(A,j) = mkvec2(negi(m),mkvecsmall2(j-1,0));
 	}
 	setlg(A,j+1);
 	avma = av;

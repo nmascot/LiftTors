@@ -130,8 +130,8 @@ GEN PicFreyRuckMulti(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C)
 	for(d=1;d<ntest;d++) gcoeff(H,d,1) = Fq1;
 	for(c=2;c<nC;c++)
 	{
-		i = gel(C,c)[2];
-		j = gel(C,c)[3];
+		i = gmael(C,c,2)[1];
+		j = gmael(C,c,2)[2];
 		WA = i?gel(WtorsM,i):JgetW0(J);
 		WB = j?gel(WtorsM,j):JgetW0(J);
 		res = PicChord(J,WA,WB,3);

@@ -88,7 +88,7 @@ GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l)
 	GEN V,KV,W0,T,p,pe1,pe2,pe21;
 	GEN col,K,wV,KwV,Ainv,AinvB,CAinv,rho,ABCD,uv;
 	GEN F,VF,VFlist,sW,cW,Vs,V0,KwVlist,M,KM,worker,done;
-	GEN c0,Wlifts,W,red;
+	GEN c0,Wlifts,W,red,Ktors;
 	GEN NW,NZ,NKV,D0,K0,E2,E21,randseed,args;
 	ulong g,d0,nW,nV,nKV,nZ,nc,r;
 	long e2,e21,pending,workid;
@@ -294,27 +294,27 @@ GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l)
 				gcoeff(K,i,j) = FpX_sub(gcoeff(K,i,j),gcoeff(K,i,1),pe21);
 			}
 		}
-		K = matkerpadic(K,T,p,e21);
-		i = lg(K)-1;
+		Ktors = matkerpadic(K,T,p,e21);
+		i = lg(Ktors)-1;
 		printf("Dim ker tors = %ld\n",i);
 		/* Find a col in K with 1st entry invertible */
 		k = 0;
 		for(j=1;j<=i;j++)
 		{
-			red = gcoeff(K,1,j);
+			red = gcoeff(Ktors,1,j);
 			if(!ZX_is0mod(red,p))
 			{
 				k = j;
-				K = gel(K,k);
+				Ktors = gel(Ktors,k);
 				break;
 			}
 		}
 	} while(k==0);
-	K = FqC_Fq_mul(K,ZpXQ_inv(red,T,p,e21),T,pe21);
+	Ktors = FqC_Fq_mul(Ktors,ZpXQ_inv(red,T,p,e21),T,pe21);
 	W = gel(Wlifts,1);
 	for(i=2;i<=g+1;i++)
 	{
-		W = FpXM_add(W,FqM_Fq_mul(FpXM_sub(gel(Wlifts,i),gel(Wlifts,1),pe2),gel(K,i),T,pe2),pe2);
+		W = FpXM_add(W,FqM_Fq_mul(FpXM_sub(gel(Wlifts,i),gel(Wlifts,1),pe2),gel(Ktors,i),T,pe2),pe2);
 	}
 	return gerepileupto(av,W);
 }
