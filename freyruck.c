@@ -193,6 +193,7 @@ GEN PicTorsRels(GEN J, GEN Wtors, GEN l, ulong excess)
 		done = mt_queue_get(&pt,&workid,&pending);
 		if(done) gel(R,workid) = done;
 	}
+	mt_queue_end(&pt);
 	for(j=1;j<=ntors;j++)
 	{
 		for(i=1;i<=ntest;i++)

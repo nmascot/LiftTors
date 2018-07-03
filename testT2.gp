@@ -1,6 +1,7 @@
 read("install.gp");
 read("MakTorsSpace.gp");
-p=7;a=8;e=512;l=3;C=x^2+3*x+7;d=2;
+p=7;a=4;e=128;l=3;C=x^2+0*x+7;d=2;
+p=11;a=4;e=128;l=3;C=x^2+0*x+11;d=2;
 f=WeiRed(x^6-3*x^5+2*x^4+x^3-x,1);
 J=HyperInit(f,p,a,e);
 J1=PicRed(J,1);
@@ -35,5 +36,5 @@ V = TorsSpace(J,WB,l);
 print("Evaluation");
 my(J=J);Z=parapply(W->HyperPicEval(J,W)[1],V[1..l^d-1]);
 F=factorback(apply(u->'x-u,Mod(Z,Jgetpe(J))*Mod(1,JgetT(J))));
-F=liftall(F)*(1+O(p^e));
-bestappr(F);
+F=liftpol(F);
+bestappr(F)
