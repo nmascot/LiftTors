@@ -213,7 +213,7 @@ GEN ordJ(GEN f, GEN p, ulong a) /* Cardinal of Jac(y^2=f(x))(F_q), where q=p^a *
 GEN HyperPicRandTors(GEN J, GEN f, GEN l, GEN C)
 {
 	pari_sp av1,av = avma;
-	GEN T,p,fp,chi,chirem,xa1,chiC,N,M,W,lW;
+	GEN T,p,fp,chi,chirem,xa1,chiC,N,M,W,lW,lv,fa;
 	long v,a;
 	ulong i;
 
@@ -228,7 +228,7 @@ GEN HyperPicRandTors(GEN J, GEN f, GEN l, GEN C)
   gel(xa1,2) = gen_1;
   gel(xa1,a+2) = gen_m1;
   setvarn(xa1,varn(f));
-  N = gerepileupto(av,ZX_resultant(chi,xa1));
+  N = ZX_resultant(chi,xa1);
 
 	v = Z_pvalrem(N,l,&M); /* N = p^v*M */
 	if(v==0) pari_err(e_MISC,"No rational %Ps-torsion",l);
@@ -237,8 +237,13 @@ GEN HyperPicRandTors(GEN J, GEN f, GEN l, GEN C)
 		chiC = FpX_divrem(chi,C,l,&chirem);
 		if(signe(chirem)) pari_err(e_MISC,"Incorrect characteristic polynomial");
 		av1 = avma;
-		if(degree(ZX_gcd(chiC,C))) pari_err(e_MISC,"Eigen multiplicity");
-		avma = av1;
+		if(degree(FpX_gcd(chiC,C,l))) pari_err(e_MISC,"Eigen multiplicity");
+		lv = powis(l,v);
+		fa = mkvec2(C,chiC);
+		fa = polhensellift(chi,fa,l,v);
+		chiC = gel(fa,2);
+		chiC = FpX_center(chiC,lv,shifti(lv,-1));
+		chiC = gerepileupto(av1,chiC);
 	}
 	else chiC = 0;
 
