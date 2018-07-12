@@ -1,7 +1,7 @@
 read("install.gp");
-read("MakTorsSpace.gp");
+read("galrep.gp");
 p=7;a=4;e=128;l=3;C=x^2+0*x+7;d=2;
-p=11;a=4;e=128;l=3;C=x^2+0*x+11;d=2;
+p=11;a=8;e=128;l=3;C=x^2+0*x+11;d=2;
 f=WeiRed(x^6-3*x^5+2*x^4+x^3-x,1);
 J=HyperInit(f,p,a,e);
 J1=PicRed(J,1);
@@ -28,7 +28,8 @@ GalRepBasis(J,l,C)=
 	B;
 }
 
-WB = GalRepBasis(J1,l,C);
+\\WB = GalRepBasis(J1,l,C);
+WB = TorsBasis(J1,f,p,a,l,C);
 print("Lifting");
 my(J=J,l=l);WB = parapply(W->PicLiftTors(J,W,1,l),WB);
 print("All the space");

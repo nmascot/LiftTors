@@ -92,7 +92,7 @@ GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l)
 	GEN NW,NZ,NKV,D0,K0,E2,E21,randseed,args;
 	ulong g,d0,nW,nV,nKV,nZ,nc,r;
 	long e2,e21,pending,workid;
-	ulong e,i,j,k,P,k0;
+	ulong e,i,j,k,P,k0,n;
 
 	struct pari_mt pt;
 
@@ -287,34 +287,42 @@ GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l)
 			}
 		}
 		mt_queue_end(&pt);
-		for(j=2;j<=g+1;j++)
-		{
-			for(i=1;i<=nc;i++)
-			{
-				gcoeff(K,i,j) = FpX_sub(gcoeff(K,i,j),gcoeff(K,i,1),pe21);
-			}
-		}
+		/*pari_printf("Wlifts\n");
+		pari_printf("%Ps\n",Wlifts);
+		pari_printf("K\n");
+		pari_printf("%Ps\n",K);*/
 		Ktors = matkerpadic(K,T,p,e21);
-		i = lg(Ktors)-1;
-		printf("Dim ker tors = %ld\n",i);
-		/* Find a col in K with 1st entry invertible */
+		/*pari_printf("T=%Ps,p=%Ps,e21=%lu\n",T,p,e21);*/
+    n = lg(Ktors)-1;
+    printf("Dim ker tors = %ld\n",n);
+		/*pari_printf("%Ps\n",Ktors);*/
+		/* Find a col of K with invertible sum */
 		k = 0;
-		for(j=1;j<=i;j++)
+		for(j=1;j<=n;j++)
 		{
-			red = gcoeff(Ktors,1,j);
+			red = gcoeff(K,1,j);
+			for(i=2;i<=nc;i++)
+			{
+				red = FpX_add(red,gcoeff(K,i,j),pe2);
+			}
 			if(!ZX_is0mod(red,p))
 			{
 				k = j;
-				Ktors = gel(Ktors,k);
+				Ktors = gel(Ktors,j);
+				Ktors = FqC_Fq_mul(Ktors,ZpXQ_inv(red,T,p,e2),T,pe2);
 				break;
 			}
 		}
 	} while(k==0);
-	Ktors = FqC_Fq_mul(Ktors,ZpXQ_inv(red,T,p,e21),T,pe21);
+	pari_printf("%Ps\n",Ktors);
+	for(i=1;i<=g+1;i++)
+	{
+		gel(Wlifts,i) = FqM_Fq_mul(gel(Wlifts,i),gel(Ktors,i),T,pe2);
+	}
 	W = gel(Wlifts,1);
 	for(i=2;i<=g+1;i++)
 	{
-		W = FpXM_add(W,FqM_Fq_mul(FpXM_sub(gel(Wlifts,i),gel(Wlifts,1),pe2),gel(Ktors,i),T,pe2),pe2);
+		W = FpXM_add(W,gel(Wlifts,i),pe2);
 	}
 	return gerepileupto(av,W);
 }

@@ -1,22 +1,4 @@
-TorsPlane(X,W1,W2,l)=
-{
- my(A=vector(l-1),B=vector(l-1),V=List());
- A[1]=W1;
- B[1]=W2;
- for(i=2,l-1,
-  A[i]=PicAdd(X,W1,A[i-1]);
-  B[i]=PicAdd(X,W2,B[i-1])
- );
- for(i=0,l-1,
-  for(j=0,l-1,
-   if(i==0 && j==0,next);
-   if(j==0,listput(V,A[i]);next);
-   if(i==0,listput(V,B[j]);next);
-   listput(V,PicAdd(X,A[i],B[j]))
-  )
- );
- Vec(V);
-}
+read("MakTorsSpace.gp");
 
 Z2pol(Z)=factorback(apply(u->'x-u,Z));
 
@@ -36,4 +18,111 @@ mordroot(f,p)=
   )
  );
  N;
+}
+
+PicLC(J,C,W)=
+{
+  /* TODO efficiency */
+  my(S);
+  if(#C==0,return(JgetW0(J)));
+  S = PicMul(J,W[1],C[1],2);
+  for(i=2,#C,
+    S = PicAdd(J,S,PicMul(J,W[i],C[i],2));
+  );
+  S;
+}
+
+TorsOrd(J,W,l)=
+{
+  my(v=0,lW);
+  v = 0;
+  lW = W;
+  while(!PicIsZero(J,lW),
+    v += 1;
+    W = lW;
+    lW = PicMul(J,W,l,0)
+  );
+  [W,v];
+}
+
+RandTorsPt(J,f,M,chiC)=
+{
+  my(W);
+  while(1,
+    W = HyperPicRand(J,f);
+    W = PicMul(J,W,M,0);
+    if(chiC,W = PicFrobPoly(J,W,chiC));
+    if(!PicIsZero(J,W),return(W));
+  );
+}
+
+PicTorsTrueRel(J,W,l)=
+{
+  my(R,ex=0);
+  while(1,
+    R = PicTorsRels(J,W,l,ex);
+    if(#R==0,return(R));
+    if(#R==1,
+      if(PicIsZero(J,PicLC(J,R[,1],W)),return(R));
+    );
+    ex += 1
+  );
+}
+
+TorsBasis(J,f,p,a,l,C)=
+{
+  my(d,chi,N,M,v,chiC,W,o,T,BW,Bo,BT,R,m,S);
+  chi = hyperellcharpoly(Mod(f,p));
+  N = polresultant(chi,'x^a-1);
+  v = valuation(N,l);
+  M = N/l^v;
+  d = poldegree(C);
+  if(d<=0,
+    d = C;
+    chiC = 0;
+  ,
+    chiC = lift(Mod(chi,l)/C); \\ TODO test
+    fa = [C,chiC];
+    fa = polhensellift(chi,fa,l,v);
+    chiC = fa[2];
+    chiC = centerlift(Mod(chiC,l^v))
+  );
+  BW = vector(d);
+  Bo = vector(d);
+  BT = vector(d);
+  r = 0;
+  while(r<d,
+    print("Status:",Bo[1..r]);
+    print("Getting new point");
+    W = RandTorsPt(J,f,M,chiC);
+    [T,o] = TorsOrd(J,W,l);
+    print("It has order l^",o);
+    r += 1;
+    BW[r] = W;
+    Bo[r] = o;
+    BT[r] = T;
+    if(r==1,next);
+    while(1,
+      print("Looking for relations...");
+      R = PicTorsTrueRel(J,BT[1..r],l);
+      print("Found relation: ",R);
+      if(#R == 0,print("Good, no relation");next(2));
+      R = R[,1];
+      m = vecmin([Bo[i]|i<-[1..r],R[i]]);
+      print("Dividing relation ",R," by l^",m);
+      S = vector(r,i,if(R[i],l^(Bo[i]-m)*R[i],0));
+      W = PicLC(J,S,BW[1..r]);
+      [T,o] = TorsOrd(J,W,l);
+      print("gives point of order l^",o);
+      if(o==0,
+        print("Giving up this point.");
+        r -= 1;
+        break
+      );
+      BW[r] = W;
+      Bo[r] = o;
+      BT[r] = T;
+    );
+  );
+  BT;
 }
