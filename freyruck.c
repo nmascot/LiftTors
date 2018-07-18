@@ -80,12 +80,12 @@ GEN PicNorm(GEN J, GEN F, GEN WE)
 	d0 = Jgetd0(J);
 	g = Jgetg(J);
 	nS1 = d0;
-	nV2 = 6*d0+1-g;
+	nV2 = 4*d0+1-g;
 	nZ = lg(gel(V,1))-1;
 
-	WEV = DivAdd(V,WE,5*d0+1-g,T,p,e,pe,0);
+	WEV = DivAdd(V,WE,3*d0+1-g,T,p,e,pe,0);
 	V1 = FindSuppl(V,WE,T,p,pe,0,0);
-	V2 = FindSuppl(V,WEV,T,p,pe,1,6*d0+1-g);
+	V2 = FindSuppl(V,WEV,T,p,pe,1,nV2);
 
 	M = cgetg(nS1+nV2+1,t_MAT);
 	for(j=1;j<=nS1;j++) gel(M,j) = gel(V1,j);

@@ -14,6 +14,7 @@ GEN JgetKV(GEN J) {return gel(J,9);}
 GEN JgetW0(GEN J) {return gel(J,10);}
 GEN JgetZ(GEN J) {return gel(J,11);}
 GEN JgetFrobCyc(GEN J) {return gel(J,12);}
+GEN JgetKV3(GEN J) {return gel(J,13);}
 
 void JgetTpe(GEN J, GEN* T, GEN* pe, GEN* p, long* e)
 {
@@ -134,18 +135,20 @@ GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
 {
 	pari_sp av = avma;
 	GEN WAWB,WAB,s,col,sV,WC,res;
-	GEN V,KV,T,p,pe;
+	GEN V,KV,KV3,W0,T,p,pe;
 	ulong nZ,nV,P,j;
 	long g,d0,e;
 
 	V = JgetV(J);
 	KV = JgetKV(J);
+	KV3 = JgetKV3(J);
+	W0 = JgetW0(J);
 	JgetTpe(J,&T,&pe,&p,&e);
 	g = Jgetg(J);
 	d0 = Jgetd0(J);
 
-	WAWB = DivAdd(WA,WB,4*d0+1-g,T,p,e,pe,0);
-	WAB = DivSub(V,WAWB,KV,d0+1-g,T,p,e,pe,2);
+	WAWB = DivAdd(WA,WB,2*d0+1-g,T,p,e,pe,0);
+	WAB = DivSub(W0,WAWB,KV3,d0+1-g,T,p,e,pe,2);
 	/* TODO can free some memory here */
 	if(flag & 1) s = RandVec_padic(WAB,T,p,pe);
 	else s = gel(WAB,1);
@@ -161,7 +164,7 @@ GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
 		}
 		gel(sV,j) = col;
 	}
-	WC = DivSub(WAB,sV,KV,2*d0+1-g,T,p,e,pe,2);
+	WC = DivSub(WAB,sV,KV,d0+1-g,T,p,e,pe,2);
 
 	if(flag & 2)
 	{
@@ -358,6 +361,7 @@ GEN PicChart(GEN J, GEN W, ulong P0) /* /!\ Not Galois-equivariant ! */
 	GEN V,KV,T,p,pe;
 	GEN K,col,s,sV,U,res;
 
+	pari_err(e_MISC,"This function needs to be rewritten for mid model");
 	g = Jgetg(J);
 	d0 = Jgetd0(J);
 	n1 = 2*d0-g;

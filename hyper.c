@@ -23,7 +23,9 @@ GEN HyperRandPt(GEN f, GEN T, GEN p, ulong e, GEN pe)
 	}
 }
 
-/* Matrix of values of x^i and x^i*y and the points in Ps */
+/* Matrix of values of x^i and x^i*y at the points in Ps */
+/* x^i up to i=n, x^i*y up to n-d/2 where d=deg f */
+/* This is L(n(infty_+ + infty_-)) */
 GEN RReval(GEN Ps, ulong n, ulong d, GEN T, GEN pe)
 {
 	pari_sp av = avma;
@@ -63,13 +65,13 @@ GEN HyperInit(GEN f, GEN p, ulong a, long e)
 	pari_sp avP,av = avma;
 	int newpt;
 	ulong df,g,d0,nZ,n,ncyc,i;
-	GEN pe,t,T,Frob,Z,Zp,P,Pp,Q,FrobCyc,x,y,W0,V,KV,J;
+	GEN pe,t,T,Frob,Z,Zp,P,Pp,Q,FrobCyc,x,y,W0,V,KV,KV3,J;
   
 	df = degree(f);
 	/* TODO if(df%2) error0("Polynomial must be of even degree!"); */
 	g = df/2-1;
-	d0 = df;
-	nZ = 6*d0+1;
+	d0 = df; /* = 2g+2 */
+	nZ = 5*d0+1;
 
 	t = varlower("t",varn(f));
  	T = liftint(ffinit(p,a,varn(t)));
@@ -116,11 +118,12 @@ GEN HyperInit(GEN f, GEN p, ulong a, long e)
 	setlg(Z,n+1);
 	setlg(FrobCyc,ncyc+1);
 
-	W0 = RReval(Z,d0,df,T,pe);
-	V = RReval(Z,3*d0/2,df,T,pe);
+	W0 = RReval(Z,d0/2,df,T,pe);
+	V = RReval(Z,d0,df,T,pe);
 	KV = mateqnpadic(V,T,p,e);
+	KV3 = mateqnpadic(RReval(Z,3*d0/2,df,T,pe),T,p,e);
 
-	J = mkvecn(lgJ,stoi(g),stoi(d0),T,p,stoi(e),pe,Frob,V,KV,W0,Z,FrobCyc);
+	J = mkvecn(lgJ,stoi(g),stoi(d0),T,p,stoi(e),pe,Frob,V,KV,W0,Z,FrobCyc,KV3);
 	return gerepilecopy(av,J);
 }
 
@@ -152,45 +155,14 @@ GEN HyperPicRand(GEN J,GEN f) /* TODO not generic */
 				gel(E[j],i) = HyperRandPt(f,T,p,e,pe);
 			}
 			/* Form the corresponding W */
-			E[j] = RReval(E[j],3*d0/2,df,T,pe);
+			E[j] = RReval(E[j],d0,df,T,pe);
 			E[j] = matkerpadic(E[j],T,p,e);
-		} while(lg(E[j])!=2*d0+1-g+1); /* Check that the random points are independent */
+		} while(lg(E[j])!=d0+1-g+1); /* Check that the random points are independent */
 		E[j] = FqM_mul(V,E[j],T,pe);
 	}
 	/* Return the chord of these two W */
 	return gerepileupto(av,PicChord(J,E[0],E[1],0));
 }
-
-GEN HyperPicRandDbg(GEN J, GEN f)
-{
-	pari_sp av = avma;
-  GEN T,p,pe,V;
-	long e;
-  ulong g,d0,df,i;
-  GEN E,W;
-
-  JgetTpe(J,&T,&pe,&p,&e);
-  V = JgetV(J);
-  d0 = Jgetd0(J);
-  df = degree(f);
-  g = Jgetg(J);
-	do
-	{
-		/* Take d0 random points */
-		E = cgetg(d0+1,t_VEC);
-		for(i=1;i<=d0;i++)
-		{
-			gel(E,i) = HyperRandPt(f,T,p,e,pe);
-		}
-		/* Form the corresponding W */
-		W = RReval(E,3*d0/2,df,T,pe);
-		W = matkerpadic(W,T,p,e);
-	} while(lg(W)!=2*d0+1-g+1); /* Check that the random points are independent */
-	W = FqM_mul(V,W,T,pe);
-  /* Return the chord of these two W */
-  return gerepilecopy(av,mkvec2(W,E));
-}
-
 
 GEN ordJ(GEN f, GEN p, ulong a) /* Cardinal of Jac(y^2=f(x))(F_q), where q=p^a */
 {
@@ -276,6 +248,7 @@ GEN HyperPicEval(GEN J, GEN W)
 	ulong i,j;
 	GEN U,EqU,K,s,col,sV,U2,inv;
 	
+	pari_err(e_IMPL,"This functiin needs to be rewrriten for middle model and any g");
 	JgetTpe(J,&T,&pe,&p,&e);
 	g = Jgetg(J);
 	V = JgetV(J);
