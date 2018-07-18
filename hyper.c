@@ -133,7 +133,7 @@ GEN HyperPicRand(GEN J,GEN f) /* TODO not generic */
 	GEN T,p,pe,V;
 	long e;
 	ulong g,d0,df,i,j;
-	GEN E[2]; 
+	GEN E[2];
 
 	JgetTpe(J,&T,&pe,&p,&e);
 	V = JgetV(J);

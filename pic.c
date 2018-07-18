@@ -29,7 +29,7 @@ GEN PicRed(GEN J, ulong e)
 {
 	GEN Je,p,pe;
 	if(Jgete(J)<e) pari_err(e_MISC,"Cannot perform this reduction");
-	Je = cgetg(13,t_VEC);
+	Je = cgetg(lgJ+1,t_VEC);
 	gel(Je,1) = stoi(Jgetg(J));
 	gel(Je,2) = stoi(Jgetd0(J));
 	gel(Je,3) = gcopy(JgetT(J));
@@ -42,6 +42,7 @@ GEN PicRed(GEN J, ulong e)
 	gel(Je,10) = FpXM_red(JgetW0(J),pe);
 	gel(Je,11) = FpXT_red(JgetZ(J),pe);
 	gel(Je,12) = gcopy(JgetFrobCyc(J));
+	gel(Je,13) = FpXM_red(JgetKV3(J),pe);
 	return Je;
 }
 
