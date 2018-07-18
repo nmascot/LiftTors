@@ -248,7 +248,6 @@ GEN HyperPicEval(GEN J, GEN W)
 	ulong i,j;
 	GEN U,EqU,K,s,col,sV,U2,inv;
 	
-	pari_err(e_IMPL,"This functiin needs to be rewrriten for middle model and any g");
 	JgetTpe(J,&T,&pe,&p,&e);
 	g = Jgetg(J);
 	V = JgetV(J);

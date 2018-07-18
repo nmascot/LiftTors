@@ -362,10 +362,9 @@ GEN PicChart(GEN J, GEN W, ulong P0) /* /!\ Not Galois-equivariant ! */
 	GEN V,KV,T,p,pe;
 	GEN K,col,s,sV,U,res;
 
-	pari_err(e_MISC,"This function needs to be rewritten for mid model");
 	g = Jgetg(J);
 	d0 = Jgetd0(J);
-	n1 = 2*d0-g;
+	n1 = d0-g;
 	n2 = d0-g;
 	V = JgetV(J);
 	KV = JgetKV(J);
