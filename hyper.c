@@ -12,7 +12,7 @@ GEN HyperRandPt(GEN f, GEN T, GEN p, ulong e, GEN pe)
 	for(;;)
 	{
 		avma = av;
-		x = random_FpX(dT-1,vT,p);
+		x = random_FpX(dT,vT,p);
 		y2 = poleval(f,x);
 		y2 = FpXQ_red(y2,T,pe);
 		if(gequal0(FpXQ_red(y2,T,p))) continue;
@@ -65,7 +65,7 @@ GEN HyperInit(GEN f, GEN p, ulong a, long e)
 	pari_sp avP,av = avma;
 	int newpt;
 	ulong df,g,d0,nZ,n,ncyc,i;
-	GEN pe,t,T,Frob,Z,Zp,P,Pp,Q,FrobCyc,x,y,W0,V,KV,KV3,J;
+	GEN pe,t,T,Frob,Z,Zp,P,Pp,Q,FrobCyc,x,y,W0,V,KV,V3,KV3,J;
   
 	df = degree(f);
 	/* TODO if(df%2) error0("Polynomial must be of even degree!"); */
@@ -121,9 +121,10 @@ GEN HyperInit(GEN f, GEN p, ulong a, long e)
 	W0 = RReval(Z,d0/2,df,T,pe);
 	V = RReval(Z,d0,df,T,pe);
 	KV = mateqnpadic(V,T,p,e);
-	KV3 = mateqnpadic(RReval(Z,3*d0/2,df,T,pe),T,p,e);
+	V3 = RReval(Z,3*d0/2,df,T,pe);
+	KV3 = mateqnpadic(V3,T,p,e);
 
-	J = mkvecn(lgJ,stoi(g),stoi(d0),T,p,stoi(e),pe,Frob,V,KV,W0,Z,FrobCyc,KV3);
+	J = mkvecn(lgJ,stoi(g),stoi(d0),T,p,stoi(e),pe,Frob,V,KV,W0,Z,FrobCyc,V3,KV3);
 	return gerepilecopy(av,J);
 }
 
@@ -239,31 +240,64 @@ GEN HyperPicRandTors(GEN J, GEN f, GEN l, GEN C)
 	return gerepileupto(av,W);
 }
 
-GEN HyperPicEval(GEN J, GEN W)
+GEN HyperPicEvalData(GEN J)
 {
 	pari_sp av = avma;
 	long e;
-	ulong g,nV,nZ;
-	GEN T,p,pe,V,KV,Z,Fq1;
+	GEN T,p,pe,Fq1,Z,col,U1,U2;
+	ulong g,nZ,i,j;
+
+	JgetTpe(J,&T,&pe,&p,&e);
+  g = Jgetg(J);
+	Z = JgetZ(J);
+	nZ = lg(Z);
+	Fq1 = mkpoln(1,gen_1);
+  setvarn(Fq1,varn(T));
+
+	if(g%2) pari_err(e_IMPL,"odd genus");
+	U1 = RReval(Z,3*(g/2)+2,2*g+2,T,pe);
+	U2 = cgetg(g+2,t_MAT);
+	col = cgetg(nZ,t_COL);
+	for(i=1;i<nZ;i++) gel(col,i) = Fq1;
+	gel(U2,1) = col;
+	col = cgetg(nZ,t_COL);
+  for(i=1;i<nZ;i++) gel(col,i) = gmael(Z,i,2);
+  gel(U2,g+1) = col;
+  for(j=2;j<=g;j++)
+	{
+		col = cgetg(nZ,t_COL);
+		for(i=1;i<nZ;i++) gel(col,i) = Fq_mul(gcoeff(U2,i,j-1),gmael(Z,i,1),T,pe);
+    gel(U2,j) = col;
+  }
+	return gerepilecopy(av,mkvec2(U1,U2));
+}
+
+GEN HyperPicEval(GEN J, GEN W, GEN U)
+{
+	pari_sp av = avma;
+	long e;
+	ulong g,d0,nV,nZ;
+	GEN T,p,pe,V,KV,W0,Z,U1,U2;
 	ulong i,j;
-	GEN U,EqU,K,s,col,sV,U2,inv;
+	GEN col,WW0,S,s,sV,WE,K,res,u;
 	
 	JgetTpe(J,&T,&pe,&p,&e);
 	g = Jgetg(J);
+	d0 = Jgetd0(J);
 	V = JgetV(J);
 	KV = JgetKV(J);
+	W0 = JgetW0(J);
 	Z = JgetZ(J);
 	nV = lg(V);
 	nZ = lg(Z);
-	Fq1 = mkpoln(1,gen_1);
-	setvarn(Fq1,varn(T));
+	U1 = gel(U,1);
+	U2 = gel(U,2);
 
-	if(g!=2) pari_err(e_IMPL,"g<>2");
-	U = RReval(Z,4,6,T,pe);
-	EqU = mateqnpadic(U,T,p,e);
-	K = matkerpadic(FqM_mul(EqU,W,T,pe),T,p,e);
-	if(lg(K)>2) pari_err(e_MISC,"Genericity 1 failed");
-	s = FqM_FqC_mul(W,gel(K,1),T,pe);
+	if(g%2) pari_err(e_IMPL,"odd genus");
+
+	WW0 = DivAdd(W,W0,2*d0+1-g,T,p,e,pe,0);
+	S = DivSub(U1,WW0,KV,1,T,p,e,pe,g+2); /* TODO true sub */
+	s = gel(S,1);
 	sV = cgetg(nV,t_MAT);
 	for(j=1;j<nV;j++)
 	{
@@ -274,31 +308,19 @@ GEN HyperPicEval(GEN J, GEN W)
 		}
 		gel(sV,j) = col;
 	}
-	U = DivSub(W,sV,KV,5,T,p,e,pe,2);
-	U2 = cgetg(4,t_MAT);
-	for(j=1;j<4;j++)
-	{
-		col = cgetg(nZ,t_COL);
-		for(i=1;i<nZ;i++)
-		{
-			gel(col,i) = j==1?Fq1:gmael(Z,i,j-1);
-		}
-		gel(U2,j) = col;
-	}
-	EqU = mateqnpadic(U2,T,p,e);
-	K = matkerpadic(FqM_mul(EqU,U,T,pe),T,p,e);
+	WE = DivSub(W,sV,KV,g+3,T,p,e,pe,2);
+	K = cgetg(g+1+g+3+1,t_MAT);
+	for(i=1;i<=g+1;i++) gel(K,i) = gel(U2,i);
+	for(i=1;i<=g+3;i++) gel(K,i+g+1) = gel(WE,i);
+	K = matkerpadic(K,T,p,e);
 	if(lg(K)>2) pari_err(e_MISC,"Genericity 2 failed");
 	s = gel(K,1);
-	K = cgetg(5,t_MAT);
-	for(j=1;j<4;j++)
-	{
-		gel(K,j) = gel(U2,j);
-	}
-	gel(K,4) = FqM_FqC_mul(U,s,T,pe);
-	s = matkerpadic(K,T,p,e);
-	s = gel(s,1);
-	inv = ZpXQ_inv(gel(s,3),T,p,e);
-	U = mkvec2(Fq_mul(gel(s,1),inv,T,pe),Fq_mul(gel(s,2),inv,T,pe));
-	return gerepilecopy(av,U);
+	u = gel(s,g+1);
+	if(ZX_is0mod(u,p)) pari_err(e_MISC,"Genericity 3 failed");
+	u = ZpXQ_inv(u,T,p,e);
+	res = cgetg(g+1,t_VEC);
+	for(i=1;i<=g;i++) gel(res,i) = gel(s,i);
+	res = FqV_Fq_mul(res,u,T,pe);
+	return gerepileupto(av,res);
 }
 

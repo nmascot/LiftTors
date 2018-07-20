@@ -18,7 +18,8 @@ install("HyperRandPt","GGGUG","HyperRandPt","./libhyper.so");
 install("ordJ","GGU","ordJ","./libhyper.so");
 install("HyperPicRand","GG","HyperPicRand","./libhyper.so");
 install("HyperPicRandTors","GGGG","HyperPicRandTors","./libhyper.so");
-install("HyperPicEval","GG","HyperPicEval","./libhyper.so");
+install("HyperPicEvalData","G","HyperPicEvalData","./libhyper.so");
+install("HyperPicEval","GGG","HyperPicEval","./libhyper.so");
 \\install("HyperPicRandDbg","GG","HyperPicRandDbg","./libhyper.so");
 
 install("PicRed","GU","PicRed","./libpic.so");
@@ -44,5 +45,6 @@ install("PicLift_worker","UUUGGGGGGG","PicLift_worker","./liblift.so");
 install("PicLiftTors_worker","GGGGGGUUUUGGLGLGGGU","PicLiftTors_worker","./liblift.so");
 install("PicLiftTors","GGLG","PicLiftTors","./liblift.so");
 
+install("PicNorm","GGG","PicNorm","./libfreyruck.so");
 install("PicFreyRuckMulti","GGGGGG","PicFreyRuckMulti","./libfreyruck.so");
 install("PicTorsRels","GGGU","PicTorsRels","./libfreyruck.so");

@@ -59,12 +59,15 @@ RandTorsPt(J,f,M,chiC)=
 PicTorsTrueRel(J,W,l)=
 {
   my(R,ex=0);
+	\\print("Getting rels between ",#W);
   while(1,
     R = PicTorsRels(J,W,l,ex);
+		\\print("Found ",#R);
     if(#R==0,return(R));
     if(#R==1,
       if(PicIsZero(J,PicLC(J,R[,1],W)),return(R));
     );
+		\\print("False positive");
     ex += 1
   );
 }

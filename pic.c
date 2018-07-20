@@ -14,7 +14,8 @@ GEN JgetKV(GEN J) {return gel(J,9);}
 GEN JgetW0(GEN J) {return gel(J,10);}
 GEN JgetZ(GEN J) {return gel(J,11);}
 GEN JgetFrobCyc(GEN J) {return gel(J,12);}
-GEN JgetKV3(GEN J) {return gel(J,13);}
+GEN JgetV3(GEN J) {return gel(J,13);}
+GEN JgetKV3(GEN J) {return gel(J,14);}
 
 void JgetTpe(GEN J, GEN* T, GEN* pe, GEN* p, long* e)
 {
@@ -42,7 +43,8 @@ GEN PicRed(GEN J, ulong e)
 	gel(Je,10) = FpXM_red(JgetW0(J),pe);
 	gel(Je,11) = FpXT_red(JgetZ(J),pe);
 	gel(Je,12) = gcopy(JgetFrobCyc(J));
-	gel(Je,13) = FpXM_red(JgetKV3(J),pe);
+	gel(Je,13) = FpXM_red(JgetV3(J),pe);
+	gel(Je,14) = FpXM_red(JgetKV3(J),pe);
 	return Je;
 }
 
@@ -81,6 +83,9 @@ GEN DivAdd(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
 		avma = av1;
 	}
 }
+
+/* TODO write fin (s,W)->sW
+ * useful for Chord, HyperEval, others ? */
 
 GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong nIGS)
 {

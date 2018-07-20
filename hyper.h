@@ -4,4 +4,5 @@ GEN HyperInit(GEN f, GEN p, ulong a, long e);
 GEN HyperPicRand(GEN J,GEN f);
 GEN ordJ(GEN f, GEN p, ulong a);
 GEN HyperPicRandTors(GEN J, GEN f, GEN l, GEN C);
-GEN HyperPicEval(GEN J, GEN W);
+GEN HyperPicEvalData(GEN J);
+GEN HyperPicEval(GEN J, GEN W, GEN U);

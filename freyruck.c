@@ -3,14 +3,14 @@
 #include "pic.h"
 #include "hyper.h"
 
-GEN FindSuppl(GEN V, GEN W, GEN T, GEN p, GEN pe, int sq, ulong nV2)
+GEN FindSuppl(GEN V, GEN W, GEN T, GEN p, GEN pe, GEN V3, ulong nV5)
 /* /!\ Shallow */
 {
 	pari_sp av1,av = avma;
 	GEN S,v1,v2,col;
 	ulong i,j,nW,nV,nS,nZ;
 	nW = lg(W)-1;
-	nV = sq? nV2 : lg(V)-1;
+	nV = V3? nV5 : lg(V)-1;
 	nZ = lg(gel(V,1))-1;
 	nS = nV-nW;
 	S = cgetg(nV+1,t_MAT);
@@ -18,13 +18,13 @@ GEN FindSuppl(GEN V, GEN W, GEN T, GEN p, GEN pe, int sq, ulong nV2)
 	do
 	{
 		avma = av1;
-		if(sq)
+		if(V3)
 		{
 			for(j=1;j<=nS;j++)
 			{
 				col = cgetg(nZ+1,t_COL);
 				v1 = RandVec_padic(V,T,p,pe);
-				v2 = RandVec_padic(V,T,p,pe);
+				v2 = RandVec_padic(V3,T,p,pe);
 				for(i=1;i<=nZ;i++) gel(col,i) = Fq_mul(gel(v1,i),gel(v2,i),T,pe);
 				gel(S,j) = col;
 			}
@@ -35,7 +35,7 @@ GEN FindSuppl(GEN V, GEN W, GEN T, GEN p, GEN pe, int sq, ulong nV2)
 		}
 		for(j=1;j<=nW;j++) gel(S,j+nS) = gel(W,j);
 	}while(FqM_rank(S,T,p)<nV);
-	if(sq) S = gerepilecopy(av,S);
+	if(V3) S = gerepilecopy(av,S);
 	return S;
 }
 
@@ -59,6 +59,7 @@ GEN detratio(GEN K, GEN T, GEN p, long e, GEN pe)
 		gel(K1,j) = col1;
 		gel(K2,j) = col2;
 	}
+	/* TODO det ratio instead */
 	M = FqM_mul(K2,ZpXQM_inv(K1,T,p,e),T,pe);
 	M = ZpXQM_det(M,T,p,e);
 	return gerepileupto(av,M);
@@ -67,29 +68,30 @@ GEN detratio(GEN K, GEN T, GEN p, long e, GEN pe)
 GEN PicNorm(GEN J, GEN F, GEN WE)
 {
 	pari_sp av = avma;
-	ulong g,d0,nS1,nV2,nZ;
+	ulong g,d0,nS1,nV5,nZ;
 	ulong i,j;
 	long e;
-	GEN V,T,p,pe;
-	GEN WEV,V1,V2,M1,M2,M;
+	GEN V,V3,T,p,pe;
+	GEN WEV3,V1,V2,M1,M2,M;
 
 	g = Jgetg(J);
 	d0 = Jgetd0(J);
 	V = JgetV(J);
+	V3 = JgetV3(J);
 	JgetTpe(J,&T,&pe,&p,&e);
 	d0 = Jgetd0(J);
 	g = Jgetg(J);
 	nS1 = d0;
-	nV2 = 4*d0+1-g;
+	nV5 = 5*d0+1-g;
 	nZ = lg(gel(V,1))-1;
 
-	WEV = DivAdd(V,WE,3*d0+1-g,T,p,e,pe,0);
-	V1 = FindSuppl(V,WE,T,p,pe,0,0);
-	V2 = FindSuppl(V,WEV,T,p,pe,1,nV2);
+	WEV3 = DivAdd(V3,WE,4*d0+1-g,T,p,e,pe,0);
+	V1 = FindSuppl(V,WE,T,p,pe,NULL,0);
+	V2 = FindSuppl(V,WEV3,T,p,pe,V3,nV5);
 
-	M = cgetg(nS1+nV2+1,t_MAT);
+	M = cgetg(nS1+nV5+1,t_MAT);
 	for(j=1;j<=nS1;j++) gel(M,j) = gel(V1,j);
-	for(j=1;j<=nV2;j++) gel(M,nS1+j) = gel(V2,j);
+	for(j=1;j<=nV5;j++) gel(M,nS1+j) = gel(V2,j);
 	M1 = detratio(matkerpadic(M,T,p,e),T,p,e,pe);
 	if(ZX_is0mod(M1,p)) pari_err(e_MISC,"D intersects D0");
 
@@ -209,5 +211,6 @@ GEN PicTorsRels(GEN J, GEN Wtors, GEN l, ulong excess)
 			gcoeff(R,i,j) = utoi(n);
 		}
 	}
+	pari_printf("%Ps\n",R);
 	return gerepileupto(av,FpM_ker(R,l));
 }
