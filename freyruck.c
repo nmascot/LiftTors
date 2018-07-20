@@ -42,7 +42,7 @@ GEN FindSuppl(GEN V, GEN W, GEN T, GEN p, GEN pe, GEN V3, ulong nV5)
 GEN detratio(GEN K, GEN T, GEN p, long e, GEN pe)
 {
 	pari_sp av = avma;
-	GEN K1,K2,col1,col2,M;
+	GEN K1,K2,col1,col2;
 	ulong d0,i,j;
 	d0 = lg(K)-1;
 	K1 = cgetg(d0+1,t_MAT);
@@ -59,10 +59,9 @@ GEN detratio(GEN K, GEN T, GEN p, long e, GEN pe)
 		gel(K1,j) = col1;
 		gel(K2,j) = col2;
 	}
-	/* TODO det ratio instead */
-	M = FqM_mul(K2,ZpXQM_inv(K1,T,p,e),T,pe);
-	M = ZpXQM_det(M,T,p,e);
-	return gerepileupto(av,M);
+	if(e==1)
+		return gerepileupto(av,Fq_div(FqM_det(K2,T,p),FqM_det(K1,T,p),T,p));
+	return gerepileupto(av,Fq_mul(ZpXQM_det(K2,T,p,e),ZpXQ_inv(ZpXQM_det(K1,T,p,e),T,p,e),T,pe));
 }
 
 GEN PicNorm(GEN J, GEN F, GEN WE)
