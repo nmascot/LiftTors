@@ -15,6 +15,18 @@ i2c(i,l,d)=
   c;
 }
 
+A2P1(A,l,op,T,pe)=
+{
+	my(P,vecop);
+	\\vecop(v)=liftall(if(op,vecprod,vecsum)(Mod(v,T)*Mod(1,pe)));
+	P = vector(l+1);
+	for(s=0,l-1,
+		P[s+1] = vecprod(vector(l-1,i,A[i+l*((s*i)%l)]))
+	);
+	P[l+1] = vecprod(vector(l-1,i,A[l*i]));
+	P;
+}
+
 TorsSpace(J,B,l)=
 {
 	my(d=#B,ld,V,done,ndone=0,todo,c,i);
