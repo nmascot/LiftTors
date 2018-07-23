@@ -31,7 +31,7 @@ install("PicFrob","GG","PicFrob","./libpic.so");
 install("PicFrobPoly","GGG","PicFrobPoly","./libpic.so");
 install("PicEq","lGGG","PicEq","./libpic.so");
 install("PicIsZero","lGG","PicIsZero","./libpic.so");
-install("PicChart","GG","PicChart","./libpic.so");
+install("PicChart","GGU","PicChart","./libpic.so");
 install("PicRand0","G","PicRand0","./libpic.so");
 
 install("JgetW0","G","JgetW0","./libpic.so");
@@ -41,7 +41,7 @@ install("Jgetpe","G","Jgetpe","./libpic.so");
 
 \\install("PicLiftTors_2","GGLG","PicLiftTors_2","./liblift.so");
 install("PicLift_worker","UUUGGGGGGG","PicLift_worker","./liblift.so");
-install("PicLiftTors_worker","GGGGGGUUUUGGLGLGGG","PicLiftTors_worker","./liblift.so");
+install("PicLiftTors_worker","GGGGGGUUUUGGLGLGGGU","PicLiftTors_worker","./liblift.so");
 install("PicLiftTors","GGLG","PicLiftTors","./liblift.so");
 
 install("PicFreyRuckMulti","GGGGGG","PicFreyRuckMulti","./libfreyruck.so");

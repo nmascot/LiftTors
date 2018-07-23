@@ -349,7 +349,7 @@ long PicIsZero(GEN J, GEN W)
 	return PicEq(J,W,JgetW0(J));
 }
 
-GEN PicChart(GEN J, GEN W) /* /!\ Not Galois-equivariant ! */
+GEN PicChart(GEN J, GEN W, ulong P0) /* /!\ Not Galois-equivariant ! */
 {
 	pari_sp av = avma;
 	ulong d0,g,n1,n2,nV,nZ,nW;
@@ -373,7 +373,7 @@ GEN PicChart(GEN J, GEN W) /* /!\ Not Galois-equivariant ! */
 	for(j=1;j<=nW;j++)
 	{
 		col = cgetg(n1+1,t_COL);
-		for(P=1;P<=n1;P++) gel(col,P) = gcoeff(W,P,j);
+		for(P=1;P<=n1;P++) gel(col,P) = gcoeff(W,P+P0,j);
 		gel(K,j) = col;
 	}
 	K = matkerpadic(K,T,p,e);
@@ -389,8 +389,7 @@ GEN PicChart(GEN J, GEN W) /* /!\ Not Galois-equivariant ! */
 	for(j=1;j<=nV;j++)
 	{
 		col = cgetg(nZ+1,t_COL);
-		for(P=1;P<=n1;P++) gel(col,P) = gen_0;
-		for(P=n1+1;P<=nZ;P++) gel(col,P) = Fq_mul(gel(s,P),gcoeff(V,P,j),T,pe);
+		for(P=1;P<=nZ;P++) gel(col,P) = Fq_mul(gel(s,P),gcoeff(V,P,j),T,pe);
 		gel(sV,j) = col;
 	}
 	U = DivSub(W,sV,KV,d0+1-g,T,p,e,pe,2);
@@ -398,7 +397,7 @@ GEN PicChart(GEN J, GEN W) /* /!\ Not Galois-equivariant ! */
   for(j=1;j<=d0+1-g;j++)
   { 
     col = cgetg(n2+1,t_COL);
-    for(P=1;P<=n2;P++) gel(col,P) = gcoeff(U,n1+P,j);
+    for(P=1;P<=n2;P++) gel(col,P) = gcoeff(U,P0+n1+P,j);
     gel(K,j) = col;
   }
 	K = matkerpadic(K,T,p,e);
@@ -410,9 +409,9 @@ GEN PicChart(GEN J, GEN W) /* /!\ Not Galois-equivariant ! */
   }
 	s = FqM_FqC_mul(U,gel(K,1),T,pe);
 	res = cgetg(nZ-n1-n2,t_COL);
-	for(j=n1+n2+1;j<=nZ;j++) gel(res,j-n1-n2) = gcopy(gel(s,j));
-
-	return gerepileupto(av,res);
+	for(j=1;j<=P0;j++) gel(res,j) = gel(s,j);
+	for(j=P0+n1+n2+1;j<=nZ;j++) gel(res,j-n1-n2) = gel(s,j);
+	return gerepilecopy(av,res);
 }
 
 GEN rand_subset(ulong n, ulong r)

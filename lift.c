@@ -41,7 +41,7 @@ GEN PicLift_worker(ulong nW, ulong nZ, ulong nKV, GEN KwVk, GEN VFlist, GEN uv, 
 	return gerepileupto(av,M);
 }
 
-GEN PicLiftTors_worker(GEN J, GEN W1, GEN l, GEN KM, GEN c0, GEN V0, ulong d0, ulong nW, ulong nZ, ulong k0, GEN T, GEN p, long e2, GEN pe2, long e21, GEN pe21, GEN pe1, GEN randseed)
+GEN PicLiftTors_worker(GEN J, GEN W1, GEN l, GEN KM, GEN c0, GEN V0, ulong d0, ulong nW, ulong nZ, ulong k0, GEN T, GEN p, long e2, GEN pe2, long e21, GEN pe21, GEN pe1, GEN randseed, ulong P0)
 {
 	pari_sp av = avma;
 	GEN K,red,W,c;
@@ -73,7 +73,7 @@ GEN PicLiftTors_worker(GEN J, GEN W1, GEN l, GEN KM, GEN c0, GEN V0, ulong d0, u
   }
   W = FpXM_add(W1,ZXM_Z_mul(W,pe1),pe2);
   /* Mul by l, get coordinates, and compare them to those of W0 */
-  c = PicChart(J,PicMul(J,W,l,0));
+  c = PicChart(J,PicMul(J,W,l,0),P0);
   c = FqV_Fq_mul(c,ZpXQ_inv(gel(c,k0),T,p,e2),T,pe2);
   for(i=1;i<=nc;i++)
   {
@@ -82,9 +82,9 @@ GEN PicLiftTors_worker(GEN J, GEN W1, GEN l, GEN KM, GEN c0, GEN V0, ulong d0, u
 	return gerepilecopy(av,mkvec2(W,c));
 }
 
-GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l)
+GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l, GEN P0_hint)
 {
-	pari_sp av1,av=avma;
+	pari_sp av1,av2,av=avma;
 	GEN V,KV,W0,T,p,pe1,pe2,pe21;
 	GEN col,K,wV,KwV,Ainv,AinvB,CAinv,rho,ABCD,uv;
 	GEN F,VF,VFlist,sW,cW,Vs,V0,KwVlist,M,KM,worker,done;
@@ -93,6 +93,8 @@ GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l)
 	ulong g,d0,nW,nV,nKV,nZ,nc,r;
 	long e2,e21,pending,workid;
 	ulong e,i,j,k,P,k0,n;
+	GEN P0;
+	int todo_c0;
 
 	struct pari_mt pt;
 
@@ -101,6 +103,8 @@ GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l)
 	{
 		return FpXM_red(W1,pe2);
 	}
+	if(P0_hint) P0 = P0_hint;
+	else P0 = gen_0;
 
 	V = JgetV(J2);
 	KV = JgetKV(J2);
@@ -241,33 +245,39 @@ GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l)
     }
 	}
 	mt_queue_end(&pt);
-	printf("Ker...\n");
 	KM = matkerpadic_hint(M,T,p,e21,pe21,d0+1);
 	printf("Dim ker M = %ld\n",lg(KM)-1);
 	
-	/* Find coords of 0 */
-	/* TODO pass this as argument */
-	c0 = PicChart(J2,W0);
-	nc = lg(c0)-1;
-	/* TODO could be NULL */
-	/* Find index to dehomogenise */
-	red = NULL;
-	for(k0=1;k0<=nc;k0++)
-	{
-		red = gel(c0,k0);
-		if(!ZX_is0mod(red,p)) break;
-	}
-	c0 = FqV_Fq_mul(c0,ZpXQ_inv(red,T,p,e2),T,pe2);
-	K0 = utoi(k0);
-
 	Wlifts = cgetg(g+2,t_VEC);
-	K = cgetg(g+2,t_MAT);
+  K = cgetg(g+2,t_MAT);
+	todo_c0 = 1;
 	worker = strtofunction("PicLiftTors_worker");
-	av1 = avma;
-	do
+	av1 = av;
+	while(1)
 	{
+		if(todo_c0)
+		{
+			av = av1;
+			/* Find coords of 0 */
+  		/* TODO pass this as argument */
+			c0 = PicChart(J2,W0,itou(P0));
+			nc = lg(c0)-1;
+			/* TODO could be NULL */
+			/* Find index to dehomogenise */
+			red = NULL;
+			for(k0=1;k0<=nc;k0++)
+			{
+				red = gel(c0,k0);
+				if(!ZX_is0mod(red,p)) break;
+			}
+			c0 = FqV_Fq_mul(c0,ZpXQ_inv(red,T,p,e2),T,pe2);
+			K0 = utoi(k0);
+			todo_c0 = 0;
+			av2 = av;
+		}
+		av = av2;
 		/* Find g+1 lifts */
-		avma = av1;
+		/* TODO avma = av1; */
 		pending = 0;
 		mt_queue_start(&pt,worker);
 		for(i=1;i<=g+1||pending;i++)
@@ -275,7 +285,7 @@ GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l)
 			if(i<=g+1)
 			{
 				randseed = utoi(pari_rand());
-				args = mkvecn(18,J2,W1,l,KM,c0,V0,D0,NW,NZ,K0,T,p,E2,pe2,E21,pe21,pe1,randseed);
+				args = mkvecn(19,J2,W1,l,KM,c0,V0,D0,NW,NZ,K0,T,p,E2,pe2,E21,pe21,pe1,randseed,P0);
 				mt_queue_submit(&pt,i,args);
 			}
 			else mt_queue_submit(&pt,i,NULL);
@@ -287,63 +297,65 @@ GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l)
 			}
 		}
 		mt_queue_end(&pt);
-		/*pari_printf("Wlifts\n");
-		pari_printf("%Ps\n",Wlifts);
-		pari_printf("K\n");
-		pari_printf("%Ps\n",K);*/
 		Ktors = matkerpadic(K,T,p,e21);
-		/*pari_printf("T=%Ps,p=%Ps,e21=%lu\n",T,p,e21);*/
     n = lg(Ktors)-1;
     printf("Dim ker tors = %ld\n",n);
-		/*pari_printf("%Ps\n",Ktors);*/
-		/* Find a col of K with invertible sum */
-		k = 0;
-		for(j=1;j<=n;j++)
+		if(n>1)
 		{
-			red = gcoeff(K,1,j);
-			for(i=2;i<=nc;i++)
+			printf("Changing charts\n");
+			P0 = addiu(P0,1);
+			todo_c0 = 1;
+			continue;
+		}
+		Ktors = gel(Ktors,1);
+		red = gel(Ktors,1);
+		for(i=2;i<=g+1;i++)
+		{
+			red = FpX_add(red,gel(Ktors,i),pe2);
+		}
+		if(ZX_is0mod(red,p))
+		{
+			printf("Sum of Ktors is zero!\n");
+			continue;
+		}
+		Ktors = FqC_Fq_mul(Ktors,ZpXQ_inv(red,T,p,e2),T,pe2);
+		for(i=1;i<=g+1;i++) gel(Wlifts,i) = FqM_Fq_mul(gel(Wlifts,i),gel(Ktors,i),T,pe2);
+		W = gel(Wlifts,1);
+		for(i=2;i<=g+1;i++) W = FpXM_add(W,gel(Wlifts,i),pe2);
+		if(P0_hint == NULL)
+		{ /* The chart might not be a diffeo, need to check we got all right */
+			if(!PicIsZero(J2,PicMul(J2,W,l,0)))
 			{
-				red = FpX_add(red,gcoeff(K,i,j),pe2);
-			}
-			if(!ZX_is0mod(red,p))
-			{
-				k = j;
-				Ktors = gel(Ktors,j);
-				Ktors = FqC_Fq_mul(Ktors,ZpXQ_inv(red,T,p,e2),T,pe2);
-				break;
+				printf("Not actually l-torsion!!! Changing charts\n");
+      	P0 = addiu(P0,1);
+      	todo_c0 = 1;
+      	continue;
 			}
 		}
-	} while(k==0);
-	pari_printf("%Ps\n",Ktors);
-	for(i=1;i<=g+1;i++)
-	{
-		gel(Wlifts,i) = FqM_Fq_mul(gel(Wlifts,i),gel(Ktors,i),T,pe2);
+		return gerepilecopy(av,mkvec2(W,P0));
 	}
-	W = gel(Wlifts,1);
-	for(i=2;i<=g+1;i++)
-	{
-		W = FpXM_add(W,gel(Wlifts,i),pe2);
-	}
-	return gerepileupto(av,W);
 }
 
 GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 {
 	pari_sp av=avma;
 	ulong e,efin,e2;
-	GEN Je,p;
+	GEN Je,p,P0;
 
 	efin = Jgete(J);
 	e = eini;
 	p = Jgetp(J);
+	P0 = NULL;
 	while(e<efin)
 	{
 		e2 = 2*e;
 		if(e2>efin) e2 = efin;
 		pari_printf("Lifting from prec O(%Ps^%lu) to O(%Ps^%lu)\n",p,e,p,e2);
 		Je = e2<efin ? PicRed(J,e2) : J;
-		W = gerepileupto(av,PicLiftTors_2(Je,W,e,l));
+		W = gerepileupto(av,PicLiftTors_2(Je,W,e,l,P0));
+		P0 = gel(W,2);
+		W = gel(W,1);
 		e = e2;
 	}
-	return W;
+	return gerepilecopy(av,W);
 }
