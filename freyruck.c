@@ -210,5 +210,6 @@ GEN PicTorsRels(GEN J, GEN Wtors, GEN l, ulong excess)
 			gcoeff(R,i,j) = utoi(n);
 		}
 	}
+	pari_printf("%Ps\n",R);
 	return gerepileupto(av,FpM_ker(R,l));
 }
