@@ -246,7 +246,8 @@ GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l, GEN P0_hint)
 	}
 	mt_queue_end(&pt);
 	KM = matkerpadic_hint(M,T,p,e21,pe21,d0+1);
-	printf("Dim ker M = %ld\n",lg(KM)-1);
+	n = lg(KM)-1;
+	if(n!=d0+1)	printf("WARNING: dim ker M = %ld (expected %ld)\n",n,d0+1);
 	
 	Wlifts = cgetg(g+2,t_VEC);
   K = cgetg(g+2,t_MAT);
@@ -299,10 +300,9 @@ GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l, GEN P0_hint)
 		mt_queue_end(&pt);
 		Ktors = matkerpadic(K,T,p,e21);
     n = lg(Ktors)-1;
-    printf("Dim ker tors = %ld\n",n);
 		if(n>1)
 		{
-			printf("Changing charts\n");
+			printf("Dim ker tors = %ld, changing charts\n",n);
 			P0 = addiu(P0,1);
 			todo_c0 = 1;
 			continue;
