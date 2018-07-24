@@ -41,13 +41,11 @@ GEN PicLift_worker(ulong nW, ulong nZ, ulong nKV, GEN KwVk, GEN VFlist, GEN uv, 
 	return gerepileupto(av,M);
 }
 
-GEN PicLiftTors_worker(GEN J, GEN W1, GEN l, GEN KM, GEN c0, GEN V0, ulong d0, ulong nW, ulong nZ, ulong k0, GEN T, GEN p, long e2, GEN pe2, long e21, GEN pe21, GEN pe1, GEN randseed, ulong P0)
+GEN PicLift_RandLift(GEN W1, GEN KM, GEN V0, ulong nZ, ulong nW, ulong d0, GEN T, GEN p, long e21, GEN pe1, GEN pe2, GEN pe21)
 {
 	pari_sp av = avma;
-	GEN K,red,W,c;
-	ulong nc,n,i,j,k,P;
-	setrand(randseed);
-	nc = lg(c0)-1;
+	GEN K,red,W;
+	ulong n,j,k,P;
 	/* Find a random solution to the inhomogeneous system */
   do
   {
@@ -72,6 +70,18 @@ GEN PicLiftTors_worker(GEN J, GEN W1, GEN l, GEN KM, GEN c0, GEN V0, ulong d0, u
     }
   }
   W = FpXM_add(W1,ZXM_Z_mul(W,pe1),pe2);
+	return gerepileupto(av,W);
+}
+
+GEN PicLiftTors_worker(GEN J, GEN W1, GEN l, GEN KM, GEN c0, GEN V0, ulong d0, ulong nW, ulong nZ, ulong k0, GEN T, GEN p, long e2, GEN pe2, long e21, GEN pe21, GEN pe1, GEN randseed, ulong P0)
+{
+	pari_sp av = avma;
+	GEN W,c;
+	ulong nc,i;
+	setrand(randseed);
+	nc = lg(c0)-1;
+	/* Find a random solution to the inhomogeneous system */
+	W = PicLift_RandLift(W1,KM,V0,nZ,nW,d0,T,p,e21,pe1,pe2,pe21);
   /* Mul by l, get coordinates, and compare them to those of W0 */
   c = PicChart(J,PicMul(J,W,l,0),P0);
   c = FqV_Fq_mul(c,ZpXQ_inv(gel(c,k0),T,p,e2),T,pe2);
@@ -249,6 +259,14 @@ GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l, GEN P0_hint)
 	n = lg(KM)-1;
 	if(n!=d0+1)	printf("WARNING: dim ker M = %ld (expected %ld)\n",n,d0+1);
 	
+	if(cmpii(pe21,powiu(l,g+1))<=0)
+	{
+		printf("Lift by mul\n");
+		W = PicLift_RandLift(W1,KM,V0,nZ,nW,d0,T,p,e21,pe1,pe2,pe21);
+		W = PicMul(J2,W,pe21,0);
+		return mkvec2(gerepileupto(av,W),P0_hint);
+	}
+
 	Wlifts = cgetg(g+2,t_VEC);
   K = cgetg(g+2,t_MAT);
 	todo_c0 = 1;
@@ -352,9 +370,19 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 		if(e2>efin) e2 = efin;
 		pari_printf("Lifting from prec O(%Ps^%lu) to O(%Ps^%lu)\n",p,e,p,e2);
 		Je = e2<efin ? PicRed(J,e2) : J;
-		W = gerepileupto(av,PicLiftTors_2(Je,W,e,l,P0));
+		W = PicLiftTors_2(Je,W,e,l,P0);
+		printf("Back");
 		P0 = gel(W,2);
-		W = gel(W,1);
+		if(P0)
+		{
+			W = gerepileupto(av,W);
+			P0 = gel(W,2);
+			W = gel(W,1);
+		}
+		else
+		{
+			W = gerepileupto(av,gel(W,1));
+		}
 		e = e2;
 	}
 	return gerepilecopy(av,W);
