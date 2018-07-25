@@ -21,6 +21,7 @@ install("HyperPicEvalData","G","HyperPicEvalData","./libhyper.so");
 install("HyperPicEval","GGG","HyperPicEval","./libhyper.so");
 
 install("PlaneRegRandPt","GGGL","PlaneRegRandPt","./libplanereg.so");
+install("PlaneInit","GGUL","PlaneInit","./libplanereg.so");
 
 install("PicRed","GU","PicRed","./libpic.so");
 install("PicChord","GGGL","PicChord","./libpic.so");
