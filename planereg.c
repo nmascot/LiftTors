@@ -30,12 +30,12 @@ GEN PlaneRegRandPt(GEN f, GEN T, GEN p, long e)
   }
 }
 
-GEN Vmat_upto(ulong d, ulong n, GEN Z, GEN T, GEN p, long e, GEN pe)
+GEN Vmat_upto(long d, long n, GEN Z, GEN T, GEN p, long e, GEN pe)
 {
 	pari_sp av = avma;
 	GEN V,J,Fq1,x,y,x1,xpow,x1pow,ypow,xr,ys,xrys;
-	long r,s;
-	ulong g,nZ,P,m,dm,j;
+	long r,s,m;
+	ulong g,nZ,P,dm,j;
 
 	/* Initialisation */
 	g = (d-1)*(d-2);
@@ -45,8 +45,7 @@ GEN Vmat_upto(ulong d, ulong n, GEN Z, GEN T, GEN p, long e, GEN pe)
 	J = cgetg(n+1,t_VECSMALL);
 	for(m=1;m<=n;m++)
 	{
-		J[m] = 1;
-		dm = m*d*(d-2);
+		dm = m*d*(d-2)+1-g;
 		gel(V,m) = cgetg(dm+1,t_MAT);
 		for(j=1;j<=dm;j++) gmael(V,m,j) = cgetg(nZ,t_COL);
 	}
@@ -55,7 +54,7 @@ GEN Vmat_upto(ulong d, ulong n, GEN Z, GEN T, GEN p, long e, GEN pe)
 	x1pow = cgetg(n+1,t_VEC);
 	ypow = cgetg(d,t_VEC);
 
-	for(P=1;P<=nZ;P++)
+	for(P=1;P<nZ;P++)
 	{
 		x = gmael(Z,P,1);
 		y = gmael(Z,P,2);
@@ -66,17 +65,17 @@ GEN Vmat_upto(ulong d, ulong n, GEN Z, GEN T, GEN p, long e, GEN pe)
 		for(m=1;m<n;m++) gel(x1pow,m+1) = Fq_mul(gel(x1pow,m),x1,T,pe);
 		gel(ypow,1) = y;
 		for(m=1;m<d-1;m++) gel(ypow,m+1) = Fq_mul(gel(ypow,m),y,T,pe);
-		
+		for(m=1;m<=n;m++) J[m] = 1;
 		for(s=0;s<d;s++)
 		{
 			for(r=-n;r+s<=(d-3)*n;r++)
 			{
-				if(r==0) xr = Fq1;
+				xr = Fq1;
 				if(r>0) xr = gel(xpow,r);
-				else xr = gel(x1pow,-r);
+				if(r<0) xr = gel(x1pow,-r);
 				if(s)
 				{
-					ys = gel(y,s);
+					ys = gel(ypow,s);
 					xrys = Fq_mul(xr,ys,T,pe);
 				}
 				else xrys = xr;
@@ -112,7 +111,7 @@ GEN PlaneInit(GEN f, GEN p, ulong a, long e)
 	d0 = df*(df-3);
 	nZ = 5*d0+1;
 
-	t = varlower("t",varn(f));
+	t = varlower("t",vars[2]);
   T = liftint(ffinit(p,a,varn(t)));
   Frob = ZpX_Frobenius(T,p,e);
   pe = powiu(p,e);
