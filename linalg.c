@@ -1,5 +1,13 @@
 #include<pari/pari.h>
 
+GEN GetFq1(GEN T)
+{
+	GEN Fq1;
+	Fq1 = mkpoln(1,gen_1);
+  setvarn(Fq1,varn(T));
+	return Fq1;
+}
+
 long ZX_is0mod(GEN x, GEN p)
 {
 	pari_sp av = avma;

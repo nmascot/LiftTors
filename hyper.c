@@ -251,8 +251,7 @@ GEN HyperPicEvalData(GEN J)
   g = Jgetg(J);
 	Z = JgetZ(J);
 	nZ = lg(Z);
-	Fq1 = mkpoln(1,gen_1);
-  setvarn(Fq1,varn(T));
+	Fq1 = GetFq1(T);
 
 	if(g%2) pari_err(e_IMPL,"odd genus");
 	U1 = RReval(Z,3*(g/2)+2,2*g+2,T,pe);
