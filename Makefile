@@ -47,7 +47,7 @@ LIBS       = -lm -L/home/nicolas/pari/GP/lib -lpari
 
 RM = rm -f
 
-all: liblinalg.so libexp.so libpic.so libhyper.so liblift.so libfreyruck.so
+all: liblinalg.so libexp.so libpic.so libhyper.so liblift.so libfreyruck.so libplanereg.so
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $(EXTRACFLAGS) $(CPPFLAGS) $(DLCFLAGS) $<
@@ -70,8 +70,8 @@ libpic.so: pic.o
 liblift.so: lift.o
 	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) lift.o $(EXTRAMODLDFLAGS)
 
-libtest-mt.so: test-mt.o
-	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) test-mt.o $(EXTRAMODLDFLAGS)
+libplanereg.so: planereg.o
+	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) planereg.o $(EXTRAMODLDFLAGS)
 
 libfreyruck.so: freyruck.o
 	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) freyruck.o $(EXTRAMODLDFLAGS)
