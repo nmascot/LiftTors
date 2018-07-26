@@ -108,7 +108,7 @@ GEN PlaneInit(GEN f, GEN p, ulong a, long e)
 	else df = d2;
 	g = (df-1)*(df-2);
 	g = g/2;
-	d0 = df*(df-3);
+	d0 = df*(df-2);
 	nZ = 5*d0+1;
 
 	t = varlower("t",vars[2]);
