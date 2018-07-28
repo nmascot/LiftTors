@@ -66,8 +66,8 @@ PicTorsTrueRel(J,W,l)=
     if(#R==0,return(R));
     if(#R==1,
       if(PicIsZero(J,PicLC(J,R[,1],W)),return(R))
-		,
-		  return(Mat());
+		/*,
+		  return(Mat());*/
     );
 		\\print("False positive");
     ex += 1

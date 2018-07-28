@@ -53,7 +53,7 @@ install("PicTorsRels","GGGU","PicTorsRels","./libfreyruck.so");
 /*f=x^3*y+y^3+x;
 f = subst(f,y,x+y);
 f = subst(f,x,x+y+1);
-p=5;a=6;e=1;l=3;
+p=5;a=6;e=4;l=3;
 J=PlaneInit(f,p,a,e);
 W = PicRand0(J);
 PlaneEval(J,W,[1,2,3],[[-1,0]],[1,-1,-1],[2,1,-1])*/

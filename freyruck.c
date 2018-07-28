@@ -13,14 +13,9 @@ GEN FindSuppl(GEN W, ulong nS, GEN V, GEN Vbis, GEN T, GEN p, GEN pe)
 	nW = lg(W)-1;
 	nZ = lg(gel(V,1))-1;
 	S = cgetg(nS+nW+1,t_MAT);
-	printf("W has size %ld and rank %ld\n",lg(W)-1,FqM_rank(W,T,p));
-	printf("Looking for S(%ld) of W(%ld) in V(%ld)",nS,nW,lg(V)-1);
-	if(Vbis) printf("*Vbis(%ld)",lg(Vbis)-1);
-	printf("\n");
 	av1 = avma;
 	do
 	{
-		printf("Attempt, ");
 		avma = av1;
 		if(Vbis)
 		{
@@ -38,7 +33,6 @@ GEN FindSuppl(GEN W, ulong nS, GEN V, GEN Vbis, GEN T, GEN p, GEN pe)
 			for(j=1;j<=nS;j++) gel(S,j) = RandVec_padic(V,T,p,pe);
 		}
 		for(j=1;j<=nW;j++) gel(S,j+nS) = gel(W,j);
-		printf("rk=%ld\n",FqM_rank(S,T,p));
 	}while(FqM_rank(S,T,p)<nS+nW);
 	if(Vbis) S = gerepilecopy(av,S);
 	return S;
@@ -78,7 +72,6 @@ GEN PicNorm(GEN J, GEN F, GEN WE)
 	GEN V,V3,T,p,pe;
 	GEN WEV3,V1,V2,M1,M2,M;
 
-	printf("Into PicNorm\n");
 	g = Jgetg(J);
 	d0 = Jgetd0(J);
 	V = JgetV(J);
@@ -90,14 +83,11 @@ GEN PicNorm(GEN J, GEN F, GEN WE)
 	nV5 = 5*d0+1-g;
 	nZ = lg(gel(V,1))-1;
 
-	printf("DivAdd\n");
 	WEV3 = DivAdd(V3,WE,nV5-nS,T,p,e,pe,0);
 
-	printf("Suppls\n");
 	V1 = FindSuppl(WE,nS,V,NULL,T,p,pe);
 	V2 = FindSuppl(WEV3,nS,V,V3,T,p,pe);
 
-	printf("Mats\n");
 	M = cgetg(nS+nV5+1,t_MAT);
 	for(j=1;j<=nS;j++) gel(M,j) = gel(V1,j);
 	for(j=1;j<=nV5;j++) gel(M,nS+j) = gel(V2,j);

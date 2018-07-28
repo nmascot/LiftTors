@@ -351,14 +351,13 @@ GEN PlaneEval(GEN J, GEN W, GEN abc, GEN E, GEN abc1, GEN abc2)
 	GEN FqE,VHE,S1,S2,s2,VHE1,VHE2,u1,u2;
 	ulong d,d0,g,nE,i;
 	
-	JgetTpe(J,&T,&p,&pe,&e);
+	JgetTpe(J,&T,&pe,&p,&e);
 	d0 = Jgetd0(J);
 	g = Jgetg(J);
 	V = JgetV(J);
 	KV = JgetKV(J);
 	Z = JgetZ(J);
 	for(d = 2; d0 != d*(d-2); d++) {} 
-	printf("d=%lu\n",d);
 
 	nE = lg(E);
 	FqE = cgetg(nE,t_VEC);
@@ -367,18 +366,14 @@ GEN PlaneEval(GEN J, GEN W, GEN abc, GEN E, GEN abc1, GEN abc2)
 		gel(FqE,i) = mkvec2(Z2Fq(gmael(E,i,1),T),Z2Fq(gmael(E,i,2),T));
 	}
 	VHE = V_HE(d,abc,FqE,Z,T,p,e,pe); /* L(2D0-H-E) */
-	printf("VHE ok, dim %ld\n",lg(VHE)-1);
 	S1 = DivAdd(W,VHE,3*d0-d-(g-2)+1-g,T,p,e,pe,0); /* L(4D0-D-H-E) */
 	S1 = DivSub(V,S1,KV,1,T,p,e,pe,2); /* L(2D0-D-H-E) */
-	printf("S1 ok\n");
 	S2 = DivMul(gel(S1,1),V,T,pe); /* L(4D0-D-H-E-ED) */
 	S2 = DivSub(W,S2,KV,d0+1-g,T,p,e,pe,2); /* L(2D0-H-E-ED) */
 	S2 = DivAdd(S2,VHE,4*d0-2*d-2*(g-2)-g+1-g,T,p,e,pe,0); /* L(4D0-2H-2E-ED) */
 	S2 = DivSub(V,S2,KV,1,T,p,e,pe,2); /* L(4D0-2H-2E-ED) */
 	s2 = gel(S2,1);
-	printf("S2 OK\n");
 	VHE1 = V_HE(d,abc1,NULL,Z,T,p,e,pe);
-	pari_printf("%Ps\n",VHE1);
 	u1 = PicNorm(J,s2,VHE1);
 	VHE2 = V_HE(d,abc2,NULL,Z,T,p,e,pe);
 	u2 = PicNorm(J,s2,VHE2);
