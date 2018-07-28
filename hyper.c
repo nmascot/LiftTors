@@ -275,10 +275,10 @@ GEN HyperPicEval(GEN J, GEN W, GEN U)
 {
 	pari_sp av = avma;
 	long e;
-	ulong g,d0,nV,nZ;
-	GEN T,p,pe,V,KV,W0,Z,U1,U2;
-	ulong i,j;
-	GEN col,WW0,S,s,sV,WE,K,res,u;
+	ulong g,d0;
+	GEN T,p,pe,V,KV,W0,U1,U2;
+	ulong i;
+	GEN WW0,S,s,sV,WE,K,res,u;
 	
 	JgetTpe(J,&T,&pe,&p,&e);
 	g = Jgetg(J);
@@ -286,9 +286,6 @@ GEN HyperPicEval(GEN J, GEN W, GEN U)
 	V = JgetV(J);
 	KV = JgetKV(J);
 	W0 = JgetW0(J);
-	Z = JgetZ(J);
-	nV = lg(V);
-	nZ = lg(Z);
 	U1 = gel(U,1);
 	U2 = gel(U,2);
 
@@ -296,17 +293,7 @@ GEN HyperPicEval(GEN J, GEN W, GEN U)
 
 	WW0 = DivAdd(W,W0,2*d0+1-g,T,p,e,pe,0);
 	S = DivSub(U1,WW0,KV,1,T,p,e,pe,g+2); /* TODO true sub */
-	s = gel(S,1);
-	sV = cgetg(nV,t_MAT);
-	for(j=1;j<nV;j++)
-	{
-		col = cgetg(nZ,t_COL);
-		for(i=1;i<nZ;i++)
-		{
-			gel(col,i) = Fq_mul(gcoeff(V,i,j),gel(s,i),T,pe);
-		}
-		gel(sV,j) = col;
-	}
+	sV = DivMul(gel(S,1),V,T,pe);
 	WE = DivSub(W,sV,KV,g+3,T,p,e,pe,2);
 	K = cgetg(g+1+g+3+1,t_MAT);
 	for(i=1;i<=g+1;i++) gel(K,i) = gel(U2,i);

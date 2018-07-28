@@ -49,7 +49,7 @@ RandTorsPt(J,f,M,chiC)=
 {
   my(W);
   while(1,
-    W = HyperPicRand(J,f);
+    W = PicRand0(J); \\ TODO
     W = PicMul(J,W,M,0);
     if(chiC,W = PicFrobPoly(J,W,chiC));
     if(!PicIsZero(J,W),return(W));
@@ -72,23 +72,22 @@ PicTorsTrueRel(J,W,l)=
   );
 }
 
-TorsBasis(J,f,p,a,l,C)=
+TorsBasis(J,f,p,a,l,chi,C)=
 {
-  my(d,chi,N,M,v,chiC,W,o,T,BW,Bo,BT,R,m,S);
-  chi = hyperellcharpoly(Mod(f,p));
+  my(d,N,M,v,chiC,W,o,T,BW,Bo,BT,R,m,S);
   N = polresultant(chi,'x^a-1);
   v = valuation(N,l);
   M = N/l^v;
-  d = poldegree(C);
-  if(d<=0,
-    d = C;
-    chiC = 0;
-  ,
+  if(C,
+		d = poldegree(C);
     chiC = lift(Mod(chi,l)/C); \\ TODO test
     fa = [C,chiC];
     fa = polhensellift(chi,fa,l,v);
     chiC = fa[2];
     chiC = centerlift(Mod(chiC,l^v))
+	,
+		d = poldegree(chi);
+    chiC = 0
   );
   BW = vector(d);
   Bo = vector(d);

@@ -20,8 +20,9 @@ install("HyperPicRandTors","GGGG","HyperPicRandTors","./libhyper.so");
 install("HyperPicEvalData","G","HyperPicEvalData","./libhyper.so");
 install("HyperPicEval","GGG","HyperPicEval","./libhyper.so");
 
-install("PlaneRegRandPt","GGGL","PlaneRegRandPt","./libplanereg.so");
 install("PlaneInit","GGUL","PlaneInit","./libplanereg.so");
+install("PlaneZeta","GU","PlaneZeta","./libplanereg.so");
+\\install("PlanePicRand","GGGL","PlanePicRand","./libplanereg.so");
 
 install("PicRed","GU","PicRed","./libpic.so");
 install("PicChord","GGGL","PicChord","./libpic.so");

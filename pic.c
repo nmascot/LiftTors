@@ -53,7 +53,7 @@ GEN DivMul(GEN f, GEN W, GEN T, GEN pe)
 	ulong nW,nZ,i,j;
 	GEN fW,col;
 	nW = lg(W);
-	nZ = lg(gel(W,1));
+	nZ = lg(f);
 	fW = cgetg(nW,t_MAT);
 	for(j=1;j<nW;j++)
 	{
@@ -159,9 +159,8 @@ GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong 
 GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
 {
 	pari_sp av = avma;
-	GEN WAWB,WAB,s,col,sV,WC,res;
+	GEN WAWB,WAB,s,sV,WC,res;
 	GEN V,KV,KV3,W0,T,p,pe;
-	ulong nZ,nV,P,j;
 	long g,d0,e;
 
 	V = JgetV(J);
@@ -177,18 +176,7 @@ GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
 	/* TODO can free some memory here */
 	if(flag & 1) s = RandVec_padic(WAB,T,p,pe);
 	else s = gel(WAB,1);
-	nZ = lg(s);
-	nV = lg(V);
-	sV = cgetg(nV,t_MAT);
-	for(j=1;j<nV;j++)
-	{
-		col = cgetg(nZ,t_COL);
-		for(P=1;P<nZ;P++)
-		{
-			gel(col,P) = Fq_mul(gel(s,P),gcoeff(V,P,j),T,pe);
-		}
-		gel(sV,j) = col;
-	}
+	sV = DivMul(s,V,T,pe);
 	WC = DivSub(WAB,sV,KV,d0+1-g,T,p,e,pe,2);
 
 	if(flag & 2)

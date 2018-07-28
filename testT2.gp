@@ -29,7 +29,7 @@ GalRepBasis(J,l,C)=
 }
 
 \\WB = GalRepBasis(J1,l,C);
-WB = TorsBasis(J1,f,p,a,l,C);
+WB = TorsBasis(J1,f,p,a,l,hyperellcharpoly(Mod(f,p)),C);
 print("Lifting");
 my(J=J,l=l);WB = parapply(W->PicLiftTors(J,W,1,l),WB);
 print("All the space");
