@@ -22,7 +22,7 @@ install("HyperPicEval","GGG","HyperPicEval","./libhyper.so");
 
 install("PlaneInit","GGUL","PlaneInit","./libplanereg.so");
 install("PlaneZeta","GU","PlaneZeta","./libplanereg.so");
-\\install("PlanePicRand","GGGL","PlanePicRand","./libplanereg.so");
+install("PlaneEval","GGGGGG","PlaneEval","./libplanereg.so");
 
 install("PicRed","GU","PicRed","./libpic.so");
 install("PicChord","GGGL","PicChord","./libpic.so");
@@ -49,3 +49,12 @@ install("PicLiftTors","GGLG","PicLiftTors","./liblift.so");
 install("PicNorm","GGG","PicNorm","./libfreyruck.so");
 install("PicFreyRuckMulti","GGGGGG","PicFreyRuckMulti","./libfreyruck.so");
 install("PicTorsRels","GGGU","PicTorsRels","./libfreyruck.so");
+
+/*f=x^3*y+y^3+x;
+f = subst(f,y,x+y);
+f = subst(f,x,x+y+1);
+p=5;a=6;e=1;l=3;
+J=PlaneInit(f,p,a,e);
+W = PicRand0(J);
+PlaneEval(J,W,[1,2,3],[[-1,0]],[1,-1,-1],[2,1,-1])*/
+

@@ -224,7 +224,10 @@ GEN PicMul(GEN J, GEN W, GEN n, long flag)
 	if(gequal(n,gen_1)) return gcopy(W);
 	C = AddChain(n,flag&2);
 	nC = lg(C);
-	pari_printf("PicMul : Mul by %Ps in %lu steps\n",n,nC-2);
+	if(flag&2)
+		pari_printf("PicMul : Mul by %Ps in %lu steps\n",n,nC-2);
+	else
+		pari_printf("PicMul : Mul by ±%Ps in %lu steps\n",n,nC-2);
 	Wlist = cgetg(nC,t_VEC);
 	gel(Wlist,1) = W;
 	for(i=2;i<nC;i++)

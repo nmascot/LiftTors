@@ -1,5 +1,6 @@
 read("install.gp");
 read("MakTorsSpace.gp");
+read("galrep.gp");
 f=4*WeiRed(x^5+x^4,x^3+x+1);
 p=61;a=6;e=100;l=7;
 \\C = x^2-2*x-1;
@@ -8,9 +9,8 @@ f=x^6+x+1;p=29;
 C=4;a=18;l=2;
 J=HyperInit(f,p,a,1);
 
-PicLC(J,C,W)=
+/*PicLC(J,C,W)=
 {
-	/* TODO efficiency */
 	my(S);
 	if(#C==0,return(JgetW0(J)));
 	S = PicMul(J,W[1],C[1],2);
@@ -116,9 +116,9 @@ TorsBasis(J,f,p,a,l,C)=
 		);
 	);
 	BT;
-}
+}*/
 
-B = TorsBasis(J,f,p,a,l,C);
+B = TorsBasis(J,f,p,a,l,hyperellcharpoly(Mod(f,p)),0);
 
 /*N = ordJ(f,p,a);
 v = valuation(N,l);

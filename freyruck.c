@@ -3,28 +3,32 @@
 #include "pic.h"
 #include "hyper.h"
 
-GEN FindSuppl(GEN V, GEN W, GEN T, GEN p, GEN pe, GEN V3, ulong nV5)
+GEN FindSuppl(GEN W, ulong nS, GEN V, GEN Vbis, GEN T, GEN p, GEN pe)
 /* /!\ Shallow */
+/* Look for suppl of W of dim nS in V*Vbis, or in V if Vbis=NULL */
 {
 	pari_sp av1,av = avma;
 	GEN S,v1,v2,col;
-	ulong i,j,nW,nV,nS,nZ;
+	ulong i,j,nW,nZ;
 	nW = lg(W)-1;
-	nV = V3? nV5 : lg(V)-1;
 	nZ = lg(gel(V,1))-1;
-	nS = nV-nW;
-	S = cgetg(nV+1,t_MAT);
+	S = cgetg(nS+nW+1,t_MAT);
+	printf("W has size %ld and rank %ld\n",lg(W)-1,FqM_rank(W,T,p));
+	printf("Looking for S(%ld) of W(%ld) in V(%ld)",nS,nW,lg(V)-1);
+	if(Vbis) printf("*Vbis(%ld)",lg(Vbis)-1);
+	printf("\n");
 	av1 = avma;
 	do
 	{
+		printf("Attempt, ");
 		avma = av1;
-		if(V3)
+		if(Vbis)
 		{
 			for(j=1;j<=nS;j++)
 			{
 				col = cgetg(nZ+1,t_COL);
 				v1 = RandVec_padic(V,T,p,pe);
-				v2 = RandVec_padic(V3,T,p,pe);
+				v2 = RandVec_padic(Vbis,T,p,pe);
 				for(i=1;i<=nZ;i++) gel(col,i) = Fq_mul(gel(v1,i),gel(v2,i),T,pe);
 				gel(S,j) = col;
 			}
@@ -34,8 +38,9 @@ GEN FindSuppl(GEN V, GEN W, GEN T, GEN p, GEN pe, GEN V3, ulong nV5)
 			for(j=1;j<=nS;j++) gel(S,j) = RandVec_padic(V,T,p,pe);
 		}
 		for(j=1;j<=nW;j++) gel(S,j+nS) = gel(W,j);
-	}while(FqM_rank(S,T,p)<nV);
-	if(V3) S = gerepilecopy(av,S);
+		printf("rk=%ld\n",FqM_rank(S,T,p));
+	}while(FqM_rank(S,T,p)<nS+nW);
+	if(Vbis) S = gerepilecopy(av,S);
 	return S;
 }
 
@@ -67,12 +72,13 @@ GEN detratio(GEN K, GEN T, GEN p, long e, GEN pe)
 GEN PicNorm(GEN J, GEN F, GEN WE)
 {
 	pari_sp av = avma;
-	ulong g,d0,nS1,nV5,nZ;
+	ulong g,d0,nS,nV5,nZ;
 	ulong i,j;
 	long e;
 	GEN V,V3,T,p,pe;
 	GEN WEV3,V1,V2,M1,M2,M;
 
+	printf("Into PicNorm\n");
 	g = Jgetg(J);
 	d0 = Jgetd0(J);
 	V = JgetV(J);
@@ -80,21 +86,25 @@ GEN PicNorm(GEN J, GEN F, GEN WE)
 	JgetTpe(J,&T,&pe,&p,&e);
 	d0 = Jgetd0(J);
 	g = Jgetg(J);
-	nS1 = d0;
+	nS = lg(V)-lg(WE); /* codim WE in V = deg E */
 	nV5 = 5*d0+1-g;
 	nZ = lg(gel(V,1))-1;
 
-	WEV3 = DivAdd(V3,WE,4*d0+1-g,T,p,e,pe,0);
-	V1 = FindSuppl(V,WE,T,p,pe,NULL,0);
-	V2 = FindSuppl(V,WEV3,T,p,pe,V3,nV5);
+	printf("DivAdd\n");
+	WEV3 = DivAdd(V3,WE,nV5-nS,T,p,e,pe,0);
 
-	M = cgetg(nS1+nV5+1,t_MAT);
-	for(j=1;j<=nS1;j++) gel(M,j) = gel(V1,j);
-	for(j=1;j<=nV5;j++) gel(M,nS1+j) = gel(V2,j);
+	printf("Suppls\n");
+	V1 = FindSuppl(WE,nS,V,NULL,T,p,pe);
+	V2 = FindSuppl(WEV3,nS,V,V3,T,p,pe);
+
+	printf("Mats\n");
+	M = cgetg(nS+nV5+1,t_MAT);
+	for(j=1;j<=nS;j++) gel(M,j) = gel(V1,j);
+	for(j=1;j<=nV5;j++) gel(M,nS+j) = gel(V2,j);
 	M1 = detratio(matkerpadic(M,T,p,e),T,p,e,pe);
 	if(ZX_is0mod(M1,p)) pari_err(e_MISC,"D intersects D0");
 
-	for(j=1;j<=nS1;j++)
+	for(j=1;j<=nS;j++)
 	{
 		for(i=1;i<=nZ;i++)
 		{

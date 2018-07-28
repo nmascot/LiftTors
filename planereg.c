@@ -1,5 +1,6 @@
 #include "pic.h"
 #include "linalg.h"
+#include "freyruck.h"
 
 GEN PlaneRegRandPt(GEN f, GEN T, GEN p, long e)
 {
@@ -41,7 +42,7 @@ GEN Plane_V(long d, long rmin, long rsmax, GEN Z, GEN T, GEN p, long e, GEN pe)
 	ulong nV,nZ,j,P;
 
 	nZ = lg(Z);
-	nV = d*(rsmax-rmin+1)+(d*(d-1))/2;
+	nV = d*(rsmax-rmin+1)-(d*(d-1))/2;
 	V = cgetg(nV+1,t_MAT);
 	for(j=1;j<=nV;j++) gel(V,j) = cgetg(nZ,t_COL);
 	xpow = cgetg(rsmax+1,t_VEC);
@@ -72,14 +73,13 @@ GEN Plane_V(long d, long rmin, long rsmax, GEN Z, GEN T, GEN p, long e, GEN pe)
 				j++;
 				xr = Fq1;
 				if(r<0) xr = gel(x1pow,-r);
-				if(r>0) xr = gel(x1pow,r);
+				if(r>0) xr = gel(xpow,r);
 				xrys = xr;
 				if(s) xrys = Fq_mul(xr,gel(ypow,s),T,pe);
 				gcoeff(V,P,j) = xrys;
 			}
 		}
 	}
-
 	return gerepilecopy(av,V);
 }
 
@@ -149,7 +149,7 @@ GEN Vmat_upto(long d, long n, GEN Z, GEN T, GEN p, long e, GEN pe)
 	return gerepilecopy(av,V);
 }
 
-GEN LinForm(GEN a, GEN b, GEN c, GEN Z, GEN T, GEN pe)
+GEN LinForm(GEN abc, GEN Z, GEN T, GEN pe)
 /* /!\ Not memory-clean */
 {
 	GEN L;
@@ -159,24 +159,27 @@ GEN LinForm(GEN a, GEN b, GEN c, GEN Z, GEN T, GEN pe)
 	L = cgetg(nZ,t_COL);
 	for(P=1;P<nZ;P++)
 	{
-		gel(L,P) = ZX_Z_mul(gmael(Z,P,1),a);
-		gel(L,P) = ZX_add(gel(L,P),ZX_Z_mul(gmael(Z,P,2),b));
-		gel(L,P) = ZX_Z_add(gel(L,P),c);
+		gel(L,P) = ZX_Z_mul(gmael(Z,P,1),gel(abc,1));
+		gel(L,P) = ZX_add(gel(L,P),ZX_Z_mul(gmael(Z,P,2),gel(abc,2)));
+		gel(L,P) = ZX_Z_add(gel(L,P),gel(abc,3));
 	}
 	return L;
 }
 
-GEN sV_HE(long d, GEN a, GEN b, GEN c, GEN E, GEN Z, GEN T, GEN p, long e, GEN pe)
-/* L(2D0-H-E) where H = hyper sect ax+by+c=0 and deg E=(g-2) -> dim 1 */
+GEN V_HE(long d, GEN abc, GEN E, GEN Z, GEN T, GEN p, long e, GEN pe)
+/* L(2D0-H-E) where H = hyper sect ax+by+c=0. If deg E=(g-2) then dim 1. */
 {
 	pari_sp av = avma;
 	GEN VH,EvE;
 
 	VH = Plane_V(d,-2,2*(d-3)-1,Z,T,p,e,pe);
-	VH = DivMul(LinForm(a,b,c,Z,T,pe),VH,T,pe);
-	EvE = Plane_V(d,-2,2*(d-3)-1,E,T,p,e,pe);
-	EvE = DivMul(LinForm(a,b,c,E,T,pe),EvE,T,pe);
-	VH = FqM_mul(VH,matkerpadic(EvE,T,p,e),T,pe);
+	VH = DivMul(LinForm(abc,Z,T,pe),VH,T,pe);
+	if(E)
+	{
+		EvE = Plane_V(d,-2,2*(d-3)-1,E,T,p,e,pe);
+		EvE = DivMul(LinForm(abc,E,T,pe),EvE,T,pe);
+		VH = FqM_mul(VH,matkerpadic(EvE,T,p,e),T,pe);
+	}
 	return gerepileupto(av,VH);
 }
 
@@ -330,4 +333,55 @@ GEN PlaneZeta(GEN f, ulong p)
 	}
 
 	return gerepilecopy(av,L);
+}
+
+GEN Z2Fq(GEN x, GEN T)
+{
+	GEN y = mkpoln(1,x);
+	setsigne(y,1);
+	setvarn(y,varn(T));
+	return y;
+}
+
+GEN PlaneEval(GEN J, GEN W, GEN abc, GEN E, GEN abc1, GEN abc2)
+{
+	pari_sp av = avma;
+	GEN T,p,pe,V,Z,KV;
+	long e;
+	GEN FqE,VHE,S1,S2,s2,VHE1,VHE2,u1,u2;
+	ulong d,d0,g,nE,i;
+	
+	JgetTpe(J,&T,&p,&pe,&e);
+	d0 = Jgetd0(J);
+	g = Jgetg(J);
+	V = JgetV(J);
+	KV = JgetKV(J);
+	Z = JgetZ(J);
+	for(d = 2; d0 != d*(d-2); d++) {} 
+	printf("d=%lu\n",d);
+
+	nE = lg(E);
+	FqE = cgetg(nE,t_VEC);
+	for(i=1;i<nE;i++)
+	{
+		gel(FqE,i) = mkvec2(Z2Fq(gmael(E,i,1),T),Z2Fq(gmael(E,i,2),T));
+	}
+	VHE = V_HE(d,abc,FqE,Z,T,p,e,pe); /* L(2D0-H-E) */
+	printf("VHE ok, dim %ld\n",lg(VHE)-1);
+	S1 = DivAdd(W,VHE,3*d0-d-(g-2)+1-g,T,p,e,pe,0); /* L(4D0-D-H-E) */
+	S1 = DivSub(V,S1,KV,1,T,p,e,pe,2); /* L(2D0-D-H-E) */
+	printf("S1 ok\n");
+	S2 = DivMul(gel(S1,1),V,T,pe); /* L(4D0-D-H-E-ED) */
+	S2 = DivSub(W,S2,KV,d0+1-g,T,p,e,pe,2); /* L(2D0-H-E-ED) */
+	S2 = DivAdd(S2,VHE,4*d0-2*d-2*(g-2)-g+1-g,T,p,e,pe,0); /* L(4D0-2H-2E-ED) */
+	S2 = DivSub(V,S2,KV,1,T,p,e,pe,2); /* L(4D0-2H-2E-ED) */
+	s2 = gel(S2,1);
+	printf("S2 OK\n");
+	VHE1 = V_HE(d,abc1,NULL,Z,T,p,e,pe);
+	pari_printf("%Ps\n",VHE1);
+	u1 = PicNorm(J,s2,VHE1);
+	VHE2 = V_HE(d,abc2,NULL,Z,T,p,e,pe);
+	u2 = PicNorm(J,s2,VHE2);
+	u2 = ZpXQ_inv(u2,T,p,e);
+	return gerepileupto(av,Fq_mul(u1,u2,T,pe));
 }
