@@ -30,6 +30,61 @@ GEN PlaneRegRandPt(GEN f, GEN T, GEN p, long e)
   }
 }
 
+/* TODO refactor */
+
+GEN Plane_V(long d, long rmin, long rsmax, GEN Z, GEN T, GEN p, long e, GEN pe)
+{
+	/* Assumes rsmax - rmin >= d-2 */
+	pari_sp av = avma;
+	GEN V,x,y,x1,xpow,x1pow,ypow,xr,xrys,Fq1;
+	long r,s;
+	ulong nV,nZ,j,P;
+
+	nZ = lg(Z);
+	nV = d*(rsmax-rmin+1)+(d*(d-1))/2;
+	V = cgetg(nV+1,t_MAT);
+	for(j=1;j<=nV;j++) gel(V,j) = cgetg(nZ,t_COL);
+	xpow = cgetg(rsmax+1,t_VEC);
+	ypow = cgetg(d,t_VEC);
+	x1pow = NULL;
+	if(rmin<0) x1pow = cgetg(1-rmin,t_VEC);
+	Fq1 = GetFq1(T);
+
+	for(P=1;P<nZ;P++)
+	{
+		x = gmael(Z,P,1);
+		gel(xpow,1) = x;
+		for(j=1;j<rsmax;j++) gel(xpow,j+1) = Fq_mul(gel(xpow,j),x,T,pe); 
+		y = gmael(Z,P,2);
+		gel(ypow,1) = y;
+    for(j=1;j<d;j++) gel(ypow,j+1) = Fq_mul(gel(ypow,j),y,T,pe);
+		if(rmin<0)
+		{
+			x1 = ZpXQ_inv(x,T,p,e);
+			gel(x1pow,1) = x1;
+			for(j=1;j<-rmin;j++) gel(x1pow,j+1) = Fq_mul(gel(x1pow,j),x1,T,pe);
+		}
+		j = 0;
+		for(s=0;s<d;s++)
+		{
+			for(r=rmin;r+s<=rsmax;r++)
+			{
+				j++;
+				xr = Fq1;
+				if(r<0) xr = gel(x1pow,-r);
+				if(r>0) xr = gel(x1pow,r);
+				xrys = xr;
+				if(s) xrys = Fq_mul(xr,gel(ypow,s),T,pe);
+				gcoeff(V,P,j) = xrys;
+			}
+		}
+	}
+
+	return gerepilecopy(av,V);
+}
+
+
+
 GEN Vmat_upto(long d, long n, GEN Z, GEN T, GEN p, long e, GEN pe)
 {
 	pari_sp av = avma;
@@ -92,6 +147,37 @@ GEN Vmat_upto(long d, long n, GEN Z, GEN T, GEN p, long e, GEN pe)
 	}
 
 	return gerepilecopy(av,V);
+}
+
+GEN LinForm(GEN a, GEN b, GEN c, GEN Z, GEN T, GEN pe)
+/* /!\ Not memory-clean */
+{
+	GEN L;
+	ulong nZ,P;
+
+	nZ = lg(Z);
+	L = cgetg(nZ,t_COL);
+	for(P=1;P<nZ;P++)
+	{
+		gel(L,P) = ZX_Z_mul(gmael(Z,P,1),a);
+		gel(L,P) = ZX_add(gel(L,P),ZX_Z_mul(gmael(Z,P,2),b));
+		gel(L,P) = ZX_Z_add(gel(L,P),c);
+	}
+	return L;
+}
+
+GEN sV_HE(long d, GEN a, GEN b, GEN c, GEN E, GEN Z, GEN T, GEN p, long e, GEN pe)
+/* L(2D0-H-E) where H = hyper sect ax+by+c=0 and deg E=(g-2) -> dim 1 */
+{
+	pari_sp av = avma;
+	GEN VH,EvE;
+
+	VH = Plane_V(d,-2,2*(d-3)-1,Z,T,p,e,pe);
+	VH = DivMul(LinForm(a,b,c,Z,T,pe),VH,T,pe);
+	EvE = Plane_V(d,-2,2*(d-3)-1,E,T,p,e,pe);
+	EvE = DivMul(LinForm(a,b,c,E,T,pe),EvE,T,pe);
+	VH = FqM_mul(VH,matkerpadic(EvE,T,p,e),T,pe);
+	return gerepileupto(av,VH);
 }
 
 GEN PlaneInit(GEN f, GEN p, ulong a, long e)

@@ -20,6 +20,7 @@ void JgetTpe(GEN J, GEN* T, GEN* pe, GEN* p, long* e);
 
 GEN PicRed(GEN J, ulong e);
 
+GEN DivMul(GEN f, GEN W, GEN T, GEN pe);
 GEN DivAdd(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess);
 GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong nIGS);
 GEN PicChord(GEN J, GEN WA, GEN WB, long flag);

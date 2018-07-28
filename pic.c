@@ -48,6 +48,25 @@ GEN PicRed(GEN J, ulong e)
 	return Je;
 }
 
+GEN DivMul(GEN f, GEN W, GEN T, GEN pe)
+{
+	ulong nW,nZ,i,j;
+	GEN fW,col;
+	nW = lg(W);
+	nZ = lg(gel(W,1));
+	fW = cgetg(nW,t_MAT);
+	for(j=1;j<nW;j++)
+	{
+		col = cgetg(nZ,t_COL);
+		for(i=1;i<nZ;i++)
+		{
+			gel(col,i) = Fq_mul(gel(f,i),gcoeff(W,i,j),T,pe);
+		}
+		gel(fW,j) = col;
+	}
+	return fW;
+}
+
 GEN DivAdd(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
 {
 	pari_sp av,av1,av0=avma;
