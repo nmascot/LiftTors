@@ -23,6 +23,8 @@ install("HyperPicEval","GGG","HyperPicEval","./libhyper.so");
 install("PlaneInit","GGUL","PlaneInit","./libplanereg.so");
 install("PlaneZeta","GU","PlaneZeta","./libplanereg.so");
 install("PlaneEval","GGGGGG","PlaneEval","./libplanereg.so");
+install("PlaneEval0","GGGG","PlaneEval0","./libplanereg.so");
+install("AllPols0","GGGLG","AllPols0","./libplanereg.so");
 
 install("PicRed","GU","PicRed","./libpic.so");
 install("PicChord","GGGL","PicChord","./libpic.so");
@@ -41,6 +43,8 @@ install("JgetW0","G","JgetW0","./libpic.so");
 install("Jgetg","lG","Jgetg","./libpic.so");
 install("JgetT","G","JgetT","./libpic.so");
 install("Jgetpe","G","Jgetpe","./libpic.so");
+install("Jgetp","G","Jgetp","./libpic.so");
+install("Jgete","lG","Jgete","./libpic.so");
 
 install("PicLift_worker","UUUGGGGGGG","PicLift_worker","./liblift.so");
 install("PicLiftTors_worker","GGGGGGUUUUGGLGLGGGU","PicLiftTors_worker","./liblift.so");

@@ -371,7 +371,7 @@ GEN PlaneEval(GEN J, GEN W, GEN abc, GEN E, GEN abc1, GEN abc2)
 	S2 = DivMul(gel(S1,1),V,T,pe); /* L(4D0-D-H-E-ED) */
 	S2 = DivSub(W,S2,KV,d0+1-g,T,p,e,pe,2); /* L(2D0-H-E-ED) */
 	S2 = DivAdd(S2,VHE,4*d0-2*d-2*(g-2)-g+1-g,T,p,e,pe,0); /* L(4D0-2H-2E-ED) */
-	S2 = DivSub(V,S2,KV,1,T,p,e,pe,2); /* L(4D0-2H-2E-ED) */
+	S2 = DivSub(V,S2,KV,1,T,p,e,pe,2); /* L(2D0-2H-2E-ED) */
 	s2 = gel(S2,1);
 	VHE1 = V_HE(d,abc1,NULL,Z,T,p,e,pe);
 	u1 = PicNorm(J,s2,VHE1);
@@ -379,4 +379,105 @@ GEN PlaneEval(GEN J, GEN W, GEN abc, GEN E, GEN abc1, GEN abc2)
 	u2 = PicNorm(J,s2,VHE2);
 	u2 = ZpXQ_inv(u2,T,p,e);
 	return gerepileupto(av,Fq_mul(u1,u2,T,pe));
+}
+
+GEN PlaneEval0(GEN J, GEN W, GEN abc, GEN E)
+{
+  pari_sp av = avma;
+  GEN T,p,pe,V,Z,KV;
+  long e;
+  GEN FqE,VHE,S1,S2,s2,K;
+  ulong d,d0,g,nE,i,nV;
+
+  JgetTpe(J,&T,&pe,&p,&e);
+  d0 = Jgetd0(J);
+  g = Jgetg(J);
+  V = JgetV(J);
+  KV = JgetKV(J);
+  Z = JgetZ(J);
+  for(d = 2; d0 != d*(d-2); d++) {}
+  nV = lg(V);
+
+  nE = lg(E);
+  FqE = cgetg(nE,t_VEC);
+  for(i=1;i<nE;i++)
+  {
+    gel(FqE,i) = mkvec2(Z2Fq(gmael(E,i,1),T),Z2Fq(gmael(E,i,2),T));
+  }
+  VHE = V_HE(d,abc,FqE,Z,T,p,e,pe); /* L(2D0-H-E) */
+  S1 = DivAdd(W,VHE,3*d0-d-(g-2)+1-g,T,p,e,pe,0); /* L(4D0-D-H-E) */
+  S1 = DivSub(V,S1,KV,1,T,p,e,pe,2); /* L(2D0-D-H-E) */
+  S2 = DivMul(gel(S1,1),V,T,pe); /* L(4D0-D-H-E-ED) */
+  S2 = DivSub(W,S2,KV,d0+1-g,T,p,e,pe,2); /* L(2D0-H-E-ED) */
+  S2 = DivAdd(S2,VHE,4*d0-2*d-2*(g-2)-g+1-g,T,p,e,pe,0); /* L(4D0-2H-2E-ED) */
+  S2 = DivSub(V,S2,KV,1,T,p,e,pe,2); /* L(2D0-2H-2E-ED) */
+  s2 = gel(S2,1);
+  K = cgetg(nV+1,t_MAT);
+  for(i=1;i<nV;i++) gel(K,i) = gel(V,i);
+  gel(K,nV) = s2;
+  K = matkerpadic(K,T,p,e);
+	return gerepileupto(av,gel(K,1));
+}
+
+GEN PolExpId(GEN Z, GEN T, GEN pe)
+{
+	pari_sp av = avma;
+	GEN f,a;
+	ulong nZ,i;
+	nZ = lg(Z);
+	f = cgetg(nZ,t_VEC);
+	for(i=1;i<nZ;i++) gel(f,i) = mkpoln(2,gen_1,gel(Z,i));
+	f = liftpol(factorback(gmodulo(gmodulo(f,pe),T)));
+	a = bestappr(f,NULL);
+	return gerepilecopy(av,mkvecn(3,Z,f,a));
+}
+
+GEN AllPols0(GEN F, GEN T, GEN p, long e, GEN pe)
+{
+	pari_sp av = avma;
+	GEN F1,f,R,pols;
+	ulong nF,lF,npols,n,i,j,k;
+
+	nF = lg(F);
+	lF = lg(gel(F,1))-1;
+	F1 = cgetg(lF,t_VEC);
+	npols = 0;
+	printf("Inverting\n");
+	for(i=1;i<lF;i++)
+	{ 
+		npols++;
+		gel(F1,i) = cgetg(nF,t_VEC);
+		for(j=1;j<nF;j++)
+		{
+			f = gmael(F,j,i);
+			if(ZX_is0mod(f,p))
+			{
+				gel(F1,i) = NULL;
+				npols--;
+				break;
+			}
+			gmael(F1,i,j) = ZpXQ_inv(f,T,p,e);
+		}
+	}
+	npols *= (lF-2);
+	printf("Getting %lu pols\n",npols);
+	pols = cgetg(npols+1,t_VEC);
+	R = cgetg(nF,t_VEC);
+	/* TODO parallelise */
+	n = 0;
+	for(i=1;i<lF;i++)
+	{
+		if(gel(F1,i)==NULL) continue;
+		for(j=1;j<lF;j++)
+		{
+			if(j==i) continue;
+			R = cgetg(nF,t_VEC);
+			for(k=1;k<nF;k++) gel(R,k) = Fq_mul(gmael(F,k,j),gmael(F1,i,k),T,pe);
+			n++;
+			printf("%lu ",n);
+			gel(pols,n) = PolExpId(R,T,pe);
+		}
+	}		
+  
+	return gerepilecopy(av,pols);
 }

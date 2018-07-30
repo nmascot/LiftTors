@@ -371,7 +371,6 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 		pari_printf("Lifting from prec O(%Ps^%lu) to O(%Ps^%lu)\n",p,e,p,e2);
 		Je = e2<efin ? PicRed(J,e2) : J;
 		W = PicLiftTors_2(Je,W,e,l,P0);
-		printf("Back");
 		P0 = gel(W,2);
 		if(P0)
 		{
