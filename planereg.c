@@ -381,36 +381,53 @@ GEN PlaneEval(GEN J, GEN W, GEN abc, GEN E, GEN abc1, GEN abc2)
 	return gerepileupto(av,Fq_mul(u1,u2,T,pe));
 }
 
-GEN PlaneEval0(GEN J, GEN W, GEN abc, GEN E)
+GEN PlaneEval0_data(GEN J, GEN abc1, GEN E1, GEN abc2, GEN E2)
+{
+	pari_sp av=avma;
+	GEN T,p,pe,Z,FqE1,FqE2,VHE1,VHE2;
+	long e;
+	ulong d,d0,nE,i;
+
+	JgetTpe(J,&T,&pe,&p,&e);
+  d0 = Jgetd0(J);
+  Z = JgetZ(J);
+  for(d = 2; d0 != d*(d-2); d++) {}
+
+  nE = lg(E1);
+  FqE1 = cgetg(nE,t_VEC);
+  FqE2 = cgetg(nE,t_VEC);
+  for(i=1;i<nE;i++)
+  {
+    gel(FqE1,i) = mkvec2(Z2Fq(gmael(E1,i,1),T),Z2Fq(gmael(E1,i,2),T));
+    gel(FqE2,i) = mkvec2(Z2Fq(gmael(E2,i,1),T),Z2Fq(gmael(E2,i,2),T));
+  }
+  VHE1 = V_HE(d,abc1,FqE1,Z,T,p,e,pe); /* L(2D0-H1-E1) */
+  VHE2 = V_HE(d,abc2,FqE2,Z,T,p,e,pe); /* L(2D0-H2-E2) */
+	return gerepilecopy(av,mkvec2(VHE1,VHE2));
+}
+
+GEN PlaneEval0(GEN J, GEN W, GEN VHE)
 {
   pari_sp av = avma;
-  GEN T,p,pe,V,Z,KV;
+  GEN T,p,pe,V,KV;
   long e;
-  GEN FqE,VHE,S1,S2,s2,K;
-  ulong d,d0,g,nE,i,nV;
+  GEN S1,S2,s2,K;
+  ulong d0,g,d,nV,i;
 
   JgetTpe(J,&T,&pe,&p,&e);
   d0 = Jgetd0(J);
   g = Jgetg(J);
   V = JgetV(J);
   KV = JgetKV(J);
-  Z = JgetZ(J);
-  for(d = 2; d0 != d*(d-2); d++) {}
   nV = lg(V);
+  for(d = 2; d0 != d*(d-2); d++) {}
 
-  nE = lg(E);
-  FqE = cgetg(nE,t_VEC);
-  for(i=1;i<nE;i++)
-  {
-    gel(FqE,i) = mkvec2(Z2Fq(gmael(E,i,1),T),Z2Fq(gmael(E,i,2),T));
-  }
-  VHE = V_HE(d,abc,FqE,Z,T,p,e,pe); /* L(2D0-H-E) */
-  S1 = DivAdd(W,VHE,3*d0-d-(g-2)+1-g,T,p,e,pe,0); /* L(4D0-D-H-E) */
-  S1 = DivSub(V,S1,KV,1,T,p,e,pe,2); /* L(2D0-D-H-E) */
-  S2 = DivMul(gel(S1,1),V,T,pe); /* L(4D0-D-H-E-ED) */
-  S2 = DivSub(W,S2,KV,d0+1-g,T,p,e,pe,2); /* L(2D0-H-E-ED) */
-  S2 = DivAdd(S2,VHE,4*d0-2*d-2*(g-2)-g+1-g,T,p,e,pe,0); /* L(4D0-2H-2E-ED) */
-  S2 = DivSub(V,S2,KV,1,T,p,e,pe,2); /* L(2D0-2H-2E-ED) */
+  S1 = DivAdd(W,gel(VHE,1),3*d0-d-(g-2)+1-g,T,p,e,pe,0); /* L(4D0-D-H1-E1) */
+  S1 = DivSub(V,S1,KV,1,T,p,e,pe,2); /* L(2D0-D-H1-E1) */
+  S2 = DivMul(gel(S1,1),V,T,pe); /* L(4D0-D-H1-E1-ED) */
+  S2 = DivSub(W,S2,KV,d0+1-g,T,p,e,pe,2); /* L(2D0-H1-E1-ED) */
+  S2 = DivAdd(S2,gel(VHE,2),4*d0-2*d-2*(g-2)-g+1-g,T,p,e,pe,0); /* L(4D0-H1-E1-H2-E2-ED) */
+  S2 = DivSub(V,S2,KV,1,T,p,e,pe,2); /* L(2D0-H1-E1-H2-E2-ED) */
   s2 = gel(S2,1);
   K = cgetg(nV+1,t_MAT);
   for(i=1;i<nV;i++) gel(K,i) = gel(V,i);

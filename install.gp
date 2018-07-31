@@ -23,7 +23,8 @@ install("HyperPicEval","GGG","HyperPicEval","./libhyper.so");
 install("PlaneInit","GGUL","PlaneInit","./libplanereg.so");
 install("PlaneZeta","GU","PlaneZeta","./libplanereg.so");
 install("PlaneEval","GGGGGG","PlaneEval","./libplanereg.so");
-install("PlaneEval0","GGGG","PlaneEval0","./libplanereg.so");
+install("PlaneEval0_data","GGGGG","PlaneEval0_data","./libplanereg.so");
+install("PlaneEval0","GGG","PlaneEval0","./libplanereg.so");
 install("AllPols0","GGGLG","AllPols0","./libplanereg.so");
 
 install("PicRed","GU","PicRed","./libpic.so");
