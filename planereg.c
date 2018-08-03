@@ -412,7 +412,7 @@ GEN PlaneEval0(GEN J, GEN W, GEN VHE)
   GEN T,p,pe,V,KV;
   long e;
   GEN S1,S2,s2,K;
-  ulong d0,g,d,nV,i;
+  ulong d0,g,nV,i;
 
   JgetTpe(J,&T,&pe,&p,&e);
   d0 = Jgetd0(J);
@@ -420,13 +420,12 @@ GEN PlaneEval0(GEN J, GEN W, GEN VHE)
   V = JgetV(J);
   KV = JgetKV(J);
   nV = lg(V);
-  for(d = 2; d0 != d*(d-2); d++) {}
 
-  S1 = DivAdd(W,gel(VHE,1),3*d0-d-(g-2)+1-g,T,p,e,pe,0); /* L(4D0-D-H1-E1) */
+  S1 = DivAdd(W,gel(VHE,1),2*d0+1,T,p,e,pe,0); /* L(4D0-D-H1-E1) */
   S1 = DivSub(V,S1,KV,1,T,p,e,pe,2); /* L(2D0-D-H1-E1) */
   S2 = DivMul(gel(S1,1),V,T,pe); /* L(4D0-D-H1-E1-ED) */
   S2 = DivSub(W,S2,KV,d0+1-g,T,p,e,pe,2); /* L(2D0-H1-E1-ED) */
-  S2 = DivAdd(S2,gel(VHE,2),4*d0-2*d-2*(g-2)-g+1-g,T,p,e,pe,0); /* L(4D0-H1-E1-H2-E2-ED) */
+  S2 = DivAdd(S2,gel(VHE,2),2*d0+1,T,p,e,pe,0); /* L(4D0-H1-E1-H2-E2-ED) */
   S2 = DivSub(V,S2,KV,1,T,p,e,pe,2); /* L(2D0-H1-E1-H2-E2-ED) */
   s2 = gel(S2,1);
   K = cgetg(nV+1,t_MAT);
