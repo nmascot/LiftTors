@@ -8,7 +8,7 @@ f = subst(f,z,y+z);
 f = subst(f,z,1);
 f = subst(f,x,x+1);
 \\p=43;a=4;e=512;l=3;
-p=5;a=6;e=64;l=2;
+p=41;a=2;e=32;l=2;
 C=0;d=6;
 J=PlaneInit(f,p,a,e);
 J1=PicRed(J,1);
@@ -22,9 +22,11 @@ print("Evaluation");
 U=PlaneEval0_data(J,[1,0,0],[[-1,0]],[1,0,0],[[-1,-1]]);
 my(J=J,U=U);Z=parapply(W->PlaneEval0(J,W,U),V[1..l^d-1]);
 A = AllPols0(Z,JgetT(J),p,e,Jgetpe(J));
-print(#A," candidate polynomials");
+\\print(#A," candidate polynomials");
 AI = select(x->x[3]!=[],A);
-print(#AI," identified polynomials");
+\\print(#AI," identified polynomials");
 AS = select(x->#Set(x[1])==#(x[1]),AI);
-print(#AS," faithful polynomials");
+\\print(#AS," faithful polynomials");
 AS = vecsort(AS,x->sizebyte(x[3]));
+F=AS[1][3]
+factor(F)

@@ -157,12 +157,43 @@ GEN PicFreyRuckMulti(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C)
 	return gerepileupto(av,col);
 }
 
+GEN Fq_zeta_l(GEN T, GEN p, GEN l)
+{
+	pari_sp av = avma;
+	GEN q,q1,m,z;
+	q = powiu(p,degree(T));
+  q1 = subii(q,gen_1);
+  if(!gequal0(modii(q1,l))) pari_err(e_MISC,"No l-th roots of 1");
+  m = divii(q1,l);
+  z = gener_FpXQ(T,p,NULL);
+  z = Fq_pow(z,m,T,p);
+	return gerepileupto(av,z);
+}
+
+GEN Fq_mu_l_log(GEN x, GEN z, GEN T, GEN p, GEN l)
+{
+	pari_sp av = avma;
+	ulong n = 0;
+	GEN q,q1,m,zn,y;
+  q = powiu(p,degree(T));
+  q1 = subii(q,gen_1);
+  m = divii(q1,l);
+	y = Fq_pow(x,m,T,p);
+  zn = gen_1;
+  while(!gequal(y,zn))
+  {
+    zn = Fq_mul(zn,z,T,p);
+    n++;
+  }
+  return gerepileupto(av,utoi(n));
+}
+
 GEN PicTorsRels(GEN J, GEN Wtors, GEN l, ulong excess)
 {
 	pari_sp av = avma;
-	ulong ntors,ntest,n,i;
-	GEN T,p,q,q1,z,m;
-	GEN W0,C,Wtest,R,x,zn;
+	ulong ntors,ntest,i;
+	GEN T,p,z;
+	GEN W0,C,Wtest,R;
 	struct pari_mt pt;
 	GEN worker,done;
 	long pending,j,workid;
@@ -170,12 +201,7 @@ GEN PicTorsRels(GEN J, GEN Wtors, GEN l, ulong excess)
 	if(Jgete(J)>1) pari_err(e_IMPL,"case e>1");
 	T = JgetT(J);
 	p = Jgetp(J);
-	q = powiu(p,degree(T));
-	q1 = subii(q,gen_1);
-	if(!gequal0(modii(q1,l))) pari_err(e_MISC,"No l-th roots of 1");
-	m = divii(q1,l);
-	z = gener_FpXQ(T,p,NULL);
-	z = Fq_pow(z,m,T,p);
+	z = Fq_zeta_l(T,p,l);
 	W0 = JgetW0(J);
 	W0 = PicChord(J,W0,W0,1);
 	C = AddChain(l,0);
@@ -198,15 +224,7 @@ GEN PicTorsRels(GEN J, GEN Wtors, GEN l, ulong excess)
 	{
 		for(i=1;i<=ntest;i++)
 		{
-			x = Fq_pow(gcoeff(R,i,j),m,T,p);
-			n = 0;
-			zn = gen_1;
-			while(!gequal(x,zn))
-			{
-				zn= Fq_mul(zn,z,T,p);
-				n++;
-			}
-			gcoeff(R,i,j) = utoi(n);
+			gcoeff(R,i,j) = Fq_mu_l_log(gcoeff(R,i,j),z,T,p,l);
 		}
 	}
 	return gerepileupto(av,FpM_ker(R,l));

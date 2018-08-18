@@ -55,6 +55,8 @@ install("PicLiftTors","GGLG","PicLiftTors","./liblift.so");
 install("PicNorm","GGG","PicNorm","./libfreyruck.so");
 install("PicFreyRuckMulti","GGGGGG","PicFreyRuckMulti","./libfreyruck.so");
 install("PicTorsRels","GGGU","PicTorsRels","./libfreyruck.so");
+install("Fq_zeta_l","GGG","Fq_zeta_l","./libfreyruck.so");
+install("Fq_mu_l_log","GGGGG","Fq_mu_l_log","./libfreyruck.so");
 
 /*f=x^3*y+y^3+x;
 f = subst(f,y,x+y);
