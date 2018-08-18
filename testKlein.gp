@@ -1,3 +1,5 @@
+default(parisize,1G);
+setrand(29);
 read("install.gp");
 read("galrep.gp");
 f=x^3*y+y^3*z+z^3*x;
@@ -5,8 +7,9 @@ f = subst(f,z,x+z);
 f = subst(f,z,y+z);
 f = subst(f,z,1);
 f = subst(f,x,x+1);
-p=17;a=8;e=128;l=5;
-C = x^2+17; d=2;
+\\p=43;a=4;e=512;l=3;
+p=5;a=6;e=64;l=2;
+C=0;d=6;
 J=PlaneInit(f,p,a,e);
 J1=PicRed(J,1);
 

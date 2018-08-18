@@ -96,7 +96,7 @@ TorsBasis(J,f,p,a,l,chi,C)=
   BT = vector(d);
   r = 0;
   while(r<d,
-    print("Status:",Bo[1..r]);
+    \\print("Status:",Bo[1..r]);
     print("Getting new point");
     W = RandTorsPt(J,f,M,chiC);
     [T,o] = TorsOrd(J,W,l);
@@ -109,7 +109,7 @@ TorsBasis(J,f,p,a,l,chi,C)=
     while(1,
       print("Looking for relations...");
       R = PicTorsTrueRel(J,BT[1..r],l);
-      print("Found relation: ",R);
+      \\print("Found relation: ",R);
       if(#R == 0,print("Good, no relation");next(2));
       R = R[,1];
       m = vecmin([Bo[i]|i<-[1..r],R[i]]);
