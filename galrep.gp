@@ -102,7 +102,7 @@ TorsBasis(J,f,p,a,l,chi,C)=
 	z = Fq_zeta_l(JgetT(J),Jgetp(J),l);
   r = 0;
   while(r<d,
-    print("Status:",Bo[1..r]);
+    /*print("Status:",Bo[1..r]);*/
     print("Getting new point");
     W = RandTorsPt(J,f,M,chiC);
     [T,o] = TorsOrd(J,W,l);

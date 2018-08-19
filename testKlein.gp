@@ -13,12 +13,15 @@ C=0;d=6;
 J=PlaneInit(f,p,a,e);
 J1=PicRed(J,1);
 
-WB = TorsBasis(J1,f,p,a,l,PlaneZeta(f,p),C);
-print("Lifting");
+print("Computing local L factor by point counting...");
+Lp = PlaneZeta(f,p);
+print("--> Getting basis mod p")
+WB = TorsBasis(J1,f,p,a,l,Lp,C);
+print("--> Lifting");
 my(J=J,l=l);WB = parapply(W->PicLiftTors(J,W,1,l),WB);
-print("All the space");
+print("--> All the space");
 V = TorsSpace(J,WB,l);
-print("Evaluation");
+print("--> Evaluation");
 U=PlaneEval0_data(J,[1,0,0],[[-1,0]],[1,0,0],[[-1,-1]]);
 my(J=J,U=U);Z=parapply(W->PlaneEval0(J,W,U),V[1..l^d-1]);
 A = AllPols0(Z,JgetT(J),p,e,Jgetpe(J));

@@ -1,6 +1,7 @@
 default(parisize,1G);
 read("install.gp");
 read("galrep.gp");
+
 f=4*WeiRed(x^5+x^4,x^3+x+1);
 p=17;a=6;e=128;d=2;l=7;
 \\C = x^2-2*x-1;

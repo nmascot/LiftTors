@@ -458,7 +458,7 @@ GEN AllPols0(GEN F, GEN T, GEN p, long e, GEN pe)
 	lF = lg(gel(F,1))-1;
 	F1 = cgetg(lF,t_VEC);
 	npols = 0;
-	printf("Inverting\n");
+	/*printf("Inverting\n");*/
 	for(i=1;i<lF;i++)
 	{ 
 		npols++;
@@ -476,7 +476,7 @@ GEN AllPols0(GEN F, GEN T, GEN p, long e, GEN pe)
 		}
 	}
 	npols *= (lF-2);
-	printf("Getting %lu pols\n",npols);
+	/*printf("Getting %lu pols\n",npols);*/
 	pols = cgetg(npols+1,t_VEC);
 	R = cgetg(nF,t_VEC);
 	/* TODO parallelise */
@@ -490,7 +490,7 @@ GEN AllPols0(GEN F, GEN T, GEN p, long e, GEN pe)
 			R = cgetg(nF,t_VEC);
 			for(k=1;k<nF;k++) gel(R,k) = Fq_mul(gmael(F,k,j),gmael(F1,i,k),T,pe);
 			n++;
-			printf("%lu ",n);
+			/*printf("%lu ",n);*/
 			gel(pols,n) = PolExpId(R,T,pe);
 		}
 	}		
