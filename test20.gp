@@ -1,13 +1,9 @@
-setrand(29);
+\\setrand(29);
 read("install.gp");
 read("galrep.gp");
-f=x^3*y+y^3*z+z^3*x;
-f = subst(f,z,x+z);
-f = subst(f,z,y+z);
-f = subst(f,z,1);
-f = subst(f,x,x+1);
-\\p=43;a=4;e=512;l=3;
-p=41;a=2;e=32;l=2;
+f = x^2*y^2 + x*y^3 - x^3*z - x^2*y*z - y^3*z + x^2*z^2 + 3*x*y*z^2 - y*z^3;
+f = 2*x^4 + (2*y - 11)*x^3 + (-8*y^2 - 14*y + 22)*x^2 + (8*y^3 + 28*y^2 + 28*y - 19)*x + (-2*y^4 - 12*y^3 - 23*y^2 - 17*y + 6);
+p=17;a=8;e=256;l=2;
 C=0;d=6;
 J=PlaneInit(f,p,a,e);
 J1=PicRed(J,1);
@@ -21,14 +17,14 @@ my(J=J,l=l);WB = parapply(W->PicLiftTors(J,W,1,l),WB);
 print("\n--> All of T");
 V = TorsSpace(J,WB,l);
 print("\n--> Evaluation");
-U=PlaneEval0_data(J,[1,0,0],[[-1,0]],[1,0,0],[[-1,-1]]);
+U=PlaneEval0_data(J,[1,0,0],[[1,0]],[1,0,0],[[1,-1]]);
 my(J=J,U=U);Z=parapply(W->PlaneEval0(J,W,U),V[1..l^d-1]);
 A = AllPols0(Z,JgetT(J),p,e,Jgetpe(J));
-\\print(#A," candidate polynomials");
+print(#A," candidate polynomials");
 AI = select(x->x[3]!=[],A);
-\\print(#AI," identified polynomials");
+print(#AI," identified polynomials");
 AS = select(x->#Set(x[1])==#(x[1]),AI);
-\\print(#AS," faithful polynomials");
+print(#AS," faithful polynomials");
 AS = vecsort(AS,x->sizebyte(x[3]));
 F=AS[1][3]
 factor(F)
