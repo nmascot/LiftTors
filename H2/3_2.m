@@ -1,0 +1,33 @@
+QQ:=Rationals();
+A2<x,y>:=AffineSpace(QQ,2);
+f:=(-374594220*y^6 + 148459311*y^5 - 20961720*y^4 + 1285362*y^3 - 35100*y^2 + 351*y)*x^4 + (-61958809438*y^8 + 12030741624*y^7 - 574743724*y^6 - 5928484*y^5 + 27600*y^4 + 129884*y^3 - 8516*y^2 + 216*y - 2)*x^2 + (15790199962940*y^10 - 5854413418867*y^9 + 927447207596*y^8 - 81010188948*y^7 + 4049824636*y^6 - 100135334*y^5 - 48724*y^4 + 70252*y^3 - 1664*y^2 + 13*y);
+C:=Curve(A2,f);
+W:=BasisOfDifferentialsFirstKind(C);
+g:=#W;
+w:=W[g];
+h:=y-1;
+H:=Zeros(FunctionField(C)!h)[1];
+D0:=Divisor(w)+H;
+L,l:=RiemannRochSpace(D0);
+L:=[l(Basis(L)[i]) : i in [1..Dimension(L)]];
+P1:=C![0,0];
+P2:=C![0,1/20];
+E1:=2*D0-2*H-Place(P1);
+E2:=2*D0-2*H-Place(P2);
+L1,l1:=RiemannRochSpace(E1);
+L1:=[l1(Basis(L1)[i]) : i in [1..Dimension(L1)]];
+L2,l2:=RiemannRochSpace(E2);
+L2:=[l2(Basis(L2)[i]) : i in [1..Dimension(L2)]];
+Write("RR.txt","{[");
+Write("RR.txt",f);
+Write("RR.txt",",");
+Write("RR.txt",L);
+Write("RR.txt",",");
+Write("RR.txt",h);
+Write("RR.txt",",");
+Write("RR.txt",L1);
+Write("RR.txt",",");
+Write("RR.txt",L2);
+Write("RR.txt","]}");
+
+
