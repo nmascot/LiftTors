@@ -5,22 +5,21 @@
 GEN FnEvalAt(GEN F, GEN P, GEN vars, GEN T, GEN p, long e, GEN pe) /* /!\ Not memory-clean */
 {
 	GEN N,D;
-	if(typ(F)==t_INT) return F;
 	if(typ(F)==t_RFRAC)
 	{
 		N = FnEvalAt(gel(F,1),P,vars,T,p,e,pe);
 		D = FnEvalAt(gel(F,2),P,vars,T,p,e,pe);
 		return ZpXQ_div(N,D,T,pe,p,e);
 	}
-	if(gvar(F) == vars[1])
+	F = gsubst(F,vars[1],gel(P,1));
+	if(typ(F)==t_RFRAC)
 	{
-		F = poleval(F,gel(P,1));
+		N = gsubst(gel(F,1),vars[2],gel(P,2));
+		D = gsubst(gel(F,2),vars[2],gel(P,2));
+		F = ZpXQ_div(N,D,T,pe,p,e);
 	}
-	if(gvar(F) != vars[2])
-	{
-		pari_err(e_MISC,"Wrong variable: %Ps",gpolvar(F));
-	}
-	return poleval(F,gel(P,2));
+	else F = gsubst(F,vars[2],gel(P,2));
+	return F;
 }
 
 GEN FnsEvalAt(GEN Fns, GEN Z, GEN vars, GEN T, GEN p, long e, GEN pe)
@@ -45,22 +44,23 @@ GEN FnsEvalAt(GEN Fns, GEN Z, GEN vars, GEN T, GEN p, long e, GEN pe)
 
 GEN CurveRandPt(GEN f, GEN T, GEN p, long e, GEN bad)
 {
-	pari_sp av = avma;
+	pari_sp av = avma, av1;
 	long vT,dT;
   GEN vars,x,fx,y,badpt,dfx,dy,P;
 	vT = varn(T);
   dT = degree(T);
 	vars = variables_vecsmall(f);
+	av1 = avma;
   for(;;)
   {
-    avma = av;
+    avma = av1;
     x = random_FpX(dT,vT,p);
 		if(ZX_is0mod(x,p)) continue; /* Want x != 0 */
 		fx = poleval(f,x);
     y = polrootsmod(fx,mkvec2(T,p));
 		if(lg(y)==1) continue; /* No roots */
 		y = gel(y,itos(genrand(stoi(lg(y)-1)))+1);
-		badpt = FnEvalAt(bad,mkvec2(x,y),vars,T,p,1,p);
+		badpt = FnEvalAt(bad,mkvec2(x,liftall(y)),vars,T,p,1,p);
 		badpt = Fq_red(badpt,T,p);
 		if(gequal0(badpt)) continue; /* Forbidden locus */
 		dfx = RgX_deriv(fx);
