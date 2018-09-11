@@ -252,7 +252,7 @@ GEN PlaneInit(GEN f, GEN p, ulong a, long e)
   KV = mateqnpadic(V,T,p,e);
   KV3 = mateqnpadic(V3,T,p,e);
 
-  J = mkvecn(lgJ,stoi(g),stoi(d0),T,p,stoi(e),pe,Frob,V,KV,W0,Z,FrobCyc,V3,KV3);
+  J = mkvecn(lgJ,f,stoi(g),stoi(d0),T,p,stoi(e),pe,Frob,V,KV,W0,Z,FrobCyc,V3,KV3);
 	return gerepilecopy(av,J);
 }
 

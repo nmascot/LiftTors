@@ -140,7 +140,7 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
   KV = mateqnpadic(V,T,p,e);
   KV3 = mateqnpadic(V3,T,p,e);
 
-  J = mkvecn(lgJ,stoi(g),stoi(d0),T,p,stoi(e),pe,Frob,V,KV,W0,Z,FrobCyc,V3,KV3);
+  J = mkvecn(lgJ,f,stoi(g),stoi(d0),T,p,stoi(e),pe,Frob,V,KV,W0,Z,FrobCyc,V3,KV3);
 	return gerepilecopy(av,J);
 }
 
@@ -150,6 +150,23 @@ GEN Z2Fq(GEN x, GEN T)
 	setsigne(y,1);
 	setvarn(y,varn(T));
 	return y;
+}
+
+GEN RREvalInit(GEN J, GEN Li)
+{
+	pari_sp av = avma;
+	GEN Z,T,p,pe,vars,res;
+	long e;
+	ulong i;
+	Z = JgetZ(J);
+	JgetTpe(J,&T,&pe,&p,&e);
+	vars = variables_vecsmall(Jgetf(J));
+	res = cgetg(3,t_VEC);
+	for(i=1;i<=2;i++)
+	{
+		gel(res,i) = FnsEvalAt(gel(Li,i),Z,vars,T,p,e,pe);
+	}
+	return gerepilecopy(av,res);
 }
 
 GEN RREval(GEN J, GEN W, GEN Li) /* Li = L(2D0-Ei), deg Ei = d0-g (i=1,2) */
