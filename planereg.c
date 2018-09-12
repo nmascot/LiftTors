@@ -335,14 +335,6 @@ GEN PlaneZeta(GEN f, ulong p)
 	return gerepilecopy(av,L);
 }
 
-GEN Z2Fq(GEN x, GEN T)
-{
-	GEN y = mkpoln(1,x);
-	setsigne(y,1);
-	setvarn(y,varn(T));
-	return y;
-}
-
 GEN PlaneEval(GEN J, GEN W, GEN abc, GEN E, GEN abc1, GEN abc2)
 {
 	pari_sp av = avma;

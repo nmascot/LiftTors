@@ -8,6 +8,14 @@ GEN GetFq1(GEN T)
 	return Fq1;
 }
 
+GEN Z2Fq(GEN x, GEN T)
+{
+  GEN y = mkpoln(1,x);
+  setsigne(y,1);
+  setvarn(y,varn(T));
+  return y;
+}
+
 long ZX_is0mod(GEN x, GEN p)
 {
 	pari_sp av = avma;
@@ -115,6 +123,51 @@ GEN ZXM_Z_mul(GEN A, GEN a)
 	return B;
 }
 
+GEN FpXC_add(GEN A, GEN B, GEN p)
+{
+	ulong n = lg(A),i;
+	GEN C;
+	C = cgetg(n,t_COL);
+	for(i=1;i<n;i++) gel(C,i) = FpX_add(gel(A,i),gel(B,i),p);
+	return C;
+}
+
+GEN FpXC_sub(GEN A, GEN B, GEN p)
+{
+	ulong n = lg(A),i;
+	GEN C;
+	C = cgetg(n,t_COL);
+	for(i=1;i<n;i++) gel(C,i) = FpX_sub(gel(A,i),gel(B,i),p);
+	return C;
+}
+
+GEN RandVec_1(GEN A, GEN pe)
+{
+  pari_sp av = avma;
+  ulong n,j;
+  GEN v;
+  n = lg(A);
+  v = NULL;
+	do{
+  	for(j=1;j<n;j++)
+  	{
+			if(random_Fl(2))
+			{
+				if(v==NULL)
+				{
+					v = gcopy(gel(A,j));
+				}
+				else
+				{
+					if(random_Fl(2)) v = FpXC_sub(v,gel(A,j),pe);
+					else v = FpXC_add(v,gel(A,j),pe);
+				}
+    	}
+  	}
+	} while(v==NULL);
+  return gerepileupto(av,v);
+}
+
 GEN RandVec_padic(GEN A, GEN T, GEN p, GEN pe)
 {
 	pari_sp av = avma;
@@ -122,11 +175,10 @@ GEN RandVec_padic(GEN A, GEN T, GEN p, GEN pe)
 	long dT,vT;
 	GEN v,b,c;
 
-	dT = degree(T);
+	dT = lg(T);
 	vT = varn(T);
 	n = lg(A);
 	m = lg(gel(A,1));
-	dT = lg(T);
 	v = cgetg(m,t_COL);
 	for(j=1;j<n;j++)
 	{

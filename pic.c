@@ -69,6 +69,80 @@ GEN DivMul(GEN f, GEN W, GEN T, GEN pe)
 	return fW;
 }
 
+GEN DivAdd0(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
+{
+  pari_sp av,av1,av0=avma;
+  unsigned long nZ,nA,nB,j,P,r;
+  GEN WAB,s,t,st;
+  nZ = lg(gel(WA,1));
+	nA = lg(WA)-1;
+	nB = lg(WB)-1;
+  WAB = cgetg(d+excess+1,t_MAT);
+  while(1)
+  {
+    av1 = avma;
+    for(j=1;j<=d+excess;j++)
+    {
+      av = avma;
+			s = gel(WA,1+random_Fl(nA)); /* random basis fn in WA */
+			t = gel(WB,1+random_Fl(nB)); /* random basis fn in WB */
+      st = cgetg(nZ,t_COL); /* Product */
+      for(P=1;P<nZ;P++)
+      {
+        gel(st,P) = Fq_mul(gel(s,P),gel(t,P),T,pe);
+      }
+      gel(WAB,j) = gerepileupto(av,st);
+    } 
+    r = FqM_rank(WAB,T,p); /* TODO faut-il reduire WAB d'abord? */
+    if(r==d)
+    {
+      if(excess)
+      {
+        WAB = gerepileupto(av0,matimagepadic(WAB,T,p,e));
+      }
+      return WAB;
+    }
+    printf("add0(%lu/%lu)",r,d);
+    avma = av1;
+  }
+}
+
+GEN DivAdd1(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
+{
+  pari_sp av,av1,av0=avma;
+  unsigned long nZ,j,P,r;
+  GEN WAB,s,t,st;
+  nZ = lg(gel(WA,1));
+  WAB = cgetg(d+excess+1,t_MAT);
+  while(1)
+  {
+    av1 = avma;
+    for(j=1;j<=d+excess;j++)
+    {
+      av = avma;
+      s = RandVec_1(WA,pe); /* random fn in WA */
+      t = RandVec_1(WB,pe); /* random fn in WB */
+      st = cgetg(nZ,t_COL); /* Product */
+      for(P=1;P<nZ;P++)
+      {
+        gel(st,P) = Fq_mul(gel(s,P),gel(t,P),T,pe);
+      }
+      gel(WAB,j) = gerepileupto(av,st);
+    }
+    r = FqM_rank(WAB,T,p); /* TODO faut-il reduire WAB d'abord? */
+    if(r==d)
+    {
+      if(excess)
+      {
+        WAB = gerepileupto(av0,matimagepadic(WAB,T,p,e));
+      }
+      return WAB;
+    }
+    printf("add0(%lu/%lu)",r,d);
+    avma = av1;
+  }
+}
+
 GEN DivAdd(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
 {
 	pari_sp av,av1,av0=avma;
@@ -104,9 +178,6 @@ GEN DivAdd(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
 		avma = av1;
 	}
 }
-
-/* TODO write fin (s,W)->sW
- * useful for Chord, HyperEval, others ? */
 
 GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong nIGS)
 {

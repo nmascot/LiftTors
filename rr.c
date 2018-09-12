@@ -2,23 +2,67 @@
 #include "linalg.h"
 #include "freyruck.h"
 
+GEN FnSubstMod(GEN F, long var, GEN val, GEN T, GEN pe) /* /!\ Not memory-clean */
+{
+	GEN valm,res;
+	pari_CATCH(e_INV)
+	{
+		//printf("Z");
+		res = gsubst(F,var,val);
+		return res;
+		/*printf("u");
+		res = gmodulo(gmodulo(res,T),pe);
+		printf("v");
+		res = liftall(res);
+		printf("w");
+		return res;*/
+	}
+	pari_TRY
+	{
+		valm = gmodulo(gmodulo(val,T),pe);
+		res = gsubst(F,var,valm);
+		res = liftall(res);
+	}
+	pari_ENDCATCH
+	return res;
+}
+
 GEN FnEvalAt(GEN F, GEN P, GEN vars, GEN T, GEN p, long e, GEN pe) /* /!\ Not memory-clean */
 {
-	GEN N,D;
+	GEN N,D,C;
+	//printf(" a");
 	if(typ(F)==t_RFRAC)
 	{
+		//printf("b");
 		N = FnEvalAt(gel(F,1),P,vars,T,p,e,pe);
+		if(typ(N)==t_INT) N=Z2Fq(N,T);
 		D = FnEvalAt(gel(F,2),P,vars,T,p,e,pe);
+		if(typ(D)==t_INT) D=Z2Fq(D,T);
+		//printf("c\n");
 		return ZpXQ_div(N,D,T,pe,p,e);
 	}
-	F = gsubst(F,vars[1],gel(P,1));
+	//printf("d");
+	C = content(F); // TODO wrt y
+	F = gdiv(F,C);
+	F = FnSubstMod(F,vars[1],gel(P,1),T,pe);
+	F = gmul(F,C);
+	//printf("e");
 	if(typ(F)==t_RFRAC)
 	{
-		N = gsubst(gel(F,1),vars[2],gel(P,2));
-		D = gsubst(gel(F,2),vars[2],gel(P,2));
+		//printf("f");
+		N = FnSubstMod(gel(F,1),vars[2],gel(P,2),T,pe);
+		if(typ(N)==t_INT) N=Z2Fq(N,T);
+		D = FnSubstMod(gel(F,2),vars[2],gel(P,2),T,pe);
+		if(typ(D)==t_INT) D=Z2Fq(D,T);
+		//printf("g");
+		/*pari_printf(" %Ps %Ps ",N,D);*/
 		F = ZpXQ_div(N,D,T,pe,p,e);
+		//printf("h");
 	}
-	else F = gsubst(F,vars[2],gel(P,2));
+	else{//printf("i");
+	F = liftall(gsubst(F,vars[2],gmodulo(gmodulo(gel(P,2),T),pe)));
+	}
+	//printf("j\n");
 	return F;
 }
 
@@ -32,6 +76,7 @@ GEN FnsEvalAt(GEN Fns, GEN Z, GEN vars, GEN T, GEN p, long e, GEN pe)
 	A = cgetg(nF,t_MAT);
 	for(j=1;j<nF;j++)
 	{
+		printf("Eval fn %lu out of %lu\n",j,nF-1);
 		col = cgetg(nZ,t_COL);
 		for(i=1;i<nZ;i++)
 		{
@@ -40,6 +85,49 @@ GEN FnsEvalAt(GEN Fns, GEN Z, GEN vars, GEN T, GEN p, long e, GEN pe)
 		gel(A,j) = col;
 	}
 	return gerepilecopy(av,A);
+}
+
+GEN FnsEvalAt_Rescale(GEN Fns, GEN Z, GEN vars, GEN T, GEN p, long e, GEN pe)
+{
+	pari_sp av = avma;
+	GEN F,S,K,f;
+	ulong i,j,k,nF;
+	F = gcopy(Fns);
+	nF = lg(F);
+	while(1)
+	{
+		/*Eval the fns */
+		S = FnsEvalAt(F,Z,vars,T,p,e,pe);
+		K = FqM_ker(S,T,p);
+		/* Are the evals (and hence the fns) independent ? */
+		if(lg(K)==1)
+		{
+			printf("Good, no relation\n");
+			return gerepileupto(av,S);
+		}
+		pari_printf("Found %ld relations, eliminating and restarting\n",lg(K)-1);
+		/* No. We assume Z def / Q, so K has entries in Fp */
+		/* Do elimination and start over */
+		for(j=1;j<lg(K);j++)
+		{
+			/* k = pivot = last nonzero entry of the col (it's a 1) */
+			k = 0;
+			for(i=1;i<nF;i++)
+			{
+				if(!gequal0(gcoeff(K,i,j))) k=i;
+			}
+			/* Form corresponding lin comb, and div by p */
+			f = gel(F,k);
+			for(i=1;i<k;i++)
+			{
+				if(!gequal0(gcoeff(K,i,j)))
+				{
+					f = gadd(f,gmul(gcoeff(K,i,j),gel(F,i)));
+				}
+			}
+			gel(F,k) = gdiv(f,p);
+		}
+	}
 }
 
 GEN CurveRandPt(GEN f, GEN T, GEN p, long e, GEN bad)
@@ -131,10 +219,13 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
   }
   setlg(Z,n+1);
   setlg(FrobCyc,ncyc+1);
+	//pari_printf("T=%Ps\nZ=%Ps\n",T,Z);
 
-	V1 = FnsEvalAt(L,Z,vars,T,p,e,pe);
-	V2 = DivAdd(V1,V1,2*d0+1-g,T,p,e,pe,0);
-	V3 = DivAdd(V1,V2,3*d0+1-g,T,p,e,pe,0);
+	V1 = FnsEvalAt_Rescale(L,Z,vars,T,p,e,pe);
+	//printf("Rank V1: %ld, expected %ld\n",FqM_rank(V1,T,p),lg(V1)-1);
+	//pari_printf("%Ps\n",FqM_ker(V1,T,p));
+	V2 = DivAdd1(V1,V1,2*d0+1-g,T,p,e,pe,0);
+	V3 = DivAdd1(V1,V2,3*d0+1-g,T,p,e,pe,0);
 	W0 = V1;
 	V = V2;
   KV = mateqnpadic(V,T,p,e);
@@ -142,14 +233,6 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
 
   J = mkvecn(lgJ,f,stoi(g),stoi(d0),T,p,stoi(e),pe,Frob,V,KV,W0,Z,FrobCyc,V3,KV3);
 	return gerepilecopy(av,J);
-}
-
-GEN Z2Fq(GEN x, GEN T)
-{
-	GEN y = mkpoln(1,x);
-	setsigne(y,1);
-	setvarn(y,varn(T));
-	return y;
 }
 
 GEN RREvalInit(GEN J, GEN Li)
@@ -164,7 +247,7 @@ GEN RREvalInit(GEN J, GEN Li)
 	res = cgetg(3,t_VEC);
 	for(i=1;i<=2;i++)
 	{
-		gel(res,i) = FnsEvalAt(gel(Li,i),Z,vars,T,p,e,pe);
+		gel(res,i) = FnsEvalAt_Rescale(gel(Li,i),Z,vars,T,p,e,pe);
 	}
 	return gerepilecopy(av,res);
 }
