@@ -7,7 +7,7 @@ GEN FnSubstMod(GEN F, long var, GEN val, GEN T, GEN pe) /* /!\ Not memory-clean 
 	GEN valm,res;
 	pari_CATCH(e_INV)
 	{
-		//printf("Z");
+		printf("Z");
 		res = gsubst(F,var,val);
 		return res;
 		/*printf("u");
@@ -90,25 +90,27 @@ GEN FnsEvalAt(GEN Fns, GEN Z, GEN vars, GEN T, GEN p, long e, GEN pe)
 GEN FnsEvalAt_Rescale(GEN Fns, GEN Z, GEN vars, GEN T, GEN p, long e, GEN pe)
 {
 	pari_sp av = avma;
-	GEN F,S,K,f;
-	ulong i,j,k,nF;
+	GEN F,S,K,f,redo,rF;
+	ulong i,j,k,nF,nK;
 	F = gcopy(Fns);
 	nF = lg(F);
+	S = FnsEvalAt(F,Z,vars,T,p,e,pe);
 	while(1)
 	{
-		/*Eval the fns */
-		S = FnsEvalAt(F,Z,vars,T,p,e,pe);
 		K = FqM_ker(S,T,p);
+		nK = lg(K);
 		/* Are the evals (and hence the fns) independent ? */
-		if(lg(K)==1)
+		if(nK==1)
 		{
 			printf("Good, no relation\n");
 			return gerepileupto(av,S);
 		}
-		pari_printf("Found %ld relations, eliminating and restarting\n",lg(K)-1);
+		pari_printf("Found %ld relations, eliminating and re-evaluating\n",nK-1);
 		/* No. We assume Z def / Q, so K has entries in Fp */
 		/* Do elimination and start over */
-		for(j=1;j<lg(K);j++)
+		redo = cgetg(nK,t_VECSMALL);
+		rF = cgetg(nK,t_VEC);
+		for(j=1;j<nK;j++)
 		{
 			/* k = pivot = last nonzero entry of the col (it's a 1) */
 			k = 0;
@@ -116,17 +118,20 @@ GEN FnsEvalAt_Rescale(GEN Fns, GEN Z, GEN vars, GEN T, GEN p, long e, GEN pe)
 			{
 				if(!gequal0(gcoeff(K,i,j))) k=i;
 			}
+			redo[j]=k;
 			/* Form corresponding lin comb, and div by p */
 			f = gel(F,k);
 			for(i=1;i<k;i++)
 			{
 				if(!gequal0(gcoeff(K,i,j)))
 				{
-					f = gadd(f,gmul(gcoeff(K,i,j),gel(F,i)));
+					f = gadd(f,gmul(centerlift(gmodulo(gcoeff(K,i,j),p)),gel(F,i)));
 				}
 			}
-			gel(F,k) = gdiv(f,p);
+			gel(F,k) = gel(rF,j) = gdiv(f,p);
 		}
+		rF = FnsEvalAt(rF,Z,vars,T,p,e,pe);
+		for(j=1;j<nK;j++) gel(S,redo[j]) = gel(rF,j);
 	}
 }
 
