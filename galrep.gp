@@ -45,39 +45,31 @@ TorsOrd(J,W,l)=
   [W,v];
 }
 
-RandTorsPt(J,f,M,chiC)=
+RandTorsPt(J,l,M,chiC,seed)=
 {
-  my(W);
+  my(W,o,T,lT);
+	setrand(seed);
   while(1,
     W = PicRand0(J); \\ TODO
     W = PicMul(J,W,M,0);
     if(chiC,W = PicFrobPoly(J,W,chiC));
-    if(!PicIsZero(J,W),return(W));
-  );
-}
-
-PicTorsTrueRel(J,W,l)=
-{
-  my(R,ex=0);
-	\\print("Getting rels between ",#W);
-  while(1,
-    R = PicTorsRels(J,W,l,ex);
-		\\print("Found ",#R);
-    if(#R==0,return(R));
-    if(#R==1,
-      if(PicIsZero(J,PicLC(J,R[,1],W)),return(R))
-		/*,
-		  return(Mat());*/
-    );
-		\\print("False positive");
-    ex += 1
+		o = 0;
+		T = W;
+		lT = T;
+		while(!PicIsZero(J,lT),
+    	o += 1;
+    	T = lT;
+    	lT = PicMul(J,T,l,0)
+  	);
+		if(o,return([W,o,T]));
   );
 }
 
 TorsBasis(J,f,p,a,l,chi,C)=
 {
-  my(d,N,M,v,chiC,W,o,T,BW,Bo,BT,R,KR,Rnew,KRnew,Wtest,Wnew,am,S,AddC,W0,z);
-  N = polresultant(chi,'x^a-1);
+  my(d,N,M,v,chiC,Batch,nBatch,iBatch,W,o,T,BW,Bo,BT,R,KR,Rnew,KRnew,Wtest,Wnew,am,S,AddC,W0,z);
+	iBatch = nBatch = 0;
+	N = polresultant(chi,'x^a-1);
   v = valuation(N,l);
   M = N/l^v;
   if(C,
@@ -104,8 +96,16 @@ TorsBasis(J,f,p,a,l,chi,C)=
   while(r<d,
     /*print("Status:",Bo[1..r]);*/
     print("Getting new point");
-    W = RandTorsPt(J,f,M,chiC);
-    [T,o] = TorsOrd(J,W,l);
+		if(iBatch==nBatch,
+			nBatch = max(d-r,ceil(default(nbthreads)/2));
+			print("Generating a new batch of ",nBatch," points in parallel");
+			my(RandTorsPt=RandTorsPt,seed=vector(nBatch,i,random()));
+			Batch = parvector(nBatch,i,RandTorsPt(J,l,M,chiC,seed[i]));
+			iBatch=1;
+    ,
+			iBatch+=1;
+		);
+		[W,o,T]=Batch[iBatch];
     print(" It has order l^",o);
     r += 1;
     BW[r] = W;
