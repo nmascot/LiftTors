@@ -65,11 +65,11 @@ RandTorsPt(J,l,M,chiC,seed)=
   );
 }
 
-TorsBasis(J,f,p,a,l,chi,C)=
+TorsBasis(J,l,chi,C)=
 {
   my(d,N,M,v,chiC,Batch,nBatch,iBatch,W,o,T,BW,Bo,BT,R,KR,Rnew,KRnew,Wtest,Wnew,am,S,AddC,W0,z);
 	iBatch = nBatch = 0;
-	N = polresultant(chi,'x^a-1);
+	N = polresultant(chi,'x^poldegree(JgetT(J))-1);
   v = valuation(N,l);
   M = N/l^v;
   if(C,
@@ -101,6 +101,7 @@ TorsBasis(J,f,p,a,l,chi,C)=
 			print("Generating a new batch of ",nBatch," points in parallel");
 			my(RandTorsPt=RandTorsPt,seed=vector(nBatch,i,random()));
 			Batch = parvector(nBatch,i,RandTorsPt(J,l,M,chiC,seed[i]));
+			print("Batch of points generated.");
 			iBatch=1;
     ,
 			iBatch+=1;
