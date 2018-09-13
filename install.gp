@@ -30,7 +30,7 @@ install("AllPols0","GGGLG","AllPols0","./libplanereg.so");
 
 
 install("RRInit","GUUGGGUL","RRInit","./librr.so");
-install("FnsEvalAt","GGGGGLG","FnsEvalAt","./librr.so");
+\\install("FnEvalAt","GGGGGGG","FnEvalAt","./librr.so");
 \\install("CurveRandPt","GGGLG","CurveRandPt","./librr.so");
 install("RREvalInit","GG","RREvalInit","./librr.so");
 install("RREval","GGG","RREval","./librr.so");

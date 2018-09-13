@@ -10,12 +10,12 @@ GEN FnSubstMod(GEN F, long var, GEN val, GEN T, GEN pe) /* /!\ Not memory-clean 
 		printf("Z");
 		res = gsubst(F,var,val);
 		return res;
-		/*printf("u");
+		printf("u");
 		res = gmodulo(gmodulo(res,T),pe);
 		printf("v");
 		res = liftall(res);
 		printf("w");
-		return res;*/
+		return res;
 	}
 	pari_TRY
 	{
@@ -27,63 +27,92 @@ GEN FnSubstMod(GEN F, long var, GEN val, GEN T, GEN pe) /* /!\ Not memory-clean 
 	return res;
 }
 
-GEN FnEvalAt(GEN F, GEN P, GEN vars, GEN T, GEN p, long e, GEN pe) /* /!\ Not memory-clean */
+GEN EvalRatMod(GEN F, long var, GEN x, GEN T, GEN p, long e, GEN pe) /* /!\ Not memory-clean */
 {
-	GEN N,D,C;
-	//printf(" a");
+	GEN N,D;
+	if(typ(F)==t_INT) return Z2Fq(F,T);
+	if(gvar(F)!=var) pari_err(e_MISC,"Bad var 1");
+	if(typ(F)==t_POL) return liftall(poleval(F,gmodulo(gmodulo(x,T),pe)));
+	N = liftall(poleval(gel(F,1),gmodulo(gmodulo(x,T),pe)));
+	if(typ(N)==t_INT) N=Z2Fq(N,T);
+	D = liftall(poleval(gel(F,2),gmodulo(gmodulo(x,T),pe)));
+	if(typ(D)==t_INT) D=Z2Fq(D,T);
+	N = ZpXQ_div(N,D,T,pe,p,e);
+	return N;
+}
+
+GEN FnEvalAt(GEN F, GEN P, GEN vars, GEN T, GEN p, long e/*GEN E*/, GEN pe)
+/* F=N/D, N,D=R(y)x^n+...+R(y), R(y) rat fracs. Assumes P=(a,b) is s.t. the denom of R(b) is nonzero mod p for all R. */
+{
+	pari_sp av = avma;
+	GEN N,D,Fy;
+	long /*e = itos(E),*/d;
+	ulong i;
 	if(typ(F)==t_RFRAC)
 	{
-		//printf("b");
 		N = FnEvalAt(gel(F,1),P,vars,T,p,e,pe);
 		if(typ(N)==t_INT) N=Z2Fq(N,T);
 		D = FnEvalAt(gel(F,2),P,vars,T,p,e,pe);
 		if(typ(D)==t_INT) D=Z2Fq(D,T);
-		//printf("c\n");
-		return ZpXQ_div(N,D,T,pe,p,e);
+		return gerepileupto(av,ZpXQ_div(N,D,T,pe,p,e));
 	}
-	//printf("d");
-	C = content(F); // TODO wrt y
-	F = gdiv(F,C);
-	F = FnSubstMod(F,vars[1],gel(P,1),T,pe);
-	F = gmul(F,C);
-	//printf("e");
-	if(typ(F)==t_RFRAC)
-	{
-		//printf("f");
-		N = FnSubstMod(gel(F,1),vars[2],gel(P,2),T,pe);
-		if(typ(N)==t_INT) N=Z2Fq(N,T);
-		D = FnSubstMod(gel(F,2),vars[2],gel(P,2),T,pe);
-		if(typ(D)==t_INT) D=Z2Fq(D,T);
-		//printf("g");
-		/*pari_printf(" %Ps %Ps ",N,D);*/
-		F = ZpXQ_div(N,D,T,pe,p,e);
-		//printf("h");
-	}
-	else{//printf("i");
-	F = liftall(gsubst(F,vars[2],gmodulo(gmodulo(gel(P,2),T),pe)));
-	}
-	//printf("j\n");
-	return F;
+	if(gvar(F)==vars[2]) return liftall(poleval(F,gmodulo(gmodulo(gel(P,2),T),pe)));
+	if(gvar(F)!=vars[1]) pari_err(e_MISC,"Bad var 2");
+	d = lg(F);
+	Fy = cgetg(d,t_POL);
+	setsigne(Fy,1);
+	setvarn(Fy,vars[1]);
+	for(i=2;i<d;i++) gel(Fy,i) = EvalRatMod(gel(F,i),vars[2],gel(P,2),T,p,e,pe);
+	F = liftall(poleval(Fy,gmodulo(gmodulo(gel(P,1),T),pe)));
+	return gerepilecopy(av,F);
 }
 
 GEN FnsEvalAt(GEN Fns, GEN Z, GEN vars, GEN T, GEN p, long e, GEN pe)
 {
 	pari_sp av = avma;
-	GEN A,col;
-	ulong i,j,nF,nZ;
+	GEN A;//E;
+	ulong nF,nZ;
+	long i,j;//k;
+	/*struct pari_mt pt;
+	GEN worker,done;
+	long pending,workid;*/
+
+	/*E = stoi(e);*/
 	nF = lg(Fns);
 	nZ = lg(Z);
 	A = cgetg(nF,t_MAT);
 	for(j=1;j<nF;j++)
 	{
-		printf("Eval fn %lu out of %lu\n",j,nF-1);
-		col = cgetg(nZ,t_COL);
+		gel(A,j) = cgetg(nZ,t_COL);
 		for(i=1;i<nZ;i++)
-		{
-			gel(col,i) = Fq_red(FnEvalAt(gel(Fns,j),gel(Z,i),vars,T,p,e,pe),T,pe);
-		}
-		gel(A,j) = col;
+  	{
+			//printf("%ld,%ld\n",i,j);
+      gcoeff(A,i,j) = FnEvalAt(gel(Fns,j),gel(Z,i),vars,T,p,e,pe);
+  	}
 	}
+	/* Abandoned parallel version (not useful)
+	nF--;nZ--;
+	pending = 0;
+  worker = strtofunction("FnEvalAt");
+  mt_queue_start(&pt,worker);
+	for(k=0;k<nF*nZ||pending;k++)
+	{
+		if(k<nF*nZ)
+		{
+			i = 1 + (k%nZ);
+			j = 1 + (k/nZ);
+			printf("%ld,%ld\n",i,j);
+			mt_queue_submit(&pt,k,mkvecn(7,gel(Fns,j),gel(Z,i),vars,T,p,E,pe));
+		}
+		else mt_queue_submit(&pt,k,NULL);
+		done = mt_queue_get(&pt,&workid,&pending);
+		if(done)
+		{
+			i = 1 + (k%nZ);
+      j = 1 + (k/nZ);
+			gcoeff(A,i,j) = done;
+		}
+	}*/
 	return gerepilecopy(av,A);
 }
 
@@ -185,6 +214,7 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
   Frob = ZpX_Frobenius(T,p,e);
   pe = powiu(p,e);
 
+	printf("RRinit: Finding points\n");
   n = ncyc = 0;
   Z = cgetg(nZ+a,t_VEC);
   Zp = cgetg(nZ+a,t_VEC);
@@ -224,11 +254,9 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
   }
   setlg(Z,n+1);
   setlg(FrobCyc,ncyc+1);
-	//pari_printf("T=%Ps\nZ=%Ps\n",T,Z);
 
+	printf("RRInit: Evaluating rational functions\n");
 	V1 = FnsEvalAt_Rescale(L,Z,vars,T,p,e,pe);
-	//printf("Rank V1: %ld, expected %ld\n",FqM_rank(V1,T,p),lg(V1)-1);
-	//pari_printf("%Ps\n",FqM_ker(V1,T,p));
 	V2 = DivAdd1(V1,V1,2*d0+1-g,T,p,e,pe,0);
 	V3 = DivAdd1(V1,V2,3*d0+1-g,T,p,e,pe,0);
 	W0 = V1;
