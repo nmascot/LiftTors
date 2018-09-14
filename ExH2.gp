@@ -11,8 +11,8 @@ C=char2(A[iA]);
 d=poldegree(C);
 a=mordroot(C,l);
 if(Mod(a,2),a=2*a);
-e=2;
-X=read("H2/RR.txt");f=X[1];L=X[2];Bad=X[3];L1=X[4];L2=X[5];
+e=4;
+X=read("H2/RR.txt");f=X[1];L=X[2];Bad=X[3];L1=X[4];L2=X[5];g=7;d0=16;
 
 RR_rescale(L,p)=
 {
@@ -34,14 +34,14 @@ L1 = RR_rescale(L1,p);
 L2 = RR_rescale(L2,p);
 Li = [L1,L2];
 Bad2 = lcm(apply(S->lcm(apply(f->denominator(content(f)),S)),[L,L1,L2]));
-Bad = lcm(Bad,Bad2);
+Bad *= Bad2;
 
-J=RRInit(f,7,16,L,Bad,p,a,e);
+J=RRInit(f,g,d0,L,Bad,p,a,e);
 U=RREvalInit(J,Li);
 J1 = PicRed(J,1); \\ Reduction mod p
 
 print("\n--> Getting basis of T mod ",p)
-WB = TorsBasis(J1,f,p,a,l,Lp,C);
+WB = TorsBasis(J1,l,Lp,C);
 print("\n--> Lifting ",p,"-adically");
 my(J=J,l=l); WB = parapply(W->PicLiftTors(J,W,1,l),WB);
 print("\n--> All of T");

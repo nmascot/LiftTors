@@ -28,7 +28,7 @@ J1 = PicRed(J,1); \\ Reduction mod p
 print("\n--> Computing local L factor at p=",p," by point counting...");
 Lp = PlaneZeta(f,p);
 print("\n--> Getting basis of T mod ",p)
-WB = TorsBasis(J1,f,p,a,l,Lp,C);
+WB = TorsBasis(J1,l,Lp,C);
 print("\n--> Lifting ",p,"-adically");
 my(J=J,l=l); WB = parapply(W->PicLiftTors(J,W,1,l),WB);
 print("\n--> All of T");

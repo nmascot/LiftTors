@@ -17,7 +17,7 @@ J1 = PicRed(J,1); \\ Reduction mod p
 Lp = hyperellcharpoly(Mod(f,p)); \\ Local L factor of the curve at p, needed to know the number of points on the Jacobian mod p
 
 print("\n--> Getting a basis of T mod ",p);
-WB = TorsBasis(J1,f,p,a,l,Lp,C);
+WB = TorsBasis(J1,l,Lp,C);
 print("\n--> Lifting this basis ",p,"-adically");
 WB = apply(W->PicLiftTors(J,W,1,l),WB);
 print("\n--> All of T");
