@@ -77,7 +77,6 @@ GEN HyperInit(GEN f, GEN p, ulong a, long e)
  	T = liftint(ffinit(p,a,varn(t)));
 	pe = powiu(p,e);
 	FrobMat = ZpXQ_FrobMat(T,p,e,pe);
-	pari_printf("%Ps\n",FrobMat);
 	
 	n = ncyc = 0;
 	Z = cgetg(nZ+a,t_VEC);

@@ -25,11 +25,17 @@ PicLC(J,C,W)=
   /* TODO efficiency */
   my(S);
   if(#C==0,return(JgetW0(J)));
-  S = PicMul(J,W[1],C[1],2);
-  for(i=2,#C,
-    S = PicAdd(J,S,PicMul(J,W[i],C[i],2));
+  S = [];
+  for(i=1,#C,
+    if(C[i],
+			if(S==[],
+				S = PicMul(J,W[i],C[i],2);
+			,
+				S = PicAdd(J,S,PicMul(J,W[i],C[i],2));
+			)
+		)
   );
-  S;
+  if(S==[],JgetW0(J),S);
 }
 
 TorsOrd(J,W,l)=
@@ -67,9 +73,11 @@ RandTorsPt(J,l,M,chiC,seed)=
 
 TorsBasis(J,l,chi,C)=
 {
-  my(d,N,M,v,chiC,Batch,nBatch,iBatch,W,o,T,BW,Bo,BT,R,KR,Rnew,KRnew,Wtest,Wnew,am,S,AddC,W0,z);
+  my(a,d,N,M,v,chiC,Batch,nBatch,iBatch,iFrob,W,o,T,BW,Bo,BT,R,KR,Rnew,KRnew,Wtest,Wnew,am,S,AddC,W0,z);
 	iBatch = nBatch = 0;
-	N = polresultant(chi,'x^poldegree(JgetT(J))-1);
+	a = poldegree(JgetT(J));
+	iFrob = a-1;
+	N = polresultant(chi,'x^a-1);
   v = valuation(N,l);
   M = N/l^v;
   if(C,
@@ -96,18 +104,26 @@ TorsBasis(J,l,chi,C)=
   while(r<d,
     /*print("Status:",Bo[1..r]);*/
     print("Getting new point");
-		if(iBatch==nBatch,
-			nBatch = max(d-r,ceil(default(nbthreads)/2));
-			print("Generating a new batch of ",nBatch," points in parallel");
-			my(RandTorsPt=RandTorsPt,seed=vector(nBatch,i,random()));
-			Batch = parvector(nBatch,i,RandTorsPt(J,l,M,chiC,seed[i]));
-			print("Batch of points generated.");
-			iBatch=1;
-    ,
-			iBatch+=1;
+		iFrob += 1;
+		if(iFrob==a,
+			print(" from batch");
+			if(iBatch==nBatch,
+				nBatch = max(ceil((d-r)/a),ceil(default(nbthreads)/2));
+				print("  Generating a new batch of ",nBatch," points in parallel");
+				my(RandTorsPt=RandTorsPt,seed=vector(nBatch,i,random()));
+				Batch = parvector(nBatch,i,RandTorsPt(J,l,M,chiC,seed[i]));
+				print("  Batch of points generated.");
+				iBatch=1;
+    	,
+				iBatch+=1;
+			);
+			[W,o,T]=Batch[iBatch];
+    	print(" It has order l^",o);
+		,
+			print(" from Frob");
+			W = PicFrob(J,W);
+			T = PicFrob(J,T)
 		);
-		[W,o,T]=Batch[iBatch];
-    print(" It has order l^",o);
     r += 1;
     BW[r] = W;
     Bo[r] = o;
@@ -142,12 +158,14 @@ TorsBasis(J,l,chi,C)=
       m = vecmin([Bo[i]|i<-[1..r],KR[i]]);
 			if(m>1,
       	print(" Dividing relation ",KR," by l");
+				iFrob = 0;
       	S = vector(r,i,if(KR[i],l^(Bo[i]-m)*KR[i],0));
       	W = PicLC(J,S,BW[1..r]);
       	[T,o] = TorsOrd(J,W,l);
       	print(" gives point of order l^",o)
 			,
         print(" Giving up this point");
+				iFrob = a-1;
         r -= 1;
         break
       );
@@ -156,5 +174,27 @@ TorsBasis(J,l,chi,C)=
       BT[r] = T;
     );
   );
-  BT;
+	print("Found basis, now computing the matrix of Frobenius");
+	\\ Now compute matrix of Frobenius
+	\\ First of all, make sure we have enough linear tests
+	while(#KR>1,
+  	print("  Adding a linear test");
+    Wnew = PicChord(J,PicRand0(J),PicRand0(J),1);
+    Rnew = parapply(w->PicFreyRuckMulti(J,w,l,[Wnew],W0,AddC)[1],BT[1..r]);
+    Rnew = apply(x->Fq_mu_l_log(x,z,JgetT(J),Jgetp(J),l),Rnew);
+    Rnew = matconcat([R,Rnew]~);
+    KRnew = centerlift(matker(Mod(Rnew[,1..r],l)));
+    if(#KRnew<#KR,
+      R = Rnew;
+      KR = KRnew;
+      Wtest = concat(Wtest,[Wnew])
+    )
+  );
+	\\ Apply Frobenius to BT, and pair
+	FR = parapply(T->PicFreyRuckMulti(J,PicFrob(J,T),l,Wtest,W0,AddC),BT);
+	FR = apply(x->Fq_mu_l_log(x,z,JgetT(J),Jgetp(J),l),matconcat(FR));
+	\\ Find relations between pairings
+	K = matker(Mod(matconcat([R,FR]),l));
+	K = centerlift(-K[1..r,]);
+  [BT,K];
 }
