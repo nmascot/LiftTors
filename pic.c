@@ -9,7 +9,7 @@ GEN JgetT(GEN J) {return gel(J,4);}
 GEN Jgetp(GEN J) {return gel(J,5);}
 long Jgete(GEN J) {return itos(gel(J,6));}
 GEN Jgetpe(GEN J) {return gel(J,7);}
-GEN JgetFrob(GEN J) {return gel(J,8);}
+GEN JgetFrobMat(GEN J) {return gel(J,8);}
 GEN JgetV(GEN J) {return gel(J,9);}
 GEN JgetKV(GEN J) {return gel(J,10);}
 GEN JgetW0(GEN J) {return gel(J,11);}
@@ -39,7 +39,7 @@ GEN PicRed(GEN J, ulong e)
 	gel(Je,5) = p = gcopy(Jgetp(J));
 	gel(Je,6) = utoi(e);
 	gel(Je,7) = pe = powiu(p,e);
-	gel(Je,8) = FpX_red(JgetFrob(J),pe);
+	gel(Je,8) = FpM_red(JgetFrobMat(J),pe);
 	gel(Je,9) = FpXM_red(JgetV(J),pe);
 	gel(Je,10) = FpXM_red(JgetKV(J),pe);
 	gel(Je,11) = FpXM_red(JgetW0(J),pe);
@@ -314,19 +314,59 @@ GEN PicMul(GEN J, GEN W, GEN n, long flag)
 	return gerepileupto(av,gel(Wlist,nC-1));
 }
 
+GEN ZpXQ_FrobMat(GEN T, GEN p, long e, GEN pe)
+{
+	pari_sp av = avma;
+	GEN F,M,col,Fj;
+	long v = gvar(T),d = degpol(T),i,j;
+	F = ZpX_Frobenius(T,p,e);
+	M = cgetg(d+1,t_MAT);
+	col = cgetg(d+1,t_COL);
+	gel(col,1) = gen_1;
+	for(i=2;i<=d;i++) gel(col,i) = gen_0;
+	gel(M,1) = col;
+	if(d==1) return gerepileupto(av,M);
+	col = cgetg(d+1,t_COL);
+	for(i=0;i<d;i++) gel(col,i+1) = polcoef(F,i,v);
+	gel(M,2) = col;
+	Fj = F;
+	for(j=2;j<d;j++)
+	{
+		Fj = Fq_mul(Fj,F,T,pe);
+		col = cgetg(d+1,t_COL);
+		for(i=0;i<d;i++) gel(col,i+1) = polcoef(Fj,i,v);
+		gel(M,j+1) = col;
+	}
+	return gerepilecopy(av,M);
+}
+
+GEN Frob(GEN x, GEN FrobMat, GEN T, GEN pe)
+{
+	pari_sp av = avma;
+	GEN cx,cy,y;
+	long var = gvar(T), d = degpol(T), i;
+	cx = cgetg(t_COL,d+1);
+	for(i=0;i<d;i++) gel(cx,i+1) = polcoef(x,i,var);
+	cy = FpM_FpC_mul(FrobMat,cx,pe);
+	y = cgetg(d+2,t_POL);
+	setvarn(y,var);
+	for(i=1;i<=d;i++) gel(y,i+1) = gel(cy,i);
+	y = normalizepol(y);
+	return gerepilecopy(av,y);
+}
+
 GEN PicFrob(GEN J, GEN W)
 {
-	GEN W2,T,pe,Frob,FrobCyc;
+	GEN W2,T,pe,FrobMat,FrobCyc;
 	ulong o,i,j,k,c,nW,nZ,nCyc;
 
 	T = JgetT(J);
 	pe = Jgetpe(J);
-	Frob = JgetFrob(J);
+	FrobMat = JgetFrobMat(J);
 	FrobCyc = JgetFrobCyc(J);
 	nW = lg(W);
 	nZ = lg(JgetZ(J));
 	nCyc = lg(FrobCyc);
-	Frob = JgetFrob(J);
 
 	W2 = cgetg(nW,t_MAT);
 	for(j=1;j<nW;j++)
@@ -342,12 +382,12 @@ GEN PicFrob(GEN J, GEN W)
 		{
 			for(j=1;j<nW;j++)
 			{
-				gcoeff(W2,i+k+1,j) = FpX_FpXQ_eval(gcoeff(W,i+k,j),Frob,T,pe);
+				gcoeff(W2,i+k+1,j) = Frob(gcoeff(W,i+k,j),FrobMat,T,pe);
 			}
 		}
 		for(j=1;j<nW;j++)
 		{
-			gcoeff(W2,i+1,j) = FpX_FpXQ_eval(gcoeff(W,i+c,j),Frob,T,pe);
+			gcoeff(W2,i+1,j) = Frob(gcoeff(W,i+c,j),FrobMat,T,pe);
 		}
 		i += c;
 	}

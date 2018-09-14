@@ -65,7 +65,7 @@ GEN HyperInit(GEN f, GEN p, ulong a, long e)
 	pari_sp avP,av = avma;
 	int newpt;
 	ulong df,g,d0,nZ,n,ncyc,i;
-	GEN pe,t,T,Frob,Z,Zp,P,Pp,Q,FrobCyc,x,y,W0,V,KV,V3,KV3,J;
+	GEN pe,t,T,FrobMat,Z,Zp,P,Pp,Q,FrobCyc,x,y,W0,V,KV,V3,KV3,J;
   
 	df = degree(f);
 	/* TODO if(df%2) error0("Polynomial must be of even degree!"); */
@@ -75,8 +75,9 @@ GEN HyperInit(GEN f, GEN p, ulong a, long e)
 
 	t = varlower("t",varn(f));
  	T = liftint(ffinit(p,a,varn(t)));
-	Frob = ZpX_Frobenius(T,p,e);
 	pe = powiu(p,e);
+	FrobMat = ZpXQ_FrobMat(T,p,e,pe);
+	pari_printf("%Ps\n",FrobMat);
 	
 	n = ncyc = 0;
 	Z = cgetg(nZ+a,t_VEC);
@@ -109,8 +110,8 @@ GEN HyperInit(GEN f, GEN p, ulong a, long e)
 			n++;
 			gel(Z,n) = Q;
 			gel(Zp,n) = FpXV_red(Q,p);
-			x = FpX_FpXQ_eval(gel(Q,1),Frob,T,pe);
-			y = FpX_FpXQ_eval(gel(Q,2),Frob,T,pe);
+			x = Frob(gel(Q,1),FrobMat,T,pe);
+			y = Frob(gel(Q,2),FrobMat,T,pe);
 			Q = mkvec2(x,y);
 		} while(!gequal(Q,P));
 	FrobCyc[ncyc] = i;
@@ -124,7 +125,7 @@ GEN HyperInit(GEN f, GEN p, ulong a, long e)
 	V3 = RReval(Z,3*d0/2,df,T,pe);
 	KV3 = mateqnpadic(V3,T,p,e);
 
-	J = mkvecn(lgJ,f,stoi(g),stoi(d0),T,p,stoi(e),pe,Frob,V,KV,W0,Z,FrobCyc,V3,KV3);
+	J = mkvecn(lgJ,f,stoi(g),stoi(d0),T,p,stoi(e),pe,FrobMat,V,KV,W0,Z,FrobCyc,V3,KV3);
 	return gerepilecopy(av,J);
 }
 

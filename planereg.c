@@ -188,7 +188,7 @@ GEN PlaneInit(GEN f, GEN p, ulong a, long e)
 	pari_sp avP,av = avma;
   int newpt;
   ulong d1,d2,df,g,d0,nZ,n,ncyc,i;
-  GEN vars,pe,t,T,Frob,Z,Zp,P,Pp,Q,FrobCyc,x,y,W0,V,KV,V3,KV3,J;
+  GEN vars,pe,t,T,FrobMat,Z,Zp,P,Pp,Q,FrobCyc,x,y,W0,V,KV,V3,KV3,J;
 
 	vars = variables_vecsmall(f);
 	d1 = poldegree(f,vars[1]);
@@ -202,8 +202,8 @@ GEN PlaneInit(GEN f, GEN p, ulong a, long e)
 
 	t = varlower("t",vars[2]);
   T = liftint(ffinit(p,a,varn(t)));
-  Frob = ZpX_Frobenius(T,p,e);
   pe = powiu(p,e);
+	FrobMat = ZpXQ_FrobMat(T,p,e,pe);
 
   n = ncyc = 0;
   Z = cgetg(nZ+a,t_VEC);
@@ -236,8 +236,8 @@ GEN PlaneInit(GEN f, GEN p, ulong a, long e)
       n++;
       gel(Z,n) = Q;
       gel(Zp,n) = FpXV_red(Q,p);
-      x = FpX_FpXQ_eval(gel(Q,1),Frob,T,pe);
-      y = FpX_FpXQ_eval(gel(Q,2),Frob,T,pe);
+      x = Frob(gel(Q,1),FrobMat,T,pe);
+      y = Frob(gel(Q,2),FrobMat,T,pe);
       Q = mkvec2(x,y);
     } while(!gequal(Q,P));
   FrobCyc[ncyc] = i;
@@ -252,7 +252,7 @@ GEN PlaneInit(GEN f, GEN p, ulong a, long e)
   KV = mateqnpadic(V,T,p,e);
   KV3 = mateqnpadic(V3,T,p,e);
 
-  J = mkvecn(lgJ,f,stoi(g),stoi(d0),T,p,stoi(e),pe,Frob,V,KV,W0,Z,FrobCyc,V3,KV3);
+  J = mkvecn(lgJ,f,stoi(g),stoi(d0),T,p,stoi(e),pe,FrobMat,V,KV,W0,Z,FrobCyc,V3,KV3);
 	return gerepilecopy(av,J);
 }
 
