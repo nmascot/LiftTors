@@ -21,9 +21,8 @@ p = 29; \\ We work 29-adically
 e = 32; \\ to accuracy O(29^32)
 a = 3; \\ Degree of the unramified extension of Qp over which the torsion points are defined
 \\ If instead we want the 3-torsion, we can take: 
-l=3;p=43;e=512;a=4;
+\\l=3;p=43;e=512;a=4;
 
-pe = p^e;
 J = PlaneInit(f,p,a,e); \\ Jacobian with accuracy O(p^e)
 J1 = PicRed(J,1); \\ Reduction mod p
 
@@ -64,7 +63,7 @@ my(J=J,T=T,U=U);ZmodF = parapply(i->PlaneEval0(J,T[i],U),ImodF);
 		Z[i] = z;
 		i = ActOni(matFrob,i,l);
 		if(Z[i] != [],break);
-		z = apply(x->Frob(x,JgetFrobMat(J),JgetT(J),pe),z);
+		z = apply(x->Frob(x,JgetFrobMat(J),JgetT(J),Jgetpe(J)),z);
 	)
 );}
 print("\n--> Expansion and identification");
