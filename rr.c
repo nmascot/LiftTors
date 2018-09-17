@@ -32,7 +32,12 @@ GEN EvalRatMod(GEN F, long var, GEN x, GEN T, GEN p, long e, GEN pe) /* /!\ Not 
 	GEN N,D;
 	if(typ(F)==t_INT) return Z2Fq(F,T);
 	if(gvar(F)!=var) pari_err(e_MISC,"Bad var 1");
-	if(typ(F)==t_POL) return liftall(poleval(F,gmodulo(gmodulo(x,T),pe)));
+	if(typ(F)==t_POL)
+	{
+		N = liftall(poleval(F,gmodulo(gmodulo(x,T),pe)));
+		if(typ(N)==t_INT) N=Z2Fq(N,T);
+		return N;
+	}
 	N = liftall(poleval(gel(F,1),gmodulo(gmodulo(x,T),pe)));
 	if(typ(N)==t_INT) N=Z2Fq(N,T);
 	D = liftall(poleval(gel(F,2),gmodulo(gmodulo(x,T),pe)));
@@ -48,6 +53,7 @@ GEN FnEvalAt(GEN F, GEN P, GEN vars, GEN T, GEN p, long e/*GEN E*/, GEN pe)
 	GEN N,D,Fy;
 	long /*e = itos(E),*/d;
 	ulong i;
+	if(typ(F)==t_INT) return Z2Fq(F,T);
 	if(typ(F)==t_RFRAC)
 	{
 		N = FnEvalAt(gel(F,1),P,vars,T,p,e,pe);
