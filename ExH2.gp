@@ -50,7 +50,7 @@ n = 1;
   c=Q[,n];
   listput(cWB,c);
   c=centerlift(Mod(c,l));
-  listput(WB,PicLC(J,c,B));
+  listput(WB,PicLC(J1,c,B));
   n+=NF[i]
 );}
 WB = Vec(WB); \\ Generating set of T under Frob
