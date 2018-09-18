@@ -26,14 +26,17 @@ install("PlaneZeta","GU","PlaneZeta","./libplanereg.so");
 install("PlaneEval","GGGGGG","PlaneEval","./libplanereg.so");
 install("PlaneEval0_data","GGGGG","PlaneEval0_data","./libplanereg.so");
 install("PlaneEval0","GGG","PlaneEval0","./libplanereg.so");
-install("AllPols0","GGGLG","AllPols0","./libplanereg.so");
+\\install("AllPols0","GGGLG","AllPols0","./libplanereg.so");
 
 
 install("RRInit","GUUGGGUL","RRInit","./librr.so");
+install("RRInit2","GUUGGGGUL","RRInit2","./librr.so");
 \\install("FnEvalAt","GGGGGGG","FnEvalAt","./librr.so");
 \\install("CurveRandPt","GGGLG","CurveRandPt","./librr.so");
 install("RREvalInit","GG","RREvalInit","./librr.so");
 install("RREval","GGG","RREval","./librr.so");
+install("OnePol","GGGG","OnePol","./librr.so");
+install("AllPols","GGGLG","AllPols","./librr.so");
 
 install("PicRed","GU","PicRed","./libpic.so");
 install("PicChord","GGGL","PicChord","./libpic.so");

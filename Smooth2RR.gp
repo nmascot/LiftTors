@@ -66,11 +66,12 @@ Smooth2RR(f0,P01,P02)=
 	g = g/2;
 	d0 = (d-2)*d;
 	L = LSmooth(d-2,d,x,y);
+	LL = LSmooth(2*(d-2),d,x,y);
 	M = LSmooth(if(d%2,(3*d-5)/2,3*(d/2-1)),d,x,y);
 	L1 = apply(P->subst(subst(M,x,P[1]),y,P[2]),P1)~;
 	L1 = M*matker(matconcat(L1));
 	L2 = apply(P->subst(subst(M,x,P[1]),y,P[2]),P2)~;
 	L2 = M*matker(matconcat(L2));
-	[f,g,d0,L,L1,L2];
+	[f,g,d0,L,LL,L1,L2];
 }
 

@@ -2,17 +2,17 @@ read("install.gp");
 read("galrep.gp");
 l=3;
 read("H2/vap.gp");
-p=5;
+p=11;
 Lp=eval(Str("L_",l,"_",p));
 \\C=x^2+7;
-iA=2;
+iA=4;
 if(A[iA][2]!=p,error("Wrong A"));
 C=char2(A[iA]);
 d=poldegree(C);
 a=mordroot(C,l);
 if(Mod(a,2),a=2*a);
 e=4;
-X=read("H2/RR.txt");f=X[1];L=X[2];Bad=X[3];L1=X[4];L2=X[5];g=7;d0=16;
+X=read("H2/RR.txt");f=X[1];L=X[2];LL=X[3];Bad=X[4];L1=X[5];L2=X[6];g=7;d0=16;
 
 RR_rescale(L,p)=
 {
@@ -30,13 +30,14 @@ RR_rescale(L,p)=
 }
 
 L = RR_rescale(L,p);
+LL = RR_rescale(LL,p);
 L1 = RR_rescale(L1,p);
 L2 = RR_rescale(L2,p);
 Li = [L1,L2];
 Bad2 = lcm(apply(S->lcm(apply(f->denominator(content(f)),S)),[L,L1,L2]));
 Bad *= Bad2;
 
-J=RRInit(f,g,d0,L,Bad,p,a,e);
+J=RRInit2(f,g,d0,L,LL,Bad,p,a,e);
 U=RREvalInit(J,Li);
 J1 = PicRed(J,1); \\ Reduction mod p
 
@@ -77,7 +78,7 @@ my(J=J,T=T,U=U);ZmodF = parapply(i->RREval(J,T[i],U),ImodF);
   )
 );}
 print("\n--> Expansion and identification");
-A = AllPols0(Z,JgetT(J),p,e,Jgetpe(J)); \\ p-adic approximation of a set of polynomials which all define a subfield of the field cut out by the representation, with equality iff. no repeated roots
+A = AllPols(Z,JgetT(J),p,e,Jgetpe(J)); \\ p-adic approximation of a set of polynomials which all define a subfield of the field cut out by the representation, with equality iff. no repeated roots
 print(#A," candidate polynomials");
 AI = select(x->x[3]!=[],A); \\ Drop the approximations that could not be identified as rationals
 print(#AI," identified polynomials");
