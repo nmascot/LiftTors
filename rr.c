@@ -274,6 +274,75 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
 	return gerepilecopy(av,J);
 }
 
+GEN RRInit2(GEN f, ulong g, ulong d0, GEN L, GEN L2, GEN bad, GEN p, ulong a, long e)
+{
+	pari_sp avP,av = avma;
+  int newpt;
+  ulong nZ,n,ncyc,i;
+  GEN vars,pe,t,T,FrobMat,Z,Zp,P,Pp,Q,FrobCyc,x,y,V1,V2,V3,W0,V,KV,KV3,J;
+
+	vars = variables_vecsmall(f);
+	nZ = 5*d0+1;
+
+	t = varlower("t",vars[2]);
+  T = liftint(ffinit(p,a,varn(t)));
+  pe = powiu(p,e);
+  FrobMat = ZpXQ_FrobMat(T,p,e,pe);
+
+	printf("RRinit: Finding points\n");
+  n = ncyc = 0;
+  Z = cgetg(nZ+a,t_VEC);
+  Zp = cgetg(nZ+a,t_VEC);
+  /* TODO sort Zp -> quasilin complexity */
+  FrobCyc = cgetg(nZ+1,t_VECSMALL);
+  while(n<nZ)
+  {
+    avP = avma;
+    P = CurveRandPt(f,T,p,e,bad);
+    /* Already have it ? */
+    Pp = FpXV_red(P,p);
+    newpt = 1;
+    for(i=1;i<=n;i++)
+    {
+      if(gequal(Pp,gel(Zp,i)))
+      {
+        newpt = 0;
+        avma = avP;
+        break;
+      }
+    }
+    if(newpt == 0) continue;
+    ncyc++;
+    Q = P;
+    i = 0;
+    do
+    {
+      i++;
+      n++;
+      gel(Z,n) = Q;
+      gel(Zp,n) = FpXV_red(Q,p);
+      x = Frob(gel(Q,1),FrobMat,T,pe);
+      y = Frob(gel(Q,2),FrobMat,T,pe);
+      Q = mkvec2(x,y);
+    } while(!gequal(Q,P));
+  FrobCyc[ncyc] = i;
+  }
+  setlg(Z,n+1);
+  setlg(FrobCyc,ncyc+1);
+
+	printf("RRInit: Evaluating rational functions\n");
+	V1 = FnsEvalAt_Rescale(L,Z,vars,T,p,e,pe);
+	V2 = FnsEvalAt_Rescale(L2,Z,vars,T,p,e,pe);
+	V3 = DivAdd1(V1,V2,3*d0+1-g,T,p,e,pe,0);
+	W0 = V1;
+	V = V2;
+  KV = mateqnpadic(V,T,p,e);
+  KV3 = mateqnpadic(V3,T,p,e);
+
+  J = mkvecn(lgJ,f,stoi(g),stoi(d0),T,p,stoi(e),pe,FrobMat,V,KV,W0,Z,FrobCyc,V3,KV3);
+	return gerepilecopy(av,J);
+}
+
 GEN RREvalInit(GEN J, GEN Li)
 {
 	pari_sp av = avma;
@@ -313,6 +382,7 @@ GEN RREval(GEN J, GEN W, GEN Li) /* Li = L(2D0-Ei), deg Ei = d0-g (i=1,2) */
 	S2 = DivAdd(S2,gel(Li,2),2*d0+1,T,p,e,pe,0); /* L(4D0-E1-E2-ED) */
 	S2 = DivSub(V,S2,KV,1,T,p,e,pe,2); /* L(2D0-E1-E2-ED) */
   s2 = gel(S2,1);
+	s2 = gerepilecopy(av,s2);
   K = cgetg(nV+1,t_MAT);
   for(i=1;i<nV;i++) gel(K,i) = gel(V,i);
   gel(K,nV) = s2;
@@ -333,18 +403,39 @@ GEN PolExpId(GEN Z, GEN T, GEN pe) /* bestappr of prod(x-z), z in Z */
 	return gerepilecopy(av,mkvecn(3,Z,f,a));
 }
 
-GEN AllPols0(GEN F, GEN T, GEN p, long e, GEN pe)
+GEN OnePol(GEN N, GEN D, GEN T, GEN pe)
 {
 	pari_sp av = avma;
-	GEN F1,f,R,pols;
-	ulong nF,lF,npols,n,i,j,k;
+	GEN R,F;
+	ulong k,n;
+	n = lg(N);
+	R = cgetg(n,t_VEC);
+  for(k=1;k<n;k++) gel(R,k) = Fq_mul(gel(N,k),gel(D,k),T,pe);
+	F = PolExpId(R,T,pe);
+	return gerepileupto(av,F);
+}
 
-	nF = lg(F);
-	lF = lg(gel(F,1))-1;
+GEN AllPols(GEN F, GEN T, GEN p, long e, GEN pe)
+{
+	pari_sp av = avma;
+	GEN Ft,F1,f,pols;
+	ulong nF,lF,npols,n,i,j,m;
+	struct pari_mt pt;
+	GEN worker,done;
+	long pending,workid;
+
+	nF = lg(F); /* Number of vectors */
+	lF = lg(gel(F,1))-1; /* Size of each vector */
+	Ft = cgetg(lF,t_VEC);
+	for(i=1;i<lF;i++)
+	{ 
+		gel(Ft,i) = cgetg(nF,t_VEC);
+		for(j=1;j<nF;j++) gmael(Ft,i,j) = gmael(F,j,i);
+	}
 	F1 = cgetg(lF,t_VEC);
 	npols = 0;
-	/*printf("Inverting\n");*/
-	for(i=1;i<lF;i++)
+	printf("Inverting\n");
+	for(i=1;i<lF;i++) /* Find the i such that the ith coord of the vectors are all invertible */
 	{ 
 		npols++;
 		gel(F1,i) = cgetg(nF,t_VEC);
@@ -361,24 +452,32 @@ GEN AllPols0(GEN F, GEN T, GEN p, long e, GEN pe)
 		}
 	}
 	npols *= (lF-2);
-	/*printf("Getting %lu pols\n",npols);*/
+	printf("Getting %lu pols\n",npols);
 	pols = cgetg(npols+1,t_VEC);
-	R = cgetg(nF,t_VEC);
-	/* TODO parallelise */
-	n = 0;
-	for(i=1;i<lF;i++)
+	pending = 0;
+  worker = strtofunction("OnePol");
+  mt_queue_start(&pt,worker);
+	i=m=1;
+	j=0;n=0;
+	done = NULL;
+	for(j=0;i<lF||pending;n++)
 	{
-		if(gel(F1,i)==NULL) continue;
-		for(j=1;j<lF;j++)
+		j++;
+		if(j==lg(F1))
 		{
-			if(j==i) continue;
-			R = cgetg(nF,t_VEC);
-			for(k=1;k<nF;k++) gel(R,k) = Fq_mul(gmael(F,k,j),gmael(F1,i,k),T,pe);
-			n++;
-			/*printf("%lu ",n);*/
-			gel(pols,n) = PolExpId(R,T,pe);
+			j=1;
+			i++;
+		}
+		if(gel(F1,j)==NULL || i==j) continue;
+		mt_queue_submit(&pt,n,i<lF?mkvecn(4,gel(Ft,i),gel(F1,j),T,pe):NULL);
+		done = mt_queue_get(&pt,&workid,&pending);
+		if(done)
+		{
+			printf("Getting poly number %ld\n",m);
+			gel(pols,m) = done;
+			m++;
 		}
 	}		
-  
+  mt_queue_end(&pt);
 	return gerepilecopy(av,pols);
 }
