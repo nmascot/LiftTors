@@ -387,18 +387,28 @@ GEN RREval(GEN J, GEN W, GEN Li) /* Li = L(2D0-Ei), deg Ei = d0-g (i=1,2) */
   for(i=1;i<nV;i++) gel(K,i) = gel(V,i);
   gel(K,nV) = s2;
   K = matkerpadic(K,T,p,e);
-	return gerepileupto(av,gel(K,1));
+	K = gel(K,1);
+	setlg(K,nV);
+	return gerepilecopy(av,K);
 }
 
 GEN PolExpId(GEN Z, GEN T, GEN pe) /* bestappr of prod(x-z), z in Z */
 {
 	pari_sp av = avma;
-	GEN f,a;
+	GEN f,c,a;
 	ulong nZ,i;
 	nZ = lg(Z);
 	f = cgetg(nZ,t_VEC);
-	for(i=1;i<nZ;i++) gel(f,i) = mkpoln(2,gen_1,gel(Z,i));
-	f = liftpol(factorback(gmodulo(gmodulo(f,pe),T)));
+	for(i=1;i<nZ;i++) gel(f,i) = mkpoln(2,gen_1,gmodulo(gmodulo(gel(Z,i),pe),T));
+	f = liftpol(factorback(f));
+	for(i=2;i<lg(f);i++)
+	{
+		c = gel(f,i);
+		if(degpol(c)>0) pari_err(e_MISC,"Irrational coefficient: %Ps k=%lu",c,i-2);
+		if(degpol(c)==-1) c = gen_0;
+		else c = gel(c,2);
+		gel(f,i) = c;
+	}
 	a = bestappr(f,NULL);
 	return gerepilecopy(av,mkvecn(3,Z,f,a));
 }
@@ -460,9 +470,8 @@ GEN AllPols(GEN F, GEN T, GEN p, long e, GEN pe)
 	i=m=1;
 	j=0;n=0;
 	done = NULL;
-	for(j=0;i<lF||pending;n++)
+	for(i=j=m=n=1;i<lF||pending;n++,j++)
 	{
-		j++;
 		if(j==lg(F1))
 		{
 			j=1;
@@ -473,7 +482,7 @@ GEN AllPols(GEN F, GEN T, GEN p, long e, GEN pe)
 		done = mt_queue_get(&pt,&workid,&pending);
 		if(done)
 		{
-			printf("Getting poly number %ld\n",m);
+			//printf("Getting poly number %ld\n",m);
 			gel(pols,m) = done;
 			m++;
 		}
