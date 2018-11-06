@@ -32,6 +32,27 @@ GEN AddChain(GEN n, long signmatters)
 	ulong l,i,j,jm1;
 	long sn;
 
+  if(equalis(n,3))
+	{
+		A = mkvecn(4,
+				mkvec2(gen_1,mkvecsmall2(0,-1)),
+				mkvec2(gen_m2,mkvecsmall2(1,1)),
+				mkvec2(gen_m1,mkvecsmall2(1,0)),
+				mkvec2(stoi(3),mkvecsmall2(3,2))
+			);
+		return gerepilecopy(av,A);
+	}
+  if(equalis(n,-3))
+  { 
+    A = mkvecn(4,
+        mkvec2(gen_1,mkvecsmall2(0,-1)),
+        mkvec2(gen_m2,mkvecsmall2(1,1)),
+        mkvec2(gen_2,mkvecsmall2(2,0)),
+        mkvec2(stoi(-3),mkvecsmall2(3,1))
+      );
+    return gerepilecopy(av,A);
+  }
+
 	sn = signe(n);
 	setsigne(n,1);
 	N = NAF(n);

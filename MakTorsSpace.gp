@@ -45,50 +45,6 @@ A2P1(A,l,op,T,pe)=
 	P;
 }
 
-TorsSpace(J,B,l)=
-{
-	my(d=#B,ld,V,done,ndone=0,todo,c,i);
-	ld = l^d;
-	V = vector(ld);
-	done = vector(ld);
-	c = vector(d);
-	i = c2i(c,l);
-	V[i] = JgetW0(J);
-	done[i] = 1;
-	ndone = 1;
-	for(n=1,#B,
-		c = vector(d);
-		c[n] = 1;
-		i = c2i(c,l);
-		V[i] = B[n];
-		done[i] = 1;
-		ndone += 1
-	);
-	while(ndone<ld,
-		todo = List();
-		for(j=1,ld,
-			for(k=j,ld,
-				if(done[j]==1 && done[k]==1,
-					i = Chordi(j,k,l,d);
-					if(done[i] == 0,
-						listput(todo,[j,k,i]);
-						done[i] = -1;
-					)
-				)
-			)
-		);
-		todo = Vec(todo);
-		print("Computing ",#todo," new points");
-		todo = parapply(t->[PicChord(J,V[t[1]],V[t[2]],0),t[3]],todo);
-		for(n=1,#todo,
-			V[todo[n][2]] = todo[n][1];
-			done[todo[n][2]] = 1;
-			ndone +=1;
-		)
-	);
-	V;
-}
-
 TorsSpaceFrob(J,gens,cgens,l,matFrob)=
 {
 	my(d,ld,V,done,ndone,todo,c,i,W,ImodF);
@@ -150,5 +106,23 @@ TorsSpaceFrob(J,gens,cgens,l,matFrob)=
     )
   );
   [V,Vec(ImodF)];
+}
+
+TorsSpaceFrobEval(J,TI,U,l,d)=
+{
+  my(J=J,T=TI[1],ImodF=TI[2],Z,ZmodF,i,z);
+  Z = vector(l^d-1,i,[]);
+  ZmodF = parapply(i->RREval(J,T[i],U),ImodF);
+  for(n=1,#ImodF,
+    i = ImodF[n];
+    z = ZmodF[n];
+    while(1,
+      Z[i] = z;
+      i = ActOni(matFrob,i,l);
+      if(Z[i] != [],break);
+      z = apply(x->Frob(x,JgetFrobMat(J),JgetT(J),Jgetpe(J)),z);
+    )
+  );
+  Z;
 }
 

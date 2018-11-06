@@ -177,7 +177,7 @@ TorsBasis(J,l,chi,C)=
 	print("Found basis, now computing the matrix of Frobenius");
 	\\ Now compute matrix of Frobenius
 	\\ First of all, make sure we have enough linear tests
-	while(#KR>1,
+	while(#KR,
   	print("  Adding a linear test");
     Wnew = PicChord(J,PicRand0(J),PicRand0(J),1);
     Rnew = parapply(w->PicFreyRuckMulti(J,w,l,[Wnew],W0,AddC)[1],BT[1..r]);
