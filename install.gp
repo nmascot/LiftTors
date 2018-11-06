@@ -12,26 +12,9 @@ install("matF","GGGU","matF","./liblinalg.so");
 install("NAF","G","NAF","./libexp.so");
 install("AddChain","GL","AddChain","./libexp.so");
 
-/*install("HyperInit","GGUL","HyperInit","./libhyper.so");
-install("HyperRandPt","GGGUG","HyperRandPt","./libhyper.so");
-install("ordJ","GGU","ordJ","./libhyper.so");
-install("HyperPicRand","GG","HyperPicRand","./libhyper.so");
-install("HyperPicRandTors","GGGG","HyperPicRandTors","./libhyper.so");
-install("HyperPicEvalData","G","HyperPicEvalData","./libhyper.so");
-install("HyperPicEval","GGG","HyperPicEval","./libhyper.so");
-\\install("RReval","GUUGG","RReval","./libhyper.so");*/
-
-\\install("PlaneInit","GGUL","PlaneInit","./libplanereg.so");
 install("PlaneZeta","GU","PlaneZeta","./libplanereg.so");
-\\install("PlaneEval","GGGGGG","PlaneEval","./libplanereg.so");
-\\install("PlaneEval0_data","GGGGG","PlaneEval0_data","./libplanereg.so");
-\\install("PlaneEval0","GGG","PlaneEval0","./libplanereg.so");
-\\install("AllPols0","GGGLG","AllPols0","./libplanereg.so");
-
 
 install("RRInit2","GUUGGGGUL","PicInit","./librr.so");
-\\install("FnEvalAt","GGGGGGG","FnEvalAt","./librr.so");
-\\install("CurveRandPt","GGGLG","CurveRandPt","./librr.so");
 install("RREvalInit","GG","PicEvalInit","./librr.so");
 install("RREval","GGG","PicEval","./librr.so");
 install("OnePol","GGGG","OnePol","./librr.so");
