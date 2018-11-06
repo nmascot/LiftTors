@@ -1,8 +1,7 @@
 read("MakTorsSpace.gp");
 
-Z2pol(Z)=factorback(apply(u->'x-u,Z));
-
 mordroot(f,p)=
+\\ Computes the order of x in Fp[x]/(f). Fails if disc(f)=0 mod p.
 {
  my(x=variable(f),N,fa,l,v);
  if(issquarefree(Mod(f,p))==0,error("Not squarefree!"));
@@ -21,6 +20,8 @@ mordroot(f,p)=
 }
 
 PicLC(J,C,W)=
+\\ Computes sum_i C[i]*W[i] in J
+\\ C vector of coefficients, W vector of points on J
 {
   /* TODO efficiency */
   my(S);
@@ -39,6 +40,9 @@ PicLC(J,C,W)=
 }
 
 TorsOrd(J,W,l)=
+\\ Given that W is an l-power torsion point of J,
+\\ finds v s.t. the order of W is l^v,
+\\ and returns [l^(v-1)W, v]
 {
   my(v=0,lW);
   v = 0;
@@ -56,7 +60,7 @@ RandTorsPt(J,l,M,chiC,seed)=
   my(W,o,T,lT);
 	setrand(seed);
   while(1,
-    W = PicRand0(J); \\ TODO
+    W = PicRand(J);
     W = PicMul(J,W,M,0);
     if(chiC,W = PicFrobPoly(J,W,chiC));
 		o = 0;
@@ -72,6 +76,10 @@ RandTorsPt(J,l,M,chiC,seed)=
 }
 
 TorsBasis(J,l,chi,C)=
+\\ Computes a basis B of the subspace T of J[l] on which Fron acts with charpoly C
+\\ Assumes chi = charpoly(Frob|J), so C | chi
+\\ If C==0, then we take T=J[l]
+\\ Also computes the matrix M of Frob w.r.t B, and returns the vector [B,M]
 {
   my(a,d,N,M,v,chiC,Batch,nBatch,iBatch,iFrob,W,o,T,BW,Bo,BT,R,KR,Rnew,KRnew,Wtest,Wnew,am,S,AddC,W0,z);
 	iBatch = nBatch = 0;
@@ -98,7 +106,7 @@ TorsBasis(J,l,chi,C)=
 	AddC = AddChain(l,0);
 	W0 = JgetW0(J);
   W0 = PicChord(J,W0,W0,1);
-	Wtest = vector(d,i,PicChord(J,PicRand0(J),PicRand0(J),1));
+	Wtest = vector(d,i,PicChord(J,PicRand(J),PicRand(J),1));
 	z = Fq_zeta_l(JgetT(J),Jgetp(J),l);
   r = 0;
   while(r<d,
@@ -138,7 +146,7 @@ TorsBasis(J,l,chi,C)=
 			);
 			while(#KR>1,
 				print("  Adding a linear test");
-				Wnew = PicChord(J,PicRand0(J),PicRand0(J),1);
+				Wnew = PicChord(J,PicRand(J),PicRand(J),1);
 				Rnew = parapply(w->PicFreyRuckMulti(J,w,l,[Wnew],W0,AddC)[1],BT[1..r]);
 				Rnew = apply(x->Fq_mu_l_log(x,z,JgetT(J),Jgetp(J),l),Rnew);
 				Rnew = matconcat([R,Rnew]~);
@@ -179,7 +187,7 @@ TorsBasis(J,l,chi,C)=
 	\\ First of all, make sure we have enough linear tests
 	while(#KR,
   	print("  Adding a linear test");
-    Wnew = PicChord(J,PicRand0(J),PicRand0(J),1);
+    Wnew = PicChord(J,PicRand(J),PicRand(J),1);
     Rnew = parapply(w->PicFreyRuckMulti(J,w,l,[Wnew],W0,AddC)[1],BT[1..r]);
     Rnew = apply(x->Fq_mu_l_log(x,z,JgetT(J),Jgetp(J),l),Rnew);
     Rnew = matconcat([R,Rnew]~);

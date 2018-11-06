@@ -21,26 +21,13 @@ a = 6; \\ Degree of the unramified extension of Qp over which the torsion points
 C = 0; \\ We want all the l-torsion, not a subspace.
 d = 6; \\ Dimension of the representation
 
-J=RRInit2(f,g,d0,L,LL,1,p,a,e); \\ Jacobian with accuracy O(p^e)
+J=PicInit(f,g,d0,L,LL,1,p,a,e); \\ Jacobian with accuracy O(p^e)
 J1 = PicRed(J,1); \\ Reduction mod p
-U=RREvalInit(J,[L1,L2]); \\ Data to evaluate points on the Jacobian
+U=PicEvalInit(J,[L1,L2]); \\ Data to evaluate points on the Jacobian
 
 print("\n--> Getting basis of T mod ",p)
 [B,matFrob] = TorsBasis(J1,l,Lp,C);
-[F,Q] = matfrobenius(Mod(matFrob,l),2); \\ F = rational canonical form of matFrob, Q = transition matrix
-Q = lift(Q^(-1));
-NF = apply(poldegree,matfrobenius(F,1)); \\ List of degrees of elementary divisors
-WB = List(); cWB = List();
-n = 1;
-{for(i=1,#NF,
-	c=Q[,n];
-	listput(cWB,c);
-	c=centerlift(Mod(c,l));
-	listput(WB,PicLC(J,c,B));
-	n+=NF[i]
-);}
-WB = Vec(WB); \\ Generating set of T under Frob
-cWB = Vec(cWB); \\ Coordinates of these generators on B
+[WB,cWB] = TorsSpaceFrobGen(J1,l,B,matFrob); \\ Generating set of T under Frob and coordinates of these generators on B
 print("\n--> Lifting ",#WB," points ",p,"-adically");
 {if(#WB > Jgetg(J),
 	my(J=J,l=l); WB = parapply(W->PicLiftTors(J,W,1,l),WB); \\ More efficient in parallel
@@ -50,14 +37,8 @@ print("\n--> Lifting ",#WB," points ",p,"-adically");
 print("\n--> All of T");
 TI = TorsSpaceFrob(J,WB,cWB,l,matFrob);
 print("\n--> Evaluation of ",#TI[2]," points");
-Z = TorsSpaceFrobEval(J,TI,U,l,d);
+Z = TorsSpaceFrobEval(J,TI,U,l,d,matFrob);
 print("\n--> Expansion and identification");
-A = AllPols(Z,JgetT(J),p,e,Jgetpe(J)); \\ p-adic approximation of a set of polynomials which all define a subfield of the field cut out by the representation, with equality iff. no repeated roots
-print(#A," candidate polynomials");
-AI = select(x->x[3]!=[],A); \\ Drop the approximations that could not be identified as rationals
-print(#AI," identified polynomials");
-AS = select(x->#Set(x[1])==#(x[1]),AI); \\ Drop the polynomials having multiple roots
-print(#AS," faithful polynomials");
-AS = vecsort(AS,x->sizebyte(x[3])); \\ Take the simplest of all polynomials
-F=AS[1][3]
+AF = TorsSpaceGetPols(J,Z); \\ List of polynomials defining the representation
+F=AF[1][3] \\ Simplest of polynomials
 factor(F)
