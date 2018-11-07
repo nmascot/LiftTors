@@ -444,7 +444,6 @@ GEN AllPols(GEN F, GEN T, GEN p, long e, GEN pe)
 	}
 	F1 = cgetg(lF,t_VEC);
 	npols = 0;
-	printf("Inverting\n");
 	for(i=1;i<lF;i++) /* Find the i such that the ith coord of the vectors are all invertible */
 	{ 
 		npols++;
@@ -462,7 +461,6 @@ GEN AllPols(GEN F, GEN T, GEN p, long e, GEN pe)
 		}
 	}
 	npols *= (lF-2);
-	printf("Getting %lu pols\n",npols);
 	pols = cgetg(npols+1,t_VEC);
 	pending = 0;
   worker = strtofunction("OnePol");
