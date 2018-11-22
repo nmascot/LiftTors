@@ -36,19 +36,30 @@ Chordi(i1,i2,l,d)= \\ u,v -> -(u+v) in  terms of indices
 	c2i(c3,l);
 }
 
-A2P1(A,l,op,T,pe)=
-\\ Given conjugate algebraic numbers indexed by A2,
+ProjPol(Z0,l,d,op,T,pe)=
+\\ Given conjugate algebraic numbers indexed by A^n,
 \\ gathers them along vector lines in a symmetric way
-\\ --> conjugate algebraic numbers indexed by P1.
+\\ --> conjugate algebraic numbers indexed by P^(n-1).
 \\ Useful to go from a linear representation to its projectivisation
 {
-	my(P,vecop);
-	P = vector(l+1);
-	for(s=0,l-1,
-		P[s+1] = vecprod(vector(l-1,i,A[i+l*((s*i)%l)]))
+	my(Z,PZ,done,j,v,z);
+	Z=Mod(Mod(Z0,pe),T);
+	PZ=List();
+	PV=List();
+	done=vector(l^d-1);
+	for(i=1,l^d-1,
+		if(done[i],next);
+		v=i2c(i,l,d);
+		listput(PV,v);
+		z=op;
+		for(k=1,l-1,
+		 j=c2i(lift(Mod(k*v,l)),l);
+		 done[j]=1;
+		 z=if(op,z*Z[j],z+Z[j]);
+		);
+		listput(PZ,z);
 	);
-	P[l+1] = vecprod(vector(l-1,i,A[l*i]));
-	P;
+	[liftall(Vec(PZ)),Vec(PV)];
 }
 
 TorsSpaceFrobGen(J,l,B,matFrob)=
