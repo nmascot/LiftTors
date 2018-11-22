@@ -1,12 +1,10 @@
 read("MakTorsSpace.gp");
 
-mordroot(f,p)=
-\\ Computes the order of x in Fp[x]/(f). Fails if disc(f)=0 mod p.
+mordroot1(f,p)=
+\\ Computes the order of x in Fp[x]/(f). Assumes f irreducible mod p.
 {
  my(x=variable(f),N,fa,l,v);
- if(issquarefree(Mod(f,p))==0,error("Not squarefree!"));
- N=lcm(factormod(f,p,1)[,1]);
- N=p^N-1;
+ N=p^poldegree(f)-1;
  fa=factor(N);
  for(i=1,#fa~,
   [l,v]=fa[i,];
@@ -18,6 +16,22 @@ mordroot(f,p)=
  );
  N;
 }
+
+mordroot(f,p)=
+\\ Computes an upper bound for the order of x in Fp[x]/f. Gives exact value if f sqfree mod p.
+{
+	my(fa,N,e);
+	fa=factormod(f,p);
+	N=lcm(apply(g->mordroot1(g,p),fa[,1]));
+	e=vecmax(fa[,2]);
+	if(e>1,
+	 e=p^ceil(log(e)/log(p));
+	 print("mordroot warning: returning upper bound ",N*e,", but order may be as low as ",N);
+	 N*=e
+	);
+	N;
+}
+
 
 PicLC(J,C,W)=
 \\ Computes sum_i C[i]*W[i] in J
