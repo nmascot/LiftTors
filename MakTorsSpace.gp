@@ -42,7 +42,7 @@ ProjPol(Z0,l,d,op,T,pe)=
 \\ --> conjugate algebraic numbers indexed by P^(n-1).
 \\ Useful to go from a linear representation to its projectivisation
 {
-	my(Z,PZ,done,j,v,z);
+	my(Z,PZ,done,j,v,z,PF,PA,t);
 	Z=Mod(Mod(Z0,pe),T);
 	PZ=List();
 	PV=List();
@@ -59,7 +59,12 @@ ProjPol(Z0,l,d,op,T,pe)=
 		);
 		listput(PZ,z);
 	);
-	[liftall(Vec(PZ)),Vec(PV)];
+	PZ=Vec(PZ);
+	PF=factorback(apply(z->'x-z,PZ));
+	PA=bestappr(liftpol(PF));
+	t=variable(T);
+	if(poldegree(PA,t)==0,PA=subst(PA,t,0));
+	[PA,PF,liftall(PZ),Vec(PV)];
 }
 
 TorsSpaceFrobGen(J,l,B,matFrob)=
