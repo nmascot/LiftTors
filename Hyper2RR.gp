@@ -5,10 +5,16 @@ HyperRR(n,g,u,v)=
 
 Hyper2RR(f0,P1,P2)= /* y^2=f0(x). P1,P2 rat pts, not conjugate by hyper invol. */
 {
-	my([x1,y1]=P1,[x2,y2]=P2,f,g,d0,L,LL,L1,L2);
+	my([x1,y1]=P1,[x2,y2]=P2,f,h,g,d0,L,LL,L1,L2);
 	f = subst(f0,variable(f0),'x);
+	if(type(f)=="t_VEC" && #f==2, \\ Long Weierstrass equation
+		[f,h]=f;
+		y1=2*y1+subst(h,'x,x1);
+		y2=2*y2+subst(h,'x,x2);
+		f=4*f+h^2
+	);
 	d0 = poldegree(f);
-	if(poldegree(f)%2,
+	if(poldegree(f)%2, \\ Odd degree: change model
 		while(polcoef(f,0)==0 || x1==0 || x2==0,
 			f=subst(f,x,x+1);
 			x1-=1;
@@ -21,7 +27,6 @@ Hyper2RR(f0,P1,P2)= /* y^2=f0(x). P1,P2 rat pts, not conjugate by hyper invol. *
 		y1 /= x1^(d0/2);
 		y2 /= x2^(d0/2);
 	);
-	print(f,[x1,y1],[x2,y2]);
 	g=(d0-2)/2;
 	L=HyperRR(g+1,g,1,0);
 	LL=HyperRR(2*g+2,g,1,0);

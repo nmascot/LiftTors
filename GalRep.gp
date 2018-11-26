@@ -266,16 +266,18 @@ GalRep(C,l,p,e,Lp,chi)=
 	 and if chi is nonzero,
 	 we must have chi || (Lp mod l).*/
 {
-	my([f,g,d0,L,LL,L1,L2,Bad]=C,d,J,J1,U,B,matFrob,WB,cWB,TI,Z,AF);
+	my([f,g,d0,L,LL,L1,L2,Bad]=C,d,J,J1,U,B,matFrob,WB,cWB,TI,Z,AF,F,ZF);
 	L = RR_rescale(L,p);
   LL = RR_rescale(LL,p);
   L1 = RR_rescale(L1,p);
   L2 = RR_rescale(L2,p);
   Bad *= lcm(apply(S->lcm(apply(f->denominator(content(f)),S)),[L,L1,L2]));
   if(chi,
-			d = poldegree(chi); \\ Dimension of representation
-			a = mordroot(chi,l) \\ q = p^a
-		,
+		print("T = part of J[",l,"] where Frob_",p," acts by ",chi);
+		d = poldegree(chi); \\ Dimension of representation
+		a = mordroot(chi,l) \\ q = p^a
+	,
+		print("T = all of J[",l,"]");
 		d=2*g;
 		a = mordroot(Lp,l)
 	);
@@ -298,18 +300,21 @@ GalRep(C,l,p,e,Lp,chi)=
 	Z = TorsSpaceFrobEval(J,TI,U,l,d,matFrob);
 	print("\n--> Expansion and identification");
 	AF = TorsSpaceGetPols(J,Z); \\ List of polynomials defining the representation
-	AF[1];
+	F = AF[1][3];
+	ZF = apply(z->Mod(apply(c->c+O(p^e),z),JgetT(J)),AF[1][1]);
+	[F,ZF];
 }
 
 HyperGalRep(f,l,p,e,P1,P2,chi)=
-/* TODO allow f=[f,h] */
 /* Computes the Galois representation afforded by
    the piece of l-torsion of the Jacobian
-   of the hyperelliptic curve y²=f(x)
+   of the hyperelliptic curve C:y²=f(x)
+	 (in case f=[P,Q], the curve C:y²+Q(x)*y=P(x))
 	 on which Frob_p has charpoly chi
    (chi=0 means take all the l-torsion)
    by working at p-adic accuracy O(p^e).
-	 P1 and P2 must be sets of TODO
+	 P1 and P2 must be two points of C(Q)
+	 which are not conjugate under the hyperelliptic involution.
    If chi is nonzero,
    we must have chi || (Lp mod l)
 	 where Lp is the local L factor at p.*/
