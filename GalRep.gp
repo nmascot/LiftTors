@@ -267,6 +267,7 @@ GalRep(C,l,p,e,Lp,chi)=
 	 we must have chi || (Lp mod l).*/
 {
 	my([f,g,d0,L,LL,L1,L2,Bad]=C,d,J,J1,U,B,matFrob,WB,cWB,TI,Z,AF,F,ZF);
+	/* TODO rescale to remove denoms */
 	L = RR_rescale(L,p);
   LL = RR_rescale(LL,p);
   L1 = RR_rescale(L1,p);
@@ -347,3 +348,35 @@ SmoothGalRep(f,l,p,e,P1,P2,chi)=
   GalRep(C,l,p,e,Lp,chi);
 }
 
+HyperBestp(f,l,pmax)=
+{
+	my(D,P,a,i);
+	if(type(f)=="t_VEC",
+		D = poldisc(4*f[1]+f[2]^2)
+	,
+		D = poldisc(f)
+	);
+	D *= l;
+	P = primes([3,pmax]);
+	P = select(p->Mod(D,p),P);
+	export(mordroot,mordroot1);
+	A = parapply(p->mordroot(hyperellcharpoly(Mod(f,p)),l),P);
+	a = vecmin(A,&i);
+	[P[i],a];
+}
+
+SmoothBestp(f0,D,l,pmax)=
+{
+	\\ TODO compute D
+	my(x,y,d,f,P,a,i);
+	[x,y] = variables(f0);
+  d = TotalDeg(f0,x,y);
+  f = SmoothGeneric(f0,d)[1];
+	D *= l;
+	P = primes([3,pmax]);
+	P = select(p->Mod(D,p),P);
+	export(mordroot,mordroot1);
+	A = parapply(p->mordroot(PlaneZeta(f,p),l),P);
+	a = vecmin(A,&i);
+	[P[i],a];
+}
