@@ -205,7 +205,7 @@ GEN CurveRandPt(GEN f, GEN T, GEN p, long e, GEN bad)
   }
 }
 
-GEN RRInit2(GEN f, ulong g, ulong d0, GEN L, GEN L2, GEN bad, GEN p, ulong a, long e)
+GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN L2, GEN bad, GEN p, ulong a, long e)
 {
 	pari_sp avP,av = avma;
   int newpt;

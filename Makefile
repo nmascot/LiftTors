@@ -61,9 +61,6 @@ liblinalg.so: linalg.o
 libexp.so: exp.o
 	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) exp.o $(EXTRAMODLDFLAGS)
 
-libhyper.so: hyper.o
-	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) hyper.o $(EXTRAMODLDFLAGS)
-
 libpic.so: pic.o
 	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) pic.o $(EXTRAMODLDFLAGS)
 

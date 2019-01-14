@@ -1,7 +1,6 @@
 #include "linalg.h"
 #include "exp.h"
 #include "pic.h"
-#include "hyper.h"
 
 GEN FindSuppl(GEN W, ulong nS, GEN V, GEN Vbis, GEN T, GEN p, GEN pe)
 /* /!\ Shallow */
