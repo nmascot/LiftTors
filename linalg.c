@@ -242,7 +242,7 @@ GEN matkerpadic_hint(GEN A, GEN T, GEN p, long e, GEN pe, ulong dimker)
 	RgM_dimensions(A,&m,&n);
 	r = n-dimker;
 	/*printf("By hint, for %lux%lu to %lux%lu\n",m,n,r,n);*/
-	do 
+	do
 	{
 		avma = av;
 		/*printf("ker_hint attempt\n");*/

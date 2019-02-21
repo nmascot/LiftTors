@@ -92,7 +92,7 @@ GEN DivAdd0(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
         gel(st,P) = Fq_mul(gel(s,P),gel(t,P),T,pe);
       }
       gel(WAB,j) = gerepileupto(av,st);
-    } 
+    }
     r = FqM_rank(WAB,T,p); /* TODO faut-il reduire WAB d'abord? */
     if(r==d)
     {
@@ -154,7 +154,7 @@ GEN DivAdd(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
 	{
 		av1 = avma;
 		for(j=1;j<=d+excess;j++)
-		{ 
+		{
 			av = avma;
 			s = RandVec_padic(WA,T,p,pe); /* random fn in WA */
 			t = RandVec_padic(WB,T,p,pe); /* random fn in WB */
