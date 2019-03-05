@@ -69,9 +69,11 @@ GEN DivMul(GEN f, GEN W, GEN T, GEN pe)
 	return fW;
 }
 
-GEN DivAdd0(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
+/* Does products s_i * t_j with random i and j */
+/* Not uniform enough, do not use. */
+/*GEN DivAdd0(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
 {
-  pari_sp av,av1,av0=avma;
+	pari_sp av,av1,av0=avma;
   unsigned long nZ,nA,nB,j,P,r;
   GEN WAB,s,t,st;
   nZ = lg(gel(WA,1));
@@ -84,16 +86,16 @@ GEN DivAdd0(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
     for(j=1;j<=d+excess;j++)
     {
       av = avma;
-			s = gel(WA,1+random_Fl(nA)); /* random basis fn in WA */
-			t = gel(WB,1+random_Fl(nB)); /* random basis fn in WB */
-      st = cgetg(nZ,t_COL); /* Product */
+			s = gel(WA,1+random_Fl(nA));
+			t = gel(WB,1+random_Fl(nB));
+      st = cgetg(nZ,t_COL);
       for(P=1;P<nZ;P++)
       {
         gel(st,P) = Fq_mul(gel(s,P),gel(t,P),T,pe);
       }
       gel(WAB,j) = gerepileupto(av,st);
     }
-    r = FqM_rank(WAB,T,p); /* TODO faut-il reduire WAB d'abord? */
+    r = FqM_rank(WAB,T,p);
     if(r==d)
     {
       if(excess)
@@ -105,21 +107,20 @@ GEN DivAdd0(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
     printf("add0(%lu/%lu)",r,d);
     avma = av1;
   }
-}
+}*/
 
 GEN DivAdd1(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
-{
-  pari_sp av,av1,av0=avma;
+{ /* Does products s*t, with s=sum n_i s_i, n_i = 0 50%, -1 25%, +1 25%; similarly for t */
+	/* Fails from time to time but overall good speedup */
+	pari_sp av=avma;
   unsigned long nZ,j,P,r;
   GEN WAB,s,t,st;
   nZ = lg(gel(WA,1));
-  WAB = cgetg(d+excess+1,t_MAT);
   while(1)
   {
-    av1 = avma;
+  	WAB = cgetg(d+excess+1,t_MAT);
     for(j=1;j<=d+excess;j++)
     {
-      av = avma;
       s = RandVec_1(WA,pe); /* random fn in WA */
       t = RandVec_1(WB,pe); /* random fn in WB */
       st = cgetg(nZ,t_COL); /* Product */
@@ -127,23 +128,21 @@ GEN DivAdd1(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
       {
         gel(st,P) = Fq_mul(gel(s,P),gel(t,P),T,pe);
       }
-      gel(WAB,j) = gerepileupto(av,st);
+      gel(WAB,j) = st;
     }
-    r = FqM_rank(WAB,T,p); /* TODO faut-il reduire WAB d'abord? */
+		WAB = FqM_image(WAB,T,p);
+		r = lg(WAB)-1;
     if(r==d)
-    {
-      if(excess)
-      {
-        WAB = gerepileupto(av0,matimagepadic(WAB,T,p,e));
-      }
-      return WAB;
-    }
-    printf("add0(%lu/%lu)",r,d);
-    avma = av1;
+      return gerepileupto(av,WAB);
+    printf("add1(%lu/%lu)",r,d);
+		excess++;
+    avma = av;
   }
 }
 
-GEN DivAdd(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
+/* Does products s*t, s and t chosen at random */
+/* Safest but slowest */
+/*GEN DivAdd(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
 {
 	pari_sp av,av1,av0=avma;
 	unsigned long nZ,j,P,r;
@@ -156,16 +155,16 @@ GEN DivAdd(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
 		for(j=1;j<=d+excess;j++)
 		{
 			av = avma;
-			s = RandVec_padic(WA,T,p,pe); /* random fn in WA */
-			t = RandVec_padic(WB,T,p,pe); /* random fn in WB */
-			st = cgetg(nZ,t_COL); /* Product */
+			s = RandVec_padic(WA,T,p,pe);
+			t = RandVec_padic(WB,T,p,pe);
+			st = cgetg(nZ,t_COL);
 			for(P=1;P<nZ;P++)
 			{
 				gel(st,P) = Fq_mul(gel(s,P),gel(t,P),T,pe);
 			}
 			gel(WAB,j) = gerepileupto(av,st);
 		}
-		r = FqM_rank(WAB,T,p); /* TODO faut-il reduire WAB d'abord? */
+		r = FqM_rank(WAB,T,p);
 		if(r==d)
 		{
 			if(excess)
@@ -177,7 +176,7 @@ GEN DivAdd(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
 		printf("add(%lu/%lu)",r,d);
 		avma = av1;
 	}
-}
+}*/
 
 GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong nIGS)
 {
@@ -244,7 +243,7 @@ GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
 	g = Jgetg(J);
 	d0 = Jgetd0(J);
 
-	WAWB = DivAdd(WA,WB,2*d0+1-g,T,p,e,pe,0);
+	WAWB = DivAdd1(WA,WB,2*d0+1-g,T,p,e,pe,0);
 	WAB = DivSub(W0,WAWB,KV3,d0+1-g,T,p,e,pe,2);
 	/* TODO can free some memory here */
 	if(flag & 1) s = RandVec_padic(WAB,T,p,pe);
