@@ -82,7 +82,7 @@ GEN PicNorm(GEN J, GEN F, GEN WE)
 	nV5 = 5*d0+1-g;
 	nZ = lg(gel(V,1))-1;
 
-	WEV3 = DivAdd1(V3,WE,nV5-nS,T,p,e,pe,0);
+	WEV3 = DivAdd(V3,WE,nV5-nS,T,p,e,pe,0);
 
 	V1 = FindSuppl(WE,nS,V,NULL,T,p,pe);
 	V2 = FindSuppl(WEV3,nS,V,V3,T,p,pe);

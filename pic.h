@@ -25,8 +25,6 @@ GEN ZpXQ_FrobMat(GEN T, GEN p, long e, GEN pe);
 GEN Frob(GEN x, GEN FrobMat, GEN T, GEN pe);
 
 GEN DivMul(GEN f, GEN W, GEN T, GEN pe);
-GEN DivAdd0(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess);
-GEN DivAdd1(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess);
 GEN DivAdd(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess);
 GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong nIGS);
 GEN PicChord(GEN J, GEN WA, GEN WB, long flag);

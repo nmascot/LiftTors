@@ -109,7 +109,7 @@ GEN DivMul(GEN f, GEN W, GEN T, GEN pe)
   }
 }*/
 
-GEN DivAdd1(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
+GEN DivAdd(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
 { /* Does products s*t, with s=sum n_i s_i, n_i = 0 50%, -1 25%, +1 25%; similarly for t */
 	/* Fails from time to time but overall good speedup */
 	pari_sp av=avma;
@@ -134,7 +134,7 @@ GEN DivAdd1(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
 		r = lg(WAB)-1;
     if(r==d)
       return gerepileupto(av,WAB);
-    printf("add1(%lu/%lu)",r,d);
+    if(DEBUGLEVEL) err_printf("add1(%lu/%lu)",r,d);
 		excess++;
     avma = av;
   }
@@ -218,7 +218,7 @@ GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong 
 		res = matkerpadic(K,T,p,e);
 		r = lg(res)-1;
 		if(r==d) return gerepileupto(av,res);
-		printf("sub(%lu/%lu)",r,d);
+		if(DEBUGLEVEL) err_printf("sub(%lu/%lu)",r,d);
 		avma = av1;
 	}
 }
@@ -238,7 +238,7 @@ GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
 	g = Jgetg(J);
 	d0 = Jgetd0(J);
 
-	WAWB = DivAdd1(WA,WB,2*d0+1-g,T,p,e,pe,0);
+	WAWB = DivAdd(WA,WB,2*d0+1-g,T,p,e,pe,0);
 	WAB = DivSub(W0,WAWB,KV3,d0+1-g,T,p,e,pe,2);
 	/* TODO can free some memory here */
 	if(flag & 1) s = RandVec_padic(WAB,T,p,pe);

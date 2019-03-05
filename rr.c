@@ -264,7 +264,7 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN L2, GEN bad, GEN p, ulong a, lon
 	printf("PicInit: Evaluating rational functions\n");
 	V1 = FnsEvalAt_Rescale(L,Z,vars,T,p,e,pe);
 	V2 = FnsEvalAt_Rescale(L2,Z,vars,T,p,e,pe);
-	V3 = DivAdd1(V1,V2,3*d0+1-g,T,p,e,pe,0);
+	V3 = DivAdd(V1,V2,3*d0+1-g,T,p,e,pe,0);
 	W0 = V1;
 	V = V2;
   KV = mateqnpadic(V,T,p,e);
@@ -306,11 +306,11 @@ GEN RREval(GEN J, GEN W, GEN Li) /* Li = L(2D0-Ei), deg Ei = d0-g (i=1,2) */
 	nV = lg(V);
 	KV = JgetKV(J);
 
-	S1 = DivAdd1(W,gel(Li,1),2*d0+1,T,p,e,pe,0); /* L(4D0-D-E1) */
+	S1 = DivAdd(W,gel(Li,1),2*d0+1,T,p,e,pe,0); /* L(4D0-D-E1) */
 	S1 = DivSub(V,S1,KV,1,T,p,e,pe,2); /* L(2D0-D-E1) */
 	S2 = DivMul(gel(S1,1),V,T,pe); /* L(4D0-D-E1-ED) */
 	S2 = DivSub(W,S2,KV,d0+1-g,T,p,e,pe,2); /* L(2D0-E1-ED) */
-	S2 = DivAdd1(S2,gel(Li,2),2*d0+1,T,p,e,pe,0); /* L(4D0-E1-E2-ED) */
+	S2 = DivAdd(S2,gel(Li,2),2*d0+1,T,p,e,pe,0); /* L(4D0-E1-E2-ED) */
 	S2 = DivSub(V,S2,KV,1,T,p,e,pe,2); /* L(2D0-E1-E2-ED) */
   s2 = gel(S2,1);
 	s2 = gerepilecopy(av,s2);
