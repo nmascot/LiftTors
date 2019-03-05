@@ -21,15 +21,15 @@ GEN FindSuppl(GEN W, ulong nS, GEN V, GEN Vbis, GEN T, GEN p, GEN pe)
 			for(j=1;j<=nS;j++)
 			{
 				col = cgetg(nZ+1,t_COL);
-				v1 = RandVec_padic(V,T,p,pe);
-				v2 = RandVec_padic(Vbis,T,p,pe);
+				v1 = RandVec_1(V,pe);
+				v2 = RandVec_1(Vbis,pe);
 				for(i=1;i<=nZ;i++) gel(col,i) = Fq_mul(gel(v1,i),gel(v2,i),T,pe);
 				gel(S,j) = col;
 			}
 		}
 		else
 		{
-			for(j=1;j<=nS;j++) gel(S,j) = RandVec_padic(V,T,p,pe);
+			for(j=1;j<=nS;j++) gel(S,j) = RandVec_1(V,pe);
 		}
 		for(j=1;j<=nW;j++) gel(S,j+nS) = gel(W,j);
 	}while(FqM_rank(S,T,p)<nS+nW);

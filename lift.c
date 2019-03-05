@@ -49,7 +49,7 @@ GEN PicLift_RandLift(GEN W1, GEN KM, GEN V0, ulong nZ, ulong nW, ulong d0, GEN T
 	/* Find a random solution to the inhomogeneous system */
   do
   {
-    K = RandVec_padic(KM,T,p,pe21);
+    K = RandVec_1(KM,pe21);
     red = gel(K,1+d0*nW);
   } while(ZX_is0mod(red,p));
   red = ZpXQ_inv(red,T,p,e21);
