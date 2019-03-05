@@ -226,14 +226,16 @@ GEN Hsort(GEN A, GEN p)
 GEN matkerpadic(GEN A, GEN T, GEN p, long e)
 {
 	pari_sp av;
-	GEN K;
+	GEN B,K;
 	if(e==1) return FqM_ker(A,T,p);
 	av = avma;
-	K = ZpXQM_ker(A,T,p,e,NULL);
+	B = shallowtrans(FqM_image(shallowtrans(A),T,p));
+	K = ZpXQM_ker(B,T,p,e,NULL);
 	K = Hsort(K,p);
 	return gerepilecopy(av,K);
 }
 
+/*
 GEN matkerpadic_hint(GEN A, GEN T, GEN p, long e, GEN pe, ulong dimker)
 {
   pari_sp av=avma;
@@ -241,11 +243,9 @@ GEN matkerpadic_hint(GEN A, GEN T, GEN p, long e, GEN pe, ulong dimker)
   GEN K,B;
 	RgM_dimensions(A,&m,&n);
 	r = n-dimker;
-	/*printf("By hint, for %lux%lu to %lux%lu\n",m,n,r,n);*/
 	do
 	{
 		avma = av;
-		/*printf("ker_hint attempt\n");*/
 		B = cgetg(m+1,t_MAT);
 		for(j=1;j<=m;j++)
 		{
@@ -255,14 +255,12 @@ GEN matkerpadic_hint(GEN A, GEN T, GEN p, long e, GEN pe, ulong dimker)
 		K = FqM_ker(K,T,p);
 	} while(lg(K)!=dimker+1);
   if(e==1) return K;
-	/*printf("Real mul\n");*/
 	K = FqM_mul(B,A,T,pe);
-	/*printf("Real ker\n");*/
   K = ZpXQM_ker(K,T,p,e,NULL);
 	if(lg(K)==dimker+1) return gerepileupto(av,K);
 	K = Hsort(K,p);
   return gerepilecopy(av,K);
-}
+}*/
 
 
 GEN mateqnpadic(GEN A, GEN T, GEN p, long e)
@@ -271,7 +269,7 @@ GEN mateqnpadic(GEN A, GEN T, GEN p, long e)
 	return gerepilecopy(av,shallowtrans(matkerpadic(shallowtrans(A),T,p,e)));
 }
 
-GEN matimagepadic(GEN A, GEN T, GEN p, long e)
+/*GEN matimagepadic(GEN A, GEN T, GEN p, long e)
 {
   pari_sp av;
   GEN J,K;
@@ -284,7 +282,7 @@ GEN matimagepadic(GEN A, GEN T, GEN p, long e)
   K = cgetg(r,t_MAT);
 	for(j=1;j<r;j++) gel(K,j) = gcopy(gel(A,J[j]));
   return gerepileupto(av,K);
-}
+}*/
 
 GEN matF(GEN A, GEN T, GEN p, long e)
 {

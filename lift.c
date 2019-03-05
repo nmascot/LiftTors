@@ -255,7 +255,7 @@ GEN PicLiftTors_2(GEN J2, GEN W1, long e1, GEN l, GEN P0_hint)
     }
 	}
 	mt_queue_end(&pt);
-	KM = matkerpadic_hint(M,T,p,e21,pe21,d0+1);
+	KM = matkerpadic(M,T,p,e21);
 	n = lg(KM)-1;
 	if(n!=d0+1)	printf("WARNING: dim ker M = %ld (expected %ld)\n",n,d0+1);
 	

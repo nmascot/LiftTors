@@ -206,7 +206,7 @@ GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong 
 		/* nIGS times, take rand s in WA, and stack s.KB down K */
 		for(n=1;n<=nIGS;n++)
 		{
-			s = RandVec_padic(WA,T,p,pe);
+			s = RandVec_padic(WA,T,p,pe); /* Note: RandVec_1 would be slower here */
 			for(E=1;E<=nB;E++)
 			{
 				for(P=1;P<nZ;P++)
@@ -215,14 +215,9 @@ GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong 
 				}
 			}
 		}
-		res = FqM_ker(K,T,p); /* TODO faut-il reduire K d'abord? */
-		/* TODO take rand subset of eqns */
-		/* TODO write fn for that */
+		res = matkerpadic(K,T,p,e);
 		r = lg(res)-1;
-		if(r==d)
-		{
-			return gerepileupto(av,e==1?res:matkerpadic(K,T,p,e));
-		}
+		if(r==d) return gerepileupto(av,res);
 		printf("sub(%lu/%lu)",r,d);
 		avma = av1;
 	}
@@ -595,7 +590,7 @@ GEN PicRand0(GEN J)
 		}
 		gel(K,j) = col;
 	}
-	K = matkerpadic_hint(K,T,p,e,pe,nV-1-d0);
+	K = matkerpadic(K,T,p,e);
 	K = FqM_mul(V,K,T,pe);
 	return gerepileupto(av,K);
 }
