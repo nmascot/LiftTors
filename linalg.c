@@ -274,13 +274,16 @@ GEN mateqnpadic(GEN A, GEN T, GEN p, long e)
 GEN matimagepadic(GEN A, GEN T, GEN p, long e)
 {
   pari_sp av;
-  GEN K;
+  GEN J,K;
+	ulong r,j;
   if(e==1) return FqM_image(A,T,p);
   av = avma;
-  K = ZpXQM_image(A,T,p,e,NULL);
-  return K;
-  K = Hsort(K,p);
-  return gerepilecopy(av,K);
+	J = FqM_indexrank(A,T,p);
+	J = gel(J,2);
+	r = lg(J);
+  K = cgetg(r,t_MAT);
+	for(j=1;j<r;j++) gel(K,j) = gcopy(gel(A,J[j]));
+  return gerepileupto(av,K);
 }
 
 GEN matF(GEN A, GEN T, GEN p, long e)
