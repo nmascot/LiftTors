@@ -42,6 +42,146 @@ GEN GetIGS_modp(GEN J, GEN W, ulong nIGS)
 	}
 }
 
+GEN PicLiftTors_XP(GEN J, GEN W, long eini, GEN l)
+{
+  pari_sp av=avma;
+	GEN T,p,V,KV;
+  ulong efin,e1,e2,e21;
+  GEN pe1,pe21,pe2;
+  GEN W1,J2,P0;
+  GEN sW,Vs,V0;
+  GEN GW,K,GWV,wV;
+  GEN ABCD,uv,Ainv,CAinv,AinvB,rho;
+  GEN dwV,drho,abcd;
+  GEN KM,red,W2;
+  long e2,e21;
+  ulong g,nZ,nW;
+  ulong nGW=2,nV,d0;
+  ulong r,i,j,k,P;
+
+	JgetTpe(J,&T,&p,&efin,&pefin);
+	g = Jgetg(J2);
+  d0 = Jgetd0(J2);
+  V = JgetV(J2);
+  /*GV = JgetGV(J2);*/
+  KV = JgetKV(J2);
+  nV = lg(V)-1;
+  nZ = lg(gel(V,1))-1;
+  nW = lg(W1)-1;
+
+  sW = gel(FqM_indexrank(W,T,p),1); /* rows s.t. this block is invertible, # = nW, we won't change them */
+  /* cW = VecSmallCompl(sW,nZ); Rows that will change, # = nZ-nW */
+  Vs = cgetg(nV+1,t_MAT); /* V with only the rows in sW */
+  for(j=1;j<=nV;j++)
+  {
+    gel(Vs,j) = cgetg(nW+1,t_COL);
+    for(i=1;i<=nW;i++) gcoeff(Vs,i,j) = gcoeff(V,sW[i],j);
+  }
+  V0 = FqM_mul(V,matkerpadic(Vs,T,p,efin),T,pefin); /* subspace of V whose rows in sW are 0 */ /* TODO can half precision here */
+  V0 = gerepileupto(av,V0); /* # = nV-nW = d0 */
+
+  e1 = eini;
+	pe1 = powiu(p,e1);
+	W1 = W;
+	J1 = PicRed(J,e1);
+  P0 = NULL;
+	r = 3*d0+1-g; /* Wanted rank of GWV */
+	/* Main loop */
+  while(e1<efin)
+  {
+    e2 = 2*e1;
+    if(e2>efin) e2 = efin;
+		e21 = e2-e1;
+		pe21 = e21==e1 ? pe1 : powiu(p,e21);
+    pari_printf("Lifting from prec O(%Ps^%lu) to O(%Ps^%lu)\n",p,e1,p,e2);
+    J2 = e2<efin ? PicRed(J,e2) : J;
+		pe2 = Jgetpe(J2);
+		/* START LIFTING */
+	  GW = GetIGS_modp(J1,W1,nGW); /* TODO do mod p^e1 -> pass J1, not J2 */
+	  /* Lift GW as vectors in V */
+	  K = cgetg(nV+nGW+1,t_MAT);
+	  for(j=1;j<=nV;j++) gel(K,j) = gel(V,j);
+	  for(j=1;j<=nGW;j++) gel(K,nV+j) = gel(GW,j);
+	  K = matkerpadic(K,T,p,e1);
+	  for(j=1;j<=nGW;j++) setlg(gel(K,j),nV+1);
+	  GW = FqM_mul(V,K,T,pe2);
+
+  	GWV = cgetg(nGW*nV+1,t_MAT); /* w*V for w in GW */
+  	k = 1;
+  	for(i=1;i<=nGW;i++)
+  	{
+    	wV = DivMul(gel(GW,i),V,T,pe2);
+    	for(j=1;j<=nV;j++)
+    	{
+      	gel(GWV,k) = gel(wV,j);
+      	k++;
+    	}
+  	}
+  	
+  	uv = FqM_MinorCompl(GWV,T,p);
+  	ABCD = M2ABCD(GWV,uv);
+  	Ainv = ZpXQM_inv(gel(ABCD,1),T,p,e2);
+  	CAinv = FqM_mul(gel(ABCD,3),Ainv,T,pe2);
+  	AinvB = FqM_mul(Ainv,gel(ABCD,2),T,pe2);
+  	rho = FqM_mul(CAinv,gel(ABCD,2),T,pe2);
+  	rho = FpXM_sub(gel(ABCD,4),rho,pe2); /* size nZ-r,nGW*nV-r(=dW if nGW-2) */
+  	for(i=1;i<=nZ-r;i++)
+  	{
+    	for(j=1;j<=nGW*nV-r;j++) gcoeff(rho,i,j) = ZX_Z_divexact(gcoeff(rho,i,j),pe1);
+    }
+		
+  	/* Now deform the w in GW by p^e1*V0 */
+  	/* TODO do not deform GW[1] */
+  	/* TODO swap loops and parallelise */
+  	K = cgetg(nGW*d0+2,t_MAT);
+  	k = 1;
+  	for(i=1;i<=nGW;i++)
+  	{
+    	for(j=1;j<=d0;j++)
+    	{ /* GW[i] shifts by p^e1*V0[j] */
+      	dwV = DivMul(gel(V0,j),V,T,pe21);/* How block #i of M shifts; the other blocks don't change */
+      	abcd = M2ABCD_1block(dwV,0,(i-1)*nV,uv); /* Split */
+      	drho = FpXM_sub(FqM_mul(gel(abcd,1),AinvB,T,pe21),gel(abcd,2),pe21); /* aA^-1B-b */
+      	drho = FqM_mul(CAinv,drho,T,pe21); /* CA^-1aA^-1B - CA^-1b */
+      	drho = FpXM_add(gel(abcd,4),drho,pe21); /* d + CA^-1aA^-1B - CA^-1b */
+      	drho = FpXM_sub(drho,FqM_mul(gel(abcd,3),AinvB,T,pe21),pe21); /* d + CA^-1aA^-1B - CA^-1b - cA^-1B */
+      	gel(K,k) = mat2col(drho);
+      	k++;
+    	}
+  	}
+  	gel(K,nGW*d0+1) = mat2col(rho);
+		/* TODO */
+  /* Find a random solution to the inhomogeneous system */
+  KM = matkerpadic(K,T,p,e21);
+  av1=avma;
+  do
+  {
+    avma=av1;
+    K = RandVec_1(KM,pe21);
+    red = gel(K,1+d0*nGW);
+  } while(ZX_is0mod(red,p));
+
+		/* END LIFTING */
+
+    P0 = gel(W,2);
+		/* TODO memory management */
+    if(P0)
+    {
+      W = gerepileupto(av,W);
+      P0 = gel(W,2);
+      W = gel(W,1);
+    }
+    else
+    {
+      W = gerepileupto(av,gel(W,1));
+    }
+    e1 = e2;
+		pe1 = pe2;
+		J1 = J2;
+  }
+  return gerepilecopy(av,W);
+}
+
 GEN PicLift_XP(GEN J2, GEN W1, long e1)
 {
 	pari_sp av = avma, av1;

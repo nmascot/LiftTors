@@ -28,7 +28,15 @@ P1 = [-1,1]; P2 = [0,0];
   );}
   J=PicInit(f,g,d0,L,LL,Bad,p,a,e);
 
-J2=PicRed(J,2);
-J1=PicRed(J,1);
-W1=PicRand(J1);
-W2=PicLift_XP(J2,W1,1);
+e1=1;
+W1=PicRand(PicRed(J,1));
+W2=W1;
+{
+while(e1<e,
+J2=PicRed(J,2*e1);
+J1=PicRed(J,e1);
+W2=PicLift_XP(J2,W2,e1);
+e1*=2;
+);
+}
+
