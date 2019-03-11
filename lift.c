@@ -42,32 +42,32 @@ GEN GetIGS_modp(GEN J, GEN W, ulong nIGS)
 	}
 }
 
-GEN PicLiftTors_XP(GEN J, GEN W, long eini, GEN l)
+GEN PicLift_XP(GEN J, GEN W, long eini)
 {
-  pari_sp av=avma;
+  pari_sp av=avma,av1;
 	GEN T,p,V,KV;
-  ulong efin,e1,e2,e21;
-  GEN pe1,pe21,pe2;
-  GEN W1,J2,P0;
-  GEN sW,Vs,V0;
-  GEN GW,K,GWV,wV;
+  long efin,e1,e2,e21;
+  GEN pefin,pe1,pe21,pe2;
+  GEN J1,J2;
+  GEN sW,Vs,U0,V0;
+  GEN GW,K,U;
+	GEN GWV,wV;
   GEN ABCD,uv,Ainv,CAinv,AinvB,rho;
   GEN dwV,drho,abcd;
   GEN KM,red,W2;
-  long e2,e21;
   ulong g,nZ,nW;
   ulong nGW=2,nV,d0;
-  ulong r,i,j,k,P;
+  ulong r,i,j,k,m;
 
-	JgetTpe(J,&T,&p,&efin,&pefin);
-	g = Jgetg(J2);
-  d0 = Jgetd0(J2);
-  V = JgetV(J2);
+	JgetTpe(J,&T,&pefin,&p,&efin);
+	g = Jgetg(J);
+  d0 = Jgetd0(J);
+  V = JgetV(J);
   /*GV = JgetGV(J2);*/
-  KV = JgetKV(J2);
+  KV = JgetKV(J);
   nV = lg(V)-1;
   nZ = lg(gel(V,1))-1;
-  nW = lg(W1)-1;
+  nW = lg(W)-1;
 
   sW = gel(FqM_indexrank(W,T,p),1); /* rows s.t. this block is invertible, # = nW, we won't change them */
   /* cW = VecSmallCompl(sW,nZ); Rows that will change, # = nZ-nW */
@@ -77,14 +77,26 @@ GEN PicLiftTors_XP(GEN J, GEN W, long eini, GEN l)
     gel(Vs,j) = cgetg(nW+1,t_COL);
     for(i=1;i<=nW;i++) gcoeff(Vs,i,j) = gcoeff(V,sW[i],j);
   }
-  V0 = FqM_mul(V,matkerpadic(Vs,T,p,efin),T,pefin); /* subspace of V whose rows in sW are 0 */ /* TODO can half precision here */
-  V0 = gerepileupto(av,V0); /* # = nV-nW = d0 */
+	U0 = matkerpadic(Vs,T,p,efin); /* TODO half prec ? */ /* # = nV-nW = d0 */
+	U0 = gerepileupto(av,U0);
+  V0 = FqM_mul(V,U0,T,pefin); /* subspace of V whose rows in sW are 0 */ /* TODO can half precision here */
+	/* TODO calc v0[j]*V in parallel instead */
 
-  e1 = eini;
+	e1 = eini;
 	pe1 = powiu(p,e1);
-	W1 = W;
+	av1 = avma;
 	J1 = PicRed(J,e1);
-  P0 = NULL;
+	GW = GetIGS_modp(J1,W,nGW); /* IGS of W1 */
+	K = cgetg(nV+nGW+1,t_MAT);
+	/* TODO reduce V first for performance */
+	/* TODO check other places */
+	for(j=1;j<=nV;j++) gel(K,j) = gel(V,j);
+	for(j=1;j<=nGW;j++) gel(K,nV+j) = gel(GW,j);
+	U = matkerpadic(K,T,p,e1); /* Coords of IGS of W1 // basis of V */
+	for(j=1;j<=nGW;j++) setlg(gel(U,j),nV+1); /* U is what we will lift */
+	U = gerepilecopy(av1,U);
+
+	/* P0 = NULL; */
 	r = 3*d0+1-g; /* Wanted rank of GWV */
 	/* Main loop */
   while(e1<efin)
@@ -97,20 +109,12 @@ GEN PicLiftTors_XP(GEN J, GEN W, long eini, GEN l)
     J2 = e2<efin ? PicRed(J,e2) : J;
 		pe2 = Jgetpe(J2);
 		/* START LIFTING */
-	  GW = GetIGS_modp(J1,W1,nGW); /* TODO do mod p^e1 -> pass J1, not J2 */
-	  /* Lift GW as vectors in V */
-	  K = cgetg(nV+nGW+1,t_MAT);
-	  for(j=1;j<=nV;j++) gel(K,j) = gel(V,j);
-	  for(j=1;j<=nGW;j++) gel(K,nV+j) = gel(GW,j);
-	  K = matkerpadic(K,T,p,e1);
-	  for(j=1;j<=nGW;j++) setlg(gel(K,j),nV+1);
-	  GW = FqM_mul(V,K,T,pe2);
-
   	GWV = cgetg(nGW*nV+1,t_MAT); /* w*V for w in GW */
+		/* We need it to have rk r, it is already the case mod pe1 */
   	k = 1;
   	for(i=1;i<=nGW;i++)
   	{
-    	wV = DivMul(gel(GW,i),V,T,pe2);
+    	wV = DivMul(FqM_FqC_mul(V,gel(U,i),T,pe2),V,T,pe2);
     	for(j=1;j<=nV;j++)
     	{
       	gel(GWV,k) = gel(wV,j);
@@ -118,20 +122,20 @@ GEN PicLiftTors_XP(GEN J, GEN W, long eini, GEN l)
     	}
   	}
   	
-  	uv = FqM_MinorCompl(GWV,T,p);
-  	ABCD = M2ABCD(GWV,uv);
+  	uv = FqM_MinorCompl(GWV,T,p); /* How to split GWV */
+  	ABCD = M2ABCD(GWV,uv); /* Splitting */
   	Ainv = ZpXQM_inv(gel(ABCD,1),T,p,e2);
   	CAinv = FqM_mul(gel(ABCD,3),Ainv,T,pe2);
   	AinvB = FqM_mul(Ainv,gel(ABCD,2),T,pe2);
   	rho = FqM_mul(CAinv,gel(ABCD,2),T,pe2);
-  	rho = FpXM_sub(gel(ABCD,4),rho,pe2); /* size nZ-r,nGW*nV-r(=dW if nGW-2) */
+  	rho = FpXM_sub(gel(ABCD,4),rho,pe2); /* size nZ-r,nGW*nV-r(=dW if nGW-2); tests if rk = r */
   	for(i=1;i<=nZ-r;i++)
   	{
     	for(j=1;j<=nGW*nV-r;j++) gcoeff(rho,i,j) = ZX_Z_divexact(gcoeff(rho,i,j),pe1);
     }
 		
-  	/* Now deform the w in GW by p^e1*V0 */
-  	/* TODO do not deform GW[1] */
+  	/* Now deform the w in GW by p^e1*V0. Actually we deform U1 by p^e1*U0. */
+  	/* TODO do not deform U1[1]? */
   	/* TODO swap loops and parallelise */
   	K = cgetg(nGW*d0+2,t_MAT);
   	k = 1;
@@ -139,7 +143,7 @@ GEN PicLiftTors_XP(GEN J, GEN W, long eini, GEN l)
   	{
     	for(j=1;j<=d0;j++)
     	{ /* GW[i] shifts by p^e1*V0[j] */
-      	dwV = DivMul(gel(V0,j),V,T,pe21);/* How block #i of M shifts; the other blocks don't change */
+      	dwV = DivMul(gel(V0,j),V,T,pe21);/* How block #i of M shifts; the other blocks don't change */ /* TODO swap loops so as not to recalc */
       	abcd = M2ABCD_1block(dwV,0,(i-1)*nV,uv); /* Split */
       	drho = FpXM_sub(FqM_mul(gel(abcd,1),AinvB,T,pe21),gel(abcd,2),pe21); /* aA^-1B-b */
       	drho = FqM_mul(CAinv,drho,T,pe21); /* CA^-1aA^-1B - CA^-1b */
@@ -150,21 +154,32 @@ GEN PicLiftTors_XP(GEN J, GEN W, long eini, GEN l)
     	}
   	}
   	gel(K,nGW*d0+1) = mat2col(rho);
-		/* TODO */
-  /* Find a random solution to the inhomogeneous system */
-  KM = matkerpadic(K,T,p,e21);
-  av1=avma;
-  do
-  {
-    avma=av1;
-    K = RandVec_1(KM,pe21);
-    red = gel(K,1+d0*nGW);
-  } while(ZX_is0mod(red,p));
-
+  	/* Find a random solution to the inhomogeneous system */
+  	KM = matkerpadic(K,T,p,e21);
+  	av1=avma;
+  	do
+  	{
+    	avma=av1;
+    	K = RandVec_1(KM,pe21);
+    	red = gel(K,1+d0*nGW);
+  	} while(ZX_is0mod(red,p));
+	  red = ZpXQ_inv(red,T,p,e21);
+	  setlg(K,nGW*d0+1);
+	  K = FqC_Fq_mul(K,red,T,pe21);
+  	/* Correct U */
+  	k = 1;
+  	for(i=1;i<=nGW;i++)
+  	{ /* Correct U[i] */
+    	for(j=1;j<=d0;j++)
+    	{ /* Add the proper multiple of U0[j] to it */
+      	for(m=1;m<=nV;m++)
+        	gcoeff(U,m,i) = ZX_add(gcoeff(U,m,i),ZX_Z_mul(Fq_mul(gel(K,k),gcoeff(U0,m,j),T,pe21),pe1));
+      	k++;
+    	}
+  	}
 		/* END LIFTING */
-
-    P0 = gel(W,2);
 		/* TODO memory management */
+    /*P0 = gel(W,2);
     if(P0)
     {
       W = gerepileupto(av,W);
@@ -174,15 +189,39 @@ GEN PicLiftTors_XP(GEN J, GEN W, long eini, GEN l)
     else
     {
       W = gerepileupto(av,gel(W,1));
-    }
+    }*/
     e1 = e2;
 		pe1 = pe2;
 		J1 = J2;
   }
-  return gerepilecopy(av,W);
+
+	/* Now U is correct to prec e2. Just inflate it. */
+  GWV = cgetg(nGW*nV+1,t_MAT); /* w*V for w in GW */
+  k = 1;
+  for(i=1;i<=nGW;i++)
+  {
+    wV = DivMul(FqM_FqC_mul(V,gel(U,i),T,pefin),V,T,pefin);
+    for(j=1;j<=nV;j++)
+    {
+      gel(GWV,k) = gel(wV,j);
+      k++;
+    }
+  }
+	/* Debug code: check rank */
+  /* ABCD = M2ABCD(GWV,uv);
+  Ainv = ZpXQM_inv(gel(ABCD,1),T,p,e2);
+  CAinv = FqM_mul(gel(ABCD,3),Ainv,T,pe2);
+  AinvB = FqM_mul(Ainv,gel(ABCD,2),T,pe2);
+  rho = FqM_mul(CAinv,gel(ABCD,2),T,pe2);
+  rho = FpXM_sub(gel(ABCD,4),rho,pe2);
+  pari_printf("\nTest debug:\n%Ps\n",rho); */
+  /* end debug */
+  GWV = FqM_image(GWV,T,p);
+  W2 = DivSub(V,GWV,KV,d0+1-g,T,p,efin,pefin,3);
+  return gerepilecopy(av,W2);
 }
 
-GEN PicLift_XP(GEN J2, GEN W1, long e1)
+/*GEN PicLift_XP(GEN J2, GEN W1, long e1)
 {
 	pari_sp av = avma, av1;
 	GEN T,pe2,p,V,KV;
@@ -210,7 +249,6 @@ GEN PicLift_XP(GEN J2, GEN W1, long e1)
 	g = Jgetg(J2);
 	d0 = Jgetd0(J2);
   V = JgetV(J2);
-	/*GV = JgetGV(J2);*/
 	KV = JgetKV(J2);
 	nV = lg(V)-1;
 	nZ = lg(gel(V,1))-1;
@@ -218,23 +256,20 @@ GEN PicLift_XP(GEN J2, GEN W1, long e1)
 
 	printf("a");
 
-	/* TODO do this once for all the lift from e=1 to e=e */
-	sW = gel(FqM_indexrank(W1,T,p),1); /* rows s.t. this block is invertible, # = nW, we won't change them */
-	/* cW = VecSmallCompl(sW,nZ); Rows that will change, # = nZ-nW */
+	sW = gel(FqM_indexrank(W1,T,p),1); 
   av1 = avma;
-  Vs = cgetg(nV+1,t_MAT); /* V with only the rows in sW */
+  Vs = cgetg(nV+1,t_MAT);
   for(j=1;j<=nV;j++)
   {
 		gel(Vs,j) = cgetg(nW+1,t_COL);
     for(i=1;i<=nW;i++) gcoeff(Vs,i,j) = gcoeff(V,sW[i],j);
   }
-  V0 = FqM_mul(V,matkerpadic(Vs,T,p,e21),T,pe21); /* subspace of V whose rows in sW are 0 */
-	V0 = gerepileupto(av1,V0); /* # = nV-nW = d0 */
+  V0 = FqM_mul(V,matkerpadic(Vs,T,p,e21),T,pe21);
+	V0 = gerepileupto(av1,V0);
 	printf("b");
 
-	GW = GetIGS_modp(J2,W1,nGW); /* TODO do mod p^e1 -> pass J1, not J2 */
+	GW = GetIGS_modp(J2,W1,nGW);
 	printf("c");
-	/* Lift GW as vectors in V */
 	K = cgetg(nV+nGW+1,t_MAT);
   for(j=1;j<=nV;j++) gel(K,j) = gel(V,j);
   for(j=1;j<=nGW;j++) gel(K,nV+j) = gel(GW,j);
@@ -243,7 +278,7 @@ GEN PicLift_XP(GEN J2, GEN W1, long e1)
   GW = FqM_mul(V,K,T,pe2);
 	printf("d");
 
-	GWV = cgetg(nGW*nV+1,t_MAT); /* w*V for w in GW */
+	GWV = cgetg(nGW*nV+1,t_MAT);
 	k = 1;
 	for(i=1;i<=nGW;i++)
 	{
@@ -256,14 +291,14 @@ GEN PicLift_XP(GEN J2, GEN W1, long e1)
 	}
 	printf("e");
 
-	r = 3*d0+1-g; /* Wanted rank of GWV */
+	r = 3*d0+1-g;
 	uv = FqM_MinorCompl(GWV,T,p);
 	ABCD = M2ABCD(GWV,uv);
 	Ainv = ZpXQM_inv(gel(ABCD,1),T,p,e2);
   CAinv = FqM_mul(gel(ABCD,3),Ainv,T,pe2);
   AinvB = FqM_mul(Ainv,gel(ABCD,2),T,pe2);
   rho = FqM_mul(CAinv,gel(ABCD,2),T,pe2);
-  rho = FpXM_sub(gel(ABCD,4),rho,pe2); /* size nZ-r,nGW*nV-r(=dW if nGW-2) */
+  rho = FpXM_sub(gel(ABCD,4),rho,pe2);
 	pari_printf("\nRho initial:\n%Ps\n",rho);
   for(i=1;i<=nZ-r;i++)
   {
@@ -273,29 +308,24 @@ GEN PicLift_XP(GEN J2, GEN W1, long e1)
     }
   }
 	printf("f");
-	
-	/* Now deform the w in GW by p^e1*V0 */
-	/* TODO do not deform GW[1] */
-	/* TODO swap loops and parallelise */
 	K = cgetg(nGW*d0+2,t_MAT);
 	k = 1;
 	for(i=1;i<=nGW;i++)
 	{
 		for(j=1;j<=d0;j++)
-		{ /* GW[i] shifts by p^e1*V0[j] */
-			dwV = DivMul(gel(V0,j),V,T,pe21);/* How block #i of M shifts; the other blocks don't change */
-			abcd = M2ABCD_1block(dwV,0,(i-1)*nV,uv); /* Split */
-			drho = FpXM_sub(FqM_mul(gel(abcd,1),AinvB,T,pe21),gel(abcd,2),pe21); /* aA^-1B-b */
-			drho = FqM_mul(CAinv,drho,T,pe21); /* CA^-1aA^-1B - CA^-1b */
-			drho = FpXM_add(gel(abcd,4),drho,pe21); /* d + CA^-1aA^-1B - CA^-1b */
-    	drho = FpXM_sub(drho,FqM_mul(gel(abcd,3),AinvB,T,pe21),pe21); /* d + CA^-1aA^-1B - CA^-1b - cA^-1B */
+		{
+			dwV = DivMul(gel(V0,j),V,T,pe21);
+			abcd = M2ABCD_1block(dwV,0,(i-1)*nV,uv);
+			drho = FpXM_sub(FqM_mul(gel(abcd,1),AinvB,T,pe21),gel(abcd,2),pe21);
+			drho = FqM_mul(CAinv,drho,T,pe21);
+			drho = FpXM_add(gel(abcd,4),drho,pe21);
+    	drho = FpXM_sub(drho,FqM_mul(gel(abcd,3),AinvB,T,pe21),pe21);
     	gel(K,k) = mat2col(drho);
 			k++;
 		}
 	}
 	gel(K,nGW*d0+1) = mat2col(rho);
 	printf("g");
-	/* Find a random solution to the inhomogeneous system */
 	KM = matkerpadic(K,T,p,e21);
 	av1=avma;
   do
@@ -306,16 +336,12 @@ GEN PicLift_XP(GEN J2, GEN W1, long e1)
   } while(ZX_is0mod(red,p));
 	printf("h");
   red = ZpXQ_inv(red,T,p,e21);
-	/*red = FpX_neg(red,pe21);*/
   setlg(K,nGW*d0+1);
   K = FqC_Fq_mul(K,red,T,pe21);
 	printf("i");
-	/* Correct GW */
   k = 1;
   for(i=1;i<=nGW;i++)
-  { /* Correct GW[i] */
     for(j=1;j<=d0;j++)
-    { /* Add the proper multiple of V0[j] to it */
       for(P=1;P<=nZ;P++)
       {
         gcoeff(GW,P,i) = ZX_add(gcoeff(GW,P,i),ZX_Z_mul(Fq_mul(gel(K,k),gcoeff(V0,P,j),T,pe21),pe1));
@@ -324,8 +350,7 @@ GEN PicLift_XP(GEN J2, GEN W1, long e1)
     }
   }
 	printf("j");
-	/* Now GW is correct to prec e2. Just inflate it. */
-	GWV = cgetg(nGW*nV+1,t_MAT); /* w*V for w in GW */
+	GWV = cgetg(nGW*nV+1,t_MAT)
   k = 1;
   for(i=1;i<=nGW;i++)
   {
@@ -336,23 +361,13 @@ GEN PicLift_XP(GEN J2, GEN W1, long e1)
       k++;
     }
   }
-	/* Debug code */
-	ABCD = M2ABCD(GWV,uv);
-  Ainv = ZpXQM_inv(gel(ABCD,1),T,p,e2);
-  CAinv = FqM_mul(gel(ABCD,3),Ainv,T,pe2);
-  AinvB = FqM_mul(Ainv,gel(ABCD,2),T,pe2);
-  rho = FqM_mul(CAinv,gel(ABCD,2),T,pe2);
-  rho = FpXM_sub(gel(ABCD,4),rho,pe2);
-	pari_printf("\nTest debug:\n%Ps\n",rho);
-	/* end debug */
 	printf("k");
 	GWV = FqM_image(GWV,T,p);
 	printf("l");
-	W2 = DivSub(V,GWV,KV,d0+1-g,T,p,e2,pe2,3); /* TODO pass the IGS of V (also in other places?) */
-	/* TODO why 3, 2 does not work ??? */
+	W2 = DivSub(V,GWV,KV,d0+1-g,T,p,e2,pe2,3);
 	printf("m");
-	return gerepileupto(av,W2); /* TODO memory */
-}
+	return gerepileupto(av,W2);
+}*/
 
 
 
