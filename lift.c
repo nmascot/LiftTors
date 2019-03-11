@@ -1,7 +1,7 @@
 #include "linalg.h"
 #include "pic.h"
 
-GEN GetIGS_modp(GEN J, GEN W, ulong nIGS)
+GEN PicDeflate(GEN J, GEN W, ulong nIGS)
 { /* Finds nIGS elts w1, .. , wn in W s.t. (W) = min (wi) */
 	pari_sp av,av1;
 	GEN V,T,pe,p,IGS,IV,wV;
@@ -42,10 +42,86 @@ GEN GetIGS_modp(GEN J, GEN W, ulong nIGS)
 	}
 }
 
+GEN PicInflateV(GEN J, GEN U) /* Takes IGS given by coords // V */
+{
+	pari_sp av = avma;
+	GEN T,pe,p;
+	long e;
+	GEN V,KV,GWV,wV,W;
+	ulong d0,g;
+	ulong nU,nV;
+	ulong i,j,k;
+
+	JgetTpe(J,&T,&pe,&p,&e);
+	V = JgetV(J);
+	KV = JgetKV(J);
+	nU = lg(U)-1;
+	nV = lg(V)-1;
+	d0 = Jgetd0(J);
+	g = Jgetg(J);
+
+	GWV = cgetg(nU*nV+1,t_MAT); /* w*V for w in GW */
+  k = 1;
+  for(i=1;i<=nU;i++)
+  {
+    wV = DivMul(FqM_FqC_mul(V,gel(U,i),T,pe),V,T,pe); /* TODO useful to precompte V[i]*V ? */
+    for(j=1;j<=nV;j++)
+    {
+      gel(GWV,k) = gel(wV,j);
+      k++;
+    }
+  }
+  GWV = FqM_image(GWV,T,p);
+  W = DivSub(V,GWV,KV,d0+1-g,T,p,e,pe,3); /* TODO pass precomputed IGS of V */
+	return gerepileupto(av,W);
+}
+
+GEN PicLift_RandLiftU(GEN U, GEN U0, GEN KM, GEN T, GEN p, GEN pe1, GEN pe21, long e21)
+{
+	pari_sp av;
+
+	GEN K,red,newU;
+	ulong nU,nU0,nV;
+	ulong i,j,k,m;
+
+	nU = lg(U);
+	nU0 = lg(U0);
+	nV = lg(gel(U,1));
+
+	av=avma;
+  do
+  {
+    avma=av;
+    K = RandVec_1(KM,pe21);
+    red = gel(K,lg(K)-1);
+  } while(ZX_is0mod(red,p));
+
+  red = ZpXQ_inv(red,T,p,e21);
+  setlg(K,lg(K)-1);
+  K = FqC_Fq_mul(K,red,T,pe21);
+
+  newU = cgetg(nU+1,t_VEC);
+  k = 1;
+  for(i=1;i<nU;i++)
+  {
+		gel(newU,i) = cgetg(lg(gel(U,i)),t_COL);
+		/* Correct U[i] */
+    for(j=1;j<nU0;j++)
+    { /* Add the proper multiple of U0[j] to it */
+      for(m=1;m<nV;m++)
+        gmael(newU,i,m) =
+					ZX_add(gmael(U,i,m),ZX_Z_mul(Fq_mul(gel(K,k),gcoeff(U0,m,j),T,pe21),pe1));
+      k++;
+    }
+  }
+	
+	return gerepileupto(av,newU);
+}
+
 GEN PicLift_XP(GEN J, GEN W, long eini)
 {
   pari_sp av=avma,av1;
-	GEN T,p,V,KV;
+	GEN T,p,V;
   long efin,e1,e2,e21;
   GEN pefin,pe1,pe21,pe2;
   GEN J1,J2;
@@ -53,8 +129,8 @@ GEN PicLift_XP(GEN J, GEN W, long eini)
   GEN GW,K,U;
 	GEN GWV,wV;
   GEN ABCD,uv,Ainv,CAinv,AinvB,rho;
-  GEN dwV,drho,abcd;
-  GEN KM,red,W2;
+  GEN drho,abcd;
+  GEN KM,red;
   ulong g,nZ,nW;
   ulong nGW=2,nV,d0;
   ulong r,i,j,k,m;
@@ -64,13 +140,11 @@ GEN PicLift_XP(GEN J, GEN W, long eini)
   d0 = Jgetd0(J);
   V = JgetV(J);
   /*GV = JgetGV(J2);*/
-  KV = JgetKV(J);
   nV = lg(V)-1;
   nZ = lg(gel(V,1))-1;
   nW = lg(W)-1;
 
   sW = gel(FqM_indexrank(W,T,p),1); /* rows s.t. this block is invertible, # = nW, we won't change them */
-  /* cW = VecSmallCompl(sW,nZ); Rows that will change, # = nZ-nW */
   Vs = cgetg(nV+1,t_MAT); /* V with only the rows in sW */
   for(j=1;j<=nV;j++)
   {
@@ -79,14 +153,15 @@ GEN PicLift_XP(GEN J, GEN W, long eini)
   }
 	U0 = matkerpadic(Vs,T,p,efin); /* TODO half prec ? */ /* # = nV-nW = d0 */
 	U0 = gerepileupto(av,U0);
-  V0 = FqM_mul(V,U0,T,pefin); /* subspace of V whose rows in sW are 0 */ /* TODO can half precision here */
-	/* TODO calc v0[j]*V in parallel instead */
+	V0 = cgetg(d0+1,t_VEC);
+	for(i=1;i<=d0;i++) gel(V0,i) = DivMul(FqM_FqC_mul(V,gel(U0,i),T,pefin),V,T,pefin); /* s*V for s in subspace of V whose rows in sW are 0 */ /* TODO can half precision here */
+	/* TODO parallel */
 
 	e1 = eini;
 	pe1 = powiu(p,e1);
 	av1 = avma;
 	J1 = PicRed(J,e1);
-	GW = GetIGS_modp(J1,W,nGW); /* IGS of W1 */
+	GW = PicDeflate(J1,W,nGW); /* IGS of W1 */
 	K = cgetg(nV+nGW+1,t_MAT);
 	/* TODO reduce V first for performance */
 	/* TODO check other places */
@@ -143,8 +218,7 @@ GEN PicLift_XP(GEN J, GEN W, long eini)
   	{
     	for(j=1;j<=d0;j++)
     	{ /* GW[i] shifts by p^e1*V0[j] */
-      	dwV = DivMul(gel(V0,j),V,T,pe21);/* How block #i of M shifts; the other blocks don't change */ /* TODO swap loops so as not to recalc */
-      	abcd = M2ABCD_1block(dwV,0,(i-1)*nV,uv); /* Split */
+      	abcd = M2ABCD_1block(gel(V0,j),0,(i-1)*nV,uv); /* Split */
       	drho = FpXM_sub(FqM_mul(gel(abcd,1),AinvB,T,pe21),gel(abcd,2),pe21); /* aA^-1B-b */
       	drho = FqM_mul(CAinv,drho,T,pe21); /* CA^-1aA^-1B - CA^-1b */
       	drho = FpXM_add(gel(abcd,4),drho,pe21); /* d + CA^-1aA^-1B - CA^-1b */
@@ -156,6 +230,17 @@ GEN PicLift_XP(GEN J, GEN W, long eini)
   	gel(K,nGW*d0+1) = mat2col(rho);
   	/* Find a random solution to the inhomogeneous system */
   	KM = matkerpadic(K,T,p,e21);
+		if(cmpii(pe21,powiu(l,g+1))<=0)
+  	{
+    	printf("Lift by mul\n");
+			U = PicLift_RandLiftU(U,U0,KM,T,p,pe1,pe21,e21);
+			W = PicInflateV(J2,U);
+    	W = PicMul(J2,W,pe21,0);
+		}
+		else
+		{
+			TODO;
+		}
   	av1=avma;
   	do
   	{
@@ -192,182 +277,12 @@ GEN PicLift_XP(GEN J, GEN W, long eini)
     }*/
     e1 = e2;
 		pe1 = pe2;
-		J1 = J2;
   }
 
-	/* Now U is correct to prec e2. Just inflate it. */
-  GWV = cgetg(nGW*nV+1,t_MAT); /* w*V for w in GW */
-  k = 1;
-  for(i=1;i<=nGW;i++)
-  {
-    wV = DivMul(FqM_FqC_mul(V,gel(U,i),T,pefin),V,T,pefin);
-    for(j=1;j<=nV;j++)
-    {
-      gel(GWV,k) = gel(wV,j);
-      k++;
-    }
-  }
-	/* Debug code: check rank */
-  /* ABCD = M2ABCD(GWV,uv);
-  Ainv = ZpXQM_inv(gel(ABCD,1),T,p,e2);
-  CAinv = FqM_mul(gel(ABCD,3),Ainv,T,pe2);
-  AinvB = FqM_mul(Ainv,gel(ABCD,2),T,pe2);
-  rho = FqM_mul(CAinv,gel(ABCD,2),T,pe2);
-  rho = FpXM_sub(gel(ABCD,4),rho,pe2);
-  pari_printf("\nTest debug:\n%Ps\n",rho); */
-  /* end debug */
-  GWV = FqM_image(GWV,T,p);
-  W2 = DivSub(V,GWV,KV,d0+1-g,T,p,efin,pefin,3);
-  return gerepilecopy(av,W2);
+	W = PicInflateV(J,U);
+	return gerepileupto(av,W);
 }
 
-/*GEN PicLift_XP(GEN J2, GEN W1, long e1)
-{
-	pari_sp av = avma, av1;
-	GEN T,pe2,p,V,KV;
-	GEN pe1,pe21;
-	GEN sW,Vs,V0;
-	GEN GW,K,GWV,wV;
-	GEN ABCD,uv,Ainv,CAinv,AinvB,rho;
-	GEN dwV,drho,abcd;
-	GEN KM,red,W2;
-	long e2,e21;
-	ulong g,nZ,nW;
-	ulong nGW=2,nV,d0;
-	ulong r,i,j,k,P;
-
-	JgetTpe(J2,&T,&pe2,&p,&e2);
-  if(e2<=e1)
-  {
-    return FpXM_red(W1,pe2);
-  }
-
-	e21 = e2-e1;
-	pe1 = powiu(p,e1);
-	pe21 = powiu(p,e21);
-
-	g = Jgetg(J2);
-	d0 = Jgetd0(J2);
-  V = JgetV(J2);
-	KV = JgetKV(J2);
-	nV = lg(V)-1;
-	nZ = lg(gel(V,1))-1;
-	nW = lg(W1)-1;
-
-	printf("a");
-
-	sW = gel(FqM_indexrank(W1,T,p),1); 
-  av1 = avma;
-  Vs = cgetg(nV+1,t_MAT);
-  for(j=1;j<=nV;j++)
-  {
-		gel(Vs,j) = cgetg(nW+1,t_COL);
-    for(i=1;i<=nW;i++) gcoeff(Vs,i,j) = gcoeff(V,sW[i],j);
-  }
-  V0 = FqM_mul(V,matkerpadic(Vs,T,p,e21),T,pe21);
-	V0 = gerepileupto(av1,V0);
-	printf("b");
-
-	GW = GetIGS_modp(J2,W1,nGW);
-	printf("c");
-	K = cgetg(nV+nGW+1,t_MAT);
-  for(j=1;j<=nV;j++) gel(K,j) = gel(V,j);
-  for(j=1;j<=nGW;j++) gel(K,nV+j) = gel(GW,j);
-  K = matkerpadic(K,T,p,e1);
-  for(j=1;j<=nGW;j++) setlg(gel(K,j),nV+1);
-  GW = FqM_mul(V,K,T,pe2);
-	printf("d");
-
-	GWV = cgetg(nGW*nV+1,t_MAT);
-	k = 1;
-	for(i=1;i<=nGW;i++)
-	{
-		wV = DivMul(gel(GW,i),V,T,pe2);
-		for(j=1;j<=nV;j++)
-		{
-			gel(GWV,k) = gel(wV,j);
-			k++;
-		}
-	}
-	printf("e");
-
-	r = 3*d0+1-g;
-	uv = FqM_MinorCompl(GWV,T,p);
-	ABCD = M2ABCD(GWV,uv);
-	Ainv = ZpXQM_inv(gel(ABCD,1),T,p,e2);
-  CAinv = FqM_mul(gel(ABCD,3),Ainv,T,pe2);
-  AinvB = FqM_mul(Ainv,gel(ABCD,2),T,pe2);
-  rho = FqM_mul(CAinv,gel(ABCD,2),T,pe2);
-  rho = FpXM_sub(gel(ABCD,4),rho,pe2);
-	pari_printf("\nRho initial:\n%Ps\n",rho);
-  for(i=1;i<=nZ-r;i++)
-  {
-    for(j=1;j<=nGW*nV-r;j++)
-    {
-      gcoeff(rho,i,j) = ZX_Z_divexact(gcoeff(rho,i,j),pe1);
-    }
-  }
-	printf("f");
-	K = cgetg(nGW*d0+2,t_MAT);
-	k = 1;
-	for(i=1;i<=nGW;i++)
-	{
-		for(j=1;j<=d0;j++)
-		{
-			dwV = DivMul(gel(V0,j),V,T,pe21);
-			abcd = M2ABCD_1block(dwV,0,(i-1)*nV,uv);
-			drho = FpXM_sub(FqM_mul(gel(abcd,1),AinvB,T,pe21),gel(abcd,2),pe21);
-			drho = FqM_mul(CAinv,drho,T,pe21);
-			drho = FpXM_add(gel(abcd,4),drho,pe21);
-    	drho = FpXM_sub(drho,FqM_mul(gel(abcd,3),AinvB,T,pe21),pe21);
-    	gel(K,k) = mat2col(drho);
-			k++;
-		}
-	}
-	gel(K,nGW*d0+1) = mat2col(rho);
-	printf("g");
-	KM = matkerpadic(K,T,p,e21);
-	av1=avma;
-  do
-  {
-		avma=av1;
-    K = RandVec_1(KM,pe21);
-    red = gel(K,1+d0*nGW);
-  } while(ZX_is0mod(red,p));
-	printf("h");
-  red = ZpXQ_inv(red,T,p,e21);
-  setlg(K,nGW*d0+1);
-  K = FqC_Fq_mul(K,red,T,pe21);
-	printf("i");
-  k = 1;
-  for(i=1;i<=nGW;i++)
-    for(j=1;j<=d0;j++)
-      for(P=1;P<=nZ;P++)
-      {
-        gcoeff(GW,P,i) = ZX_add(gcoeff(GW,P,i),ZX_Z_mul(Fq_mul(gel(K,k),gcoeff(V0,P,j),T,pe21),pe1));
-      }
-			k++;
-    }
-  }
-	printf("j");
-	GWV = cgetg(nGW*nV+1,t_MAT)
-  k = 1;
-  for(i=1;i<=nGW;i++)
-  {
-    wV = DivMul(gel(GW,i),V,T,pe2);
-    for(j=1;j<=nV;j++)
-    {
-      gel(GWV,k) = gel(wV,j);
-      k++;
-    }
-  }
-	printf("k");
-	GWV = FqM_image(GWV,T,p);
-	printf("l");
-	W2 = DivSub(V,GWV,KV,d0+1-g,T,p,e2,pe2,3);
-	printf("m");
-	return gerepileupto(av,W2);
-}*/
 
 
 
@@ -415,12 +330,11 @@ GEN PicLift_worker(ulong nW, ulong nZ, ulong nKV, GEN KwVk, GEN VFlist, GEN uv, 
 	return gerepileupto(av,M);
 }
 
-GEN PicLift_RandLift(GEN W1, GEN KM, GEN V0, ulong nZ, ulong nW, ulong d0, GEN T, GEN p, long e21, GEN pe1, GEN pe2, GEN pe21)
+/*GEN PicLift_RandLift(GEN W1, GEN KM, GEN V0, ulong nZ, ulong nW, ulong d0, GEN T, GEN p, long e21, GEN pe1, GEN pe2, GEN pe21)
 {
 	pari_sp av = avma;
 	GEN K,red,W;
 	ulong n,j,k,P;
-	/* Find a random solution to the inhomogeneous system */
   do
   {
     K = RandVec_1(KM,pe21);
@@ -445,7 +359,7 @@ GEN PicLift_RandLift(GEN W1, GEN KM, GEN V0, ulong nZ, ulong nW, ulong d0, GEN T
   }
   W = FpXM_add(W1,ZXM_Z_mul(W,pe1),pe2);
 	return gerepileupto(av,W);
-}
+}*/
 
 GEN PicLiftTors_worker(GEN J, GEN W1, GEN l, GEN KM, GEN c0, GEN V0, ulong d0, ulong nW, ulong nZ, ulong k0, GEN T, GEN p, long e2, GEN pe2, long e21, GEN pe21, GEN pe1, GEN randseed, ulong P0)
 {
