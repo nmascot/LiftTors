@@ -350,7 +350,7 @@ SmoothGalRep(f,l,p,e,P1,P2,chi)=
 
 HyperBestp(f,l,pmax)=
 {
-	my(D,P,a,i);
+	my(D,P,A,a,i);
 	if(type(f)=="t_VEC",
 		D = poldisc(4*f[1]+f[2]^2)
 	,
@@ -368,7 +368,7 @@ HyperBestp(f,l,pmax)=
 SmoothBestp(f0,D,l,pmax)=
 {
 	\\ TODO compute D
-	my(x,y,d,f,P,a,i);
+	my(x,y,d,f,P,A,a,i);
 	[x,y] = variables(f0);
   d = TotalDeg(f0,x,y);
   f = SmoothGeneric(f0,d)[1];

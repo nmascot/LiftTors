@@ -223,6 +223,39 @@ GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong 
 	}
 }
 
+GEN PicNeg(GEN J, GEN W, long flag)
+{
+  pari_sp av = avma;
+  GEN s,sV,WN,res;
+  GEN V,KV,T,p,pe;
+  long g,d0,e;
+
+  V = JgetV(J);
+  KV = JgetKV(J);
+  JgetTpe(J,&T,&pe,&p,&e);
+  g = Jgetg(J);
+  d0 = Jgetd0(J);
+
+  /* (s) = -2_0-D-N */
+  if(flag & 1) s = RandVec_padic(W,T,p,pe);
+  else s = gel(W,1);
+  sV = DivMul(s,V,T,pe); /* L(4D_0-D-N) */
+  WN = DivSub(W,sV,KV,d0+1-g,T,p,e,pe,2); /* L(2D_0-N) */
+
+  if(flag & 2)
+  {
+    res = cgetg(3,t_VEC);
+    gel(res,1) = gcopy(WN);
+    gel(res,2) = gcopy(s);
+    return gerepileupto(av,res);
+  }
+  else
+  {
+    return gerepileupto(av,WN);
+  }
+}
+
+
 GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
 {
 	pari_sp av = avma;
@@ -264,7 +297,7 @@ GEN PicAdd(GEN J, GEN WA, GEN WB)
 	pari_sp av = avma;
 	GEN W;
 	W = PicChord(J,WA,WB,0);
-	W = PicChord(J,W,JgetW0(J),0);
+	W = PicNeg(J,W,0);
 	return gerepileupto(av,W);
 }
 
@@ -272,22 +305,19 @@ GEN PicSub(GEN J, GEN WA, GEN WB)
 {
 	pari_sp av = avma;
 	GEN W;
-	W = PicChord(J,WB,JgetW0(J),0);
+	W = PicNeg(J,WB,0);
 	W = PicChord(J,W,WA,0);
 	return gerepileupto(av,W);
 }
 
-GEN PicNeg(GEN J, GEN W) { return PicChord(J,W,JgetW0(J),0); }
-
 GEN PicMul(GEN J, GEN W, GEN n, long flag)
 {
 	pari_sp av = avma;
-	GEN W0,C,Wlist,WA,WB;
+	GEN C,Wlist,WA,WB;
 	ulong nC,i;
 	long a,b;
 
-	W0 = JgetW0(J);
-	if(gequal0(n)) return W0;
+	if(gequal0(n)) return gcopy(JgetW0(J));
 	if(gequal(n,gen_1)) return gcopy(W);
 	C = AddChain(n,flag&2);
 	nC = lg(C);
@@ -300,10 +330,19 @@ GEN PicMul(GEN J, GEN W, GEN n, long flag)
 	for(i=2;i<nC;i++)
 	{
 		a = gmael(C,i,2)[1];
-		WA = a?gel(Wlist,a):W0;
 		b = gmael(C,i,2)[2];
-		WB = b?gel(Wlist,b):W0;
-		gel(Wlist,i) = PicChord(J,WA,WB,(i==nC-1)&&(flag&1));
+		if(a)
+		{
+			WA = gel(Wlist,a);
+			if(b)
+			{
+				WB = gel(Wlist,b);
+				gel(Wlist,i) = PicChord(J,WA,WB,(i==nC-1)&&(flag&1));
+			}
+			else gel(Wlist,i) = PicNeg(J,WA,(i==nC-1)&&(flag&1));
+		}
+		else gel(Wlist,i) = b?PicNeg(J,gel(Wlist,b),(i==nC-1)&&(flag&1)):gcopy(JgetW0(J));
+		/* Does not respect flag if a==b==0 but this is not supposed to happen */
 	}
 	return gerepileupto(av,gel(Wlist,nC-1));
 }

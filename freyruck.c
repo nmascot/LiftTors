@@ -107,7 +107,7 @@ GEN PicNorm(GEN J, GEN F, GEN WE)
 }
 
 GEN PicFreyRuckMulti(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C)
-/* Pair the l-tors pt Wtors against the pts in Wtest */ 
+/* Pair the l-tors pt Wtors against the pts in Wtest */
 {
 	pari_sp av = avma;
 	GEN WtorsM,Fq1,H,col,WA,WB,res,s;
@@ -131,9 +131,22 @@ GEN PicFreyRuckMulti(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C)
 	{
 		i = gmael(C,c,2)[1];
 		j = gmael(C,c,2)[2];
-		WA = i?gel(WtorsM,i):JgetW0(J);
-		WB = j?gel(WtorsM,j):JgetW0(J);
-		res = PicChord(J,WA,WB,3);
+		if(i)
+		{
+			WA = gel(WtorsM,i);
+			if(j)
+			{
+				WB = gel(WtorsM,j);
+				res = PicChord(J,WA,WB,3);
+			}
+			else res = PicNeg(J,WA,3);
+		}
+		else
+		{
+			if(j==0) pari_err(e_MISC,"Two zeros in Frey-Ruck AddFlip chain, not suposed to happen!");
+			WB = gel(WtorsM,j);
+			res = PicNeg(J,WB,3);
+		}
 		gel(WtorsM,c) = gel(res,1);
 		s = gel(res,2);
 		col = cgetg(ntest,t_COL);
