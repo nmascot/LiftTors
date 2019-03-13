@@ -62,7 +62,7 @@ GEN PicDeflate_U(GEN J, GEN W, ulong nIGS)
   for(j=1;j<nV;j++) gel(K,j) = gel(V,j);
   for(j=1;j<=nIGS;j++) gel(K,nV-1+j) = gel(GW,j);
   U = matkerpadic(K,T,p,e); /* Coords of IGS of W // basis of V */
-  for(j=1;j<=nIGS;j++) setlg(gel(U,j),nV); /* U is what we will lift */
+  for(j=1;j<=nIGS;j++) setlg(gel(U,j),nV);
   return gerepilecopy(av,U);
 }
 
@@ -119,12 +119,10 @@ GEN PicLift_RandLift_U(GEN U, GEN U0, GEN KM, GEN T, GEN p, GEN pe1, GEN pe21, l
     K = RandVec_1(KM,pe21);
     red = gel(K,lg(K)-1);
   } while(ZX_is0mod(red,p));
-
   red = ZpXQ_inv(red,T,p,e21);
   setlg(K,lg(K)-1);
   K = FqC_Fq_mul(K,red,T,pe21);
-
-  newU = cgetg(nU+1,t_VEC);
+  newU = cgetg(nU,t_VEC);
   k = 1;
   for(i=1;i<nU;i++)
   {
@@ -272,14 +270,29 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
   	gel(K,nGW*d0+1) = mat2col(rho);
   	/* Find a random solution to the inhomogeneous system */
   	KM = matkerpadic(K,T,p,e21);
+		printf("dim ker lift: %ld\n",lg(KM)-1);
+		U = PicLift_RandLift_U(U,U0,KM,T,p,pe1,pe21,e21);
+		e1 = e2;
+    pe1 = pe2;
+    printf("END LOOP\n");
+		if(e2==efin)
+		{
+			W = PicInflate_U(J2,U);
+			return gerepileupto(av,W);
+		}
+		continue;
 		if(cmpii(pe21,powiu(l,g+1))<=0)
   	{
     	printf("Lift by mul\n");
 			U = PicLift_RandLift_U(U,U0,KM,T,p,pe1,pe21,e21);
+			printf("A");
 			W = PicInflate_U(J2,U);
+			printf("B");
     	W = PicMul(J2,W,pe21,0); /* Make it l-tors */
+			printf("C");
 			if(e2==efin) /* Already done ? */
 				return gerepileupto(av,W);
+			printf("D\n");
 			U = PicDeflate_U(J2,W,nGW); /* Update U -> ready for new iteration */
 		}
 		else
@@ -383,10 +396,11 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 		/* END LIFTING */
     e1 = e2;
 		pe1 = pe2;
-		if(c0)
+		printf("END LOOP\n");
+		/*if(c0)
 			gerepileall(av1,3,&U,&pe1,&c0);
 		else
-			gerepileall(av1,2,&U,&pe1);
+			gerepileall(av1,2,&U,&pe1);*/
   }
 }
 

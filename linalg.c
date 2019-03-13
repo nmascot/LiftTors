@@ -230,7 +230,7 @@ GEN matkerpadic(GEN A, GEN T, GEN p, long e)
 	if(e==1) return FqM_ker(A,T,p);
 	av = avma;
 	B = shallowtrans(FqM_image(shallowtrans(A),T,p));
-	K = ZpXQM_ker(B,T,p,e,NULL);
+	K = ZpXQM_ker(A,T,p,e,NULL);
 	K = Hsort(K,p);
 	return gerepilecopy(av,K);
 }

@@ -4,6 +4,11 @@ WeiRed(f,h)=
  2^poldegree(F)*subst(F,x,x/2);
 }
 
+install("PicDeflate_U","GGL",,"./liblift.so");
+install("PicInflate_U","GG",,"./liblift.so");
+install("PicMember","lGG",,"./libpic.so");
+
+
 install("matkerpadic","GGGL",,"./liblinalg.so");
 install("mateqnpadic","GGGL",,"./liblinalg.so");
 install("VecSmallCompl","GU","VecSmallCompl","./liblinalg.so");
@@ -19,9 +24,6 @@ install("RREvalInit","GG","PicEvalInit","./librr.so");
 install("RREval","GGG","PicEval","./librr.so");
 install("OnePol","GGGG","OnePol","./librr.so");
 install("AllPols","GGGLG","AllPols","./librr.so");
-
-install("PicLift_XP","GGL",,"./liblift.so");
-install("GetIGS_modp","GGU",,"./liblift.so");
 
 install("PicRed","GU","PicRed","./libpic.so");
 install("PicChord","GGGL","PicChord","./libpic.so");

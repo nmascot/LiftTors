@@ -4,11 +4,12 @@ read("GalRep.gp");
 f = x^5+x^4; h = x^3+x+1; \\ X1(13)
 l = 7; \\ The representation occurs in the 7-torsion of the Jacobian
 p = 17; \\ We choose to get it 17-adically
-e = 32; \\ Target p-adic accuracy is O(17^32)
+e = 256; \\ Target p-adic accuracy is O(17^32)
 chi = x^2-x-2; \\ Char.poly. of the Frobenius at p (another possible choice is x^2-2*x-1)
+Lp = hyperellcharpoly(Mod([f,h],p));
 P1 = [-1,1]; P2 = [0,0];
 
-  C = Hyper2RR(f,P1,P2);
+  C = Hyper2RR([f,h],P1,P2);
   C=concat(C,['y]);
 
 [f,g,d0,L,LL,L1,L2,Bad]=C;
@@ -28,7 +29,15 @@ P1 = [-1,1]; P2 = [0,0];
   );}
   J=PicInit(f,g,d0,L,LL,Bad,p,a,e);
 
+NJ = polresultant(Lp,x^a-1);
+M = NJ/l^4;
 e1=1;
-W1=PicRand(PicRed(J,1));
-
-W2=PicLift_XP(J,W1,1);
+J1=PicRed(J,e1);
+{
+while(1,
+W1=PicRand(J1);
+W1=PicMul(J1,W1,M,0);
+if(PicIsZero(J1,W1)==0,break);
+);
+}
+W2=PicLiftTors(J,W1,1,l);

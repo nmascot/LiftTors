@@ -255,6 +255,49 @@ GEN PicNeg(GEN J, GEN W, long flag)
   }
 }
 
+long PicMember(GEN J, GEN W)
+{
+	pari_sp av = avma;
+	GEN T,pe,p,w,V,wV,KV,KwV,K,W2;
+	long e;
+	ulong nW,nZ,nKV,nE;
+	ulong P,E,n;
+	long res;
+
+	JgetTpe(J,&T,&pe,&p,&e);
+	V = JgetV(J);
+	KV = JgetKV(J);
+	nZ = lg(KV)-1;
+	nKV = lg(gel(KV,1))-1;
+	nW = lg(W)-1;
+
+	do
+		w = RandVec_1(W,pe);
+	while(gequal0(w));
+	wV = DivMul(w,V,T,pe);
+	KwV = mateqnpadic(wV,T,p,e);
+  /* Prepare a mat K of size a v stack of KV + nW copies of KW */
+  /* and copy KV at the top */
+  nE = nKV*(nW+1);
+  K = cgetg(nZ+1,t_MAT);
+  for(P=1;P<=nZ;P++)
+  {
+    gel(K,P) = cgetg(nE+1,t_COL);
+    for(E=1;E<=nKV;E++)
+    {
+      gcoeff(K,E,P) = gcoeff(KV,E,P);
+			for(n=1;n<=nW;n++)
+			{
+				gcoeff(K,n*nKV+E,P) = Fq_mul(gcoeff(W,P,n),gcoeff(KwV,E,P),T,pe);
+			}
+		}
+  }
+  W2 = matkerpadic(K,T,p,e);
+	res = (lg(W2)-1==nW?1:0);
+	avma = av;
+	return res;
+}
+
 
 GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
 {
