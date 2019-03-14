@@ -122,17 +122,16 @@ GEN PicLift_RandLift_U(GEN U, GEN U0, GEN KM, GEN T, GEN p, GEN pe1, GEN pe21, l
   red = ZpXQ_inv(red,T,p,e21);
   setlg(K,lg(K)-1);
   K = FqC_Fq_mul(K,red,T,pe21);
-  newU = cgetg(nU,t_VEC);
+  newU = gcopy(U);
   k = 1;
   for(i=1;i<nU;i++)
   {
-		gel(newU,i) = cgetg(lg(gel(U,i)),t_COL);
 		/* Correct U[i] */
     for(j=1;j<nU0;j++)
     { /* Add the proper multiple of U0[j] to it */
       for(m=1;m<nV;m++)
         gmael(newU,i,m) =
-					ZX_add(gmael(U,i,m),ZX_Z_mul(Fq_mul(gel(K,k),gcoeff(U0,m,j),T,pe21),pe1));
+					ZX_add(gmael(newU,i,m),ZX_Z_mul(Fq_mul(gel(K,k),gcoeff(U0,m,j),T,pe21),pe1));
       k++;
     }
   }
@@ -169,7 +168,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
   GEN pefin,pe1,pe21,pe2;
   GEN J1,J2;
   GEN sW,Vs,U0,V0;
-  GEN K,U;
+  GEN K,U,U2;
 	GEN GWV,wV;
   GEN ABCD,uv,Ainv,CAinv,AinvB,rho;
   GEN drho,abcd;
@@ -216,6 +215,11 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 	/* Main loop */
   while(1)
   {
+		printf("BEGIN LOOP\n");
+		W = PicInflate_U(J1,U);
+		printf("Current precision: %ld\n",Jgete(J1));
+		printf("Verif member: %ld\n",PicMember(J1,W));
+		printf("Verif torsion: %ld\n",PicIsZero(J1,PicMul(J1,W,l,0)));
     e2 = 2*e1;
     if(e2>efin) e2 = efin;
 		e21 = e2-e1;
@@ -271,28 +275,14 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
   	/* Find a random solution to the inhomogeneous system */
   	KM = matkerpadic(K,T,p,e21);
 		printf("dim ker lift: %ld\n",lg(KM)-1);
-		U = PicLift_RandLift_U(U,U0,KM,T,p,pe1,pe21,e21);
-		e1 = e2;
-    pe1 = pe2;
-    printf("END LOOP\n");
-		if(e2==efin)
-		{
-			W = PicInflate_U(J2,U);
-			return gerepileupto(av,W);
-		}
-		continue;
 		if(cmpii(pe21,powiu(l,g+1))<=0)
   	{
     	printf("Lift by mul\n");
 			U = PicLift_RandLift_U(U,U0,KM,T,p,pe1,pe21,e21);
-			printf("A");
 			W = PicInflate_U(J2,U);
-			printf("B");
     	W = PicMul(J2,W,pe21,0); /* Make it l-tors */
-			printf("C");
 			if(e2==efin) /* Already done ? */
 				return gerepileupto(av,W);
-			printf("D\n");
 			U = PicDeflate_U(J2,W,nGW); /* Update U -> ready for new iteration */
 		}
 		else
@@ -301,13 +291,15 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 			Clifts = cgetg(g+2,t_MAT);
 			Ulifts = cgetg(g+2,t_VEC);
 			Wlifts = cgetg(g+2,t_VEC);
-  		worker = strtofunction("PicLiftTors_worker");
+  		worker = strtofunction("PicLiftTors_Chart_worker");
   		av2 = avma;
+			c0 = NULL; /* TODO debug remove */
   		while(1)
   		{
-				avma = av2;
+				/*avma = av2;*/
     		if(c0==NULL) /* Compute coords of 0 if not already done */
     		{
+					printf("Computing coords of 0\n");
       		/* Find coords of 0 */
       		c0 = PicChart(J,JgetW0(J),P0);
       		nc = lg(c0)-1;
@@ -323,6 +315,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 					av2 = avma;
     		}
     		/* Find g+1 lifts in parallel */
+				printf("Getting lifts and their coords\n");
     		pending = 0;
     		mt_queue_start(&pt,worker);
     		for(i=1;i<=g+1||pending;i++)
@@ -343,8 +336,12 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
       		}
     		}
     		mt_queue_end(&pt);
+				printf("Checking lifts:");
+				for(i=1;i<=g+1;i++) printf("%ld",PicMember(J2,gel(Wlifts,i)));
+				printf("\nLooking for rel\n");
 				Ktors = matkerpadic(Clifts,T,p,e21); /* Find comb with coord = 0 */
     		n = lg(Ktors)-1;
+				printf("dim ker tors: %ld\n",n);
     		if(n>1)
     		{ /* l-tors is étale, so this can only happen if CHart is not diffeo - > change chart */
       		printf("Dim ker tors = %ld, changing charts\n",n);
@@ -355,41 +352,56 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
     		}
     		Ktors = gel(Ktors,1);
     		red = gel(Ktors,1);
+				printf("Checking nonzero sum\n");
     		for(i=2;i<=g+1;i++)
     		{
       		red = FpX_add(red,gel(Ktors,i),pe2);
     		}
     		if(ZX_is0mod(red,p)) /* TODO can this happen ? why, or why not ? */
-      		printf("Sum of Ktors is zero!\n"); continue;
+				{	printf("Sum of Ktors is zero!\n"); continue;}
     		Ktors = FqC_Fq_mul(Ktors,ZpXQ_inv(red,T,p,e2),T,pe2); /* Normalise so that sum = 1 */
-				U = W = NULL; /* If done, return updated W; else update U. */
+				W = NULL; /* If done, return updated W; else update U. */
+				for(i=1;i<=g+1;i++) gel(Ulifts,i) = FqM_Fq_mul(gel(Ulifts,i),gel(Ktors,i),T,pe2);
+        U2 = gel(Ulifts,1);
+        for(i=2;i<=g+1;i++) U2 = FpXM_add(U2,gel(Ulifts,i),pe2);
 				/* But first check if really l-tors, as the chart might not be injective ! */
     		if(P0_tested == 0)
 				{
-					for(i=1;i<=g+1;i++) gel(Wlifts,i) = FqM_Fq_mul(gel(Wlifts,i),gel(Ktors,i),T,pe21);
-	    		W = gel(Wlifts,1);
-  	  		for(i=2;i<=g+1;i++) W = FpXM_add(W,gel(Wlifts,i),pe2);
-      		if(!PicIsZero(J2,PicMul(J2,W,l,0)))
+					printf("Checking l tors\n");
+					W = PicInflate_U(J2,U2);
+					/*for(i=1;i<=g+1;i++) gel(Wlifts,i) = FqM_Fq_mul(gel(Wlifts,i),gel(Ktors,i),T,pe2);
+					W = gel(Wlifts,1);
+  	  		for(i=2;i<=g+1;i++) W = FpXM_add(W,gel(Wlifts,i),pe2);*/
+      		if(PicMember(J2,W)==0)
       		{
-        		printf("Not actually l-torsion!!! Changing charts\n");
+        		printf("Not a proper lift!!! Changing charts\n");
         		P0++;
         		c0 = NULL;
         		continue;
       		}
+					if(!PicIsZero(J2,PicMul(J2,W,l,0)))
+          {
+            printf("Not actually l-torsion!!! Changing charts\n");
+            P0++;
+            c0 = NULL;
+            continue;
+          }
 					P0_tested = 1;
     		}
+				printf("Chart lift finished, updating\n");
 				if(e2 == efin)
 				{ /* Alredy done ? */
 					if(W == NULL) /* Update W, if notalready done, and return it */
 					{
+						W = PicInflate_U(J,U2);
 					}
 					return gerepileupto(av,W);
 				}
 				else
-				{ /* Update U -> ready for next iteration */
-					for(i=1;i<=g+1;i++) gel(Ulifts,i) = FqM_Fq_mul(gel(Ulifts,i),gel(Ktors,i),T,pe21);
-    			U = gel(Ulifts,1);
-    			for(i=2;i<=g+1;i++) U = FpXM_add(U,gel(Wlifts,i),pe2);
+				{	
+					/* Update U -> ready for next iteration */
+					U = U2;
+					break;
 				}
 			}
 		}
@@ -397,6 +409,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
     e1 = e2;
 		pe1 = pe2;
 		printf("END LOOP\n");
+		J1 = J2;
 		/*if(c0)
 			gerepileall(av1,3,&U,&pe1,&c0);
 		else

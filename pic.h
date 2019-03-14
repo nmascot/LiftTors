@@ -27,6 +27,7 @@ GEN Frob(GEN x, GEN FrobMat, GEN T, GEN pe);
 GEN DivMul(GEN f, GEN W, GEN T, GEN pe);
 GEN DivAdd(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess);
 GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong nIGS);
+long PicMember(GEN J, GEN W);
 GEN PicNeg(GEN J, GEN W, long flag);
 GEN PicChord(GEN J, GEN WA, GEN WB, long flag);
 GEN PicAdd(GEN J, GEN WA, GEN WB);
