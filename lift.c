@@ -293,7 +293,6 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 			Wlifts = cgetg(g+2,t_VEC);
   		worker = strtofunction("PicLiftTors_Chart_worker");
   		av2 = avma;
-			c0 = NULL; /* TODO debug remove */
   		while(1)
   		{
 				/*avma = av2;*/
@@ -310,12 +309,11 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
         		red = gel(c0,k0);
         		if(!ZX_is0mod(red,p)) break;
       		}
-      		c0 = FqV_Fq_mul(c0,ZpXQ_inv(red,T,p,e2),T,pe2); /* Dehomogenize */
+      		c0 = FqV_Fq_mul(c0,ZpXQ_inv(red,T,p,efin),T,pefin); /* Dehomogenize */
 					c0 = gerepileupto(av2,c0);
 					av2 = avma;
     		}
     		/* Find g+1 lifts in parallel */
-				printf("Getting lifts and their coords\n");
     		pending = 0;
     		mt_queue_start(&pt,worker);
     		for(i=1;i<=g+1||pending;i++)
@@ -338,7 +336,6 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
     		mt_queue_end(&pt);
 				/*printf("Checking lifts:");
 				for(i=1;i<=g+1;i++) printf("%ld",PicMember(J2,gel(Wlifts,i)));*/
-				printf("Looking for rel\n");
 				Ktors = matkerpadic(Clifts,T,p,e21); /* Find comb with coord = 0 */
     		n = lg(Ktors)-1;
 				printf("dim ker tors: %ld\n",n);
@@ -352,7 +349,6 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
     		}
     		Ktors = gel(Ktors,1);
     		red = gel(Ktors,1);
-				printf("Checking nonzero sum\n");
     		for(i=2;i<=g+1;i++)
     		{
       		red = FpX_add(red,gel(Ktors,i),pe2);
@@ -372,13 +368,13 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 					/*for(i=1;i<=g+1;i++) gel(Wlifts,i) = FqM_Fq_mul(gel(Wlifts,i),gel(Ktors,i),T,pe2);
 					W = gel(Wlifts,1);
   	  		for(i=2;i<=g+1;i++) W = FpXM_add(W,gel(Wlifts,i),pe2);*/
-      		if(PicMember(J2,W)==0)
+      		/*if(PicMember(J2,W)==0)
       		{
         		printf("Not a proper lift!!! Changing charts\n");
         		P0++;
         		c0 = NULL;
         		continue;
-      		}
+      		}*/
 					if(!PicIsZero(J2,PicMul(J2,W,l,0)))
           {
             printf("Not actually l-torsion!!! Changing charts\n");
@@ -388,7 +384,6 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
           }
 					P0_tested = 1;
     		}
-				printf("Chart lift finished, updating\n");
 				if(e2 == efin)
 				{ /* Alredy done ? */
 					if(W == NULL) /* Update W, if notalready done, and return it */
