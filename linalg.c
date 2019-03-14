@@ -223,16 +223,24 @@ GEN Hsort(GEN A, GEN p)
 	return A;
 }
 
+GEN matkerpadic_safe(GEN A, GEN T, GEN p, long e)
+{
+  pari_sp av = avma;
+	GEN K;
+  if(e==1) return FqM_ker(A,T,p);
+  K = ZpXQM_ker(A,T,p,e,NULL);
+  K = Hsort(K,p);
+  return gerepilecopy(av,K);
+}
+
 GEN matkerpadic(GEN A, GEN T, GEN p, long e)
 {
-	pari_sp av;
+	pari_sp av = avma;
 	GEN B,K;
 	if(e==1) return FqM_ker(A,T,p);
-	av = avma;
 	B = shallowtrans(FqM_image(shallowtrans(A),T,p));
-	K = ZpXQM_ker(A,T,p,e,NULL);
-	K = Hsort(K,p);
-	return gerepilecopy(av,K);
+	K = matkerpadic_safe(B,T,p,e);
+	return gerepileupto(av,K);
 }
 
 /*

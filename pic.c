@@ -292,7 +292,7 @@ long PicMember(GEN J, GEN W)
 			}
 		}
   }
-  W2 = matkerpadic(K,T,p,e);
+  W2 = matkerpadic_safe(K,T,p,e);
 	res = (lg(W2)-1==nW?1:0);
 	avma = av;
 	return res;
@@ -546,7 +546,7 @@ long PicEq(GEN J, GEN WA, GEN WB)
 		}
 	}
 
-	r = lg(matkerpadic(K,T,p,e))-1;
+	r = lg(matkerpadic_safe(K,T,p,e))-1;
 
 	avma = av;
 	return r;
