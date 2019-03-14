@@ -216,10 +216,10 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
   while(1)
   {
 		printf("BEGIN LOOP\n");
-		W = PicInflate_U(J1,U);
+		/*W = PicInflate_U(J1,U);
 		printf("Current precision: %ld\n",Jgete(J1));
 		printf("Verif member: %ld\n",PicMember(J1,W));
-		printf("Verif torsion: %ld\n",PicIsZero(J1,PicMul(J1,W,l,0)));
+		printf("Verif torsion: %ld\n",PicIsZero(J1,PicMul(J1,W,l,0)));*/
     e2 = 2*e1;
     if(e2>efin) e2 = efin;
 		e21 = e2-e1;
@@ -336,9 +336,9 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
       		}
     		}
     		mt_queue_end(&pt);
-				printf("Checking lifts:");
-				for(i=1;i<=g+1;i++) printf("%ld",PicMember(J2,gel(Wlifts,i)));
-				printf("\nLooking for rel\n");
+				/*printf("Checking lifts:");
+				for(i=1;i<=g+1;i++) printf("%ld",PicMember(J2,gel(Wlifts,i)));*/
+				printf("Looking for rel\n");
 				Ktors = matkerpadic(Clifts,T,p,e21); /* Find comb with coord = 0 */
     		n = lg(Ktors)-1;
 				printf("dim ker tors: %ld\n",n);
@@ -409,11 +409,11 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
     e1 = e2;
 		pe1 = pe2;
 		printf("END LOOP\n");
-		J1 = J2;
-		/*if(c0)
+		/*J1 = J2;*/
+		if(c0)
 			gerepileall(av1,3,&U,&pe1,&c0);
 		else
-			gerepileall(av1,2,&U,&pe1);*/
+			gerepileall(av1,2,&U,&pe1);
   }
 }
 
