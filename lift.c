@@ -164,8 +164,8 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 {
   pari_sp av=avma,av1,av2;
 	GEN T,p,V;
-  long efin,e1,e2,e21;
-  GEN pefin,pe1,pe21,pe2;
+  long efin,e1,e2,e21,efin2;
+  GEN pefin,pe1,pe21,pe2,pefin2;
   GEN J1,J2;
   GEN sW,Vs,U0,V0;
   GEN K,U,U2;
@@ -199,11 +199,13 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
     gel(Vs,j) = cgetg(nW+1,t_COL);
     for(i=1;i<=nW;i++) gcoeff(Vs,i,j) = gcoeff(V,sW[i],j);
   }
-	U0 = matkerpadic(Vs,T,p,efin); /* TODO half prec ? */ /* # = nV-nW = d0 */
-	U0 = gerepileupto(av,U0);
+	efin2 = efin/2; /* Upper bound for e21 for all iterations */
+	pefin2 = powis(p,efin2);
+	U0 = matkerpadic(Vs,T,p,efin2); /* # = nV-nW = d0 */
+	/*U0 = gerepileupto(av,U0);*/
 	V0 = cgetg(d0+1,t_VEC);
-	for(i=1;i<=d0;i++) gel(V0,i) = DivMul(FqM_FqC_mul(V,gel(U0,i),T,pefin),V,T,pefin); /* s*V for s in subspace of V whose rows in sW are 0 */ /* TODO can half precision here */
-	/* TODO parallel */
+	for(i=1;i<=d0;i++) gel(V0,i) = DivMul(FqM_FqC_mul(V,gel(U0,i),T,pefin2),V,T,pefin2); /* s*V for s in subspace of V whose rows in sW are 0 */
+	/* TODO parallel? */
 
 	e1 = eini;
 	pe1 = powiu(p,e1);
