@@ -241,10 +241,6 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
   while(1)
   {
 		printf("BEGIN LOOP\n");
-		/*W = PicInflate_U(J1,U);
-		printf("Current precision: %ld\n",Jgete(J1));
-		printf("Verif member: %ld\n",PicMember(J1,W));
-		printf("Verif torsion: %ld\n",PicIsZero(J1,PicMul(J1,W,l,0)));*/
     e2 = 2*e1;
     if(e2>efin) e2 = efin;
 		e21 = e2-e1;
@@ -325,7 +321,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
   		av2 = avma;
   		while(1)
   		{
-				/*avma = av2;*/
+				avma = av2;
     		if(c0==NULL) /* Compute coords of 0 if not already done */
     		{
 					printf("Computing coords of 0\n");
@@ -364,8 +360,6 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
       		}
     		}
     		mt_queue_end(&pt);
-				/*printf("Got lifts. Differences between W's:\n");
-				for(i=1;i<=g;i++) pari_printf("%Ps\n",liftall(gmodulo(gsub(gel(Wlifts,i),gel(Wlifts,g+1)),pe1)));*/
 				Ktors = matkerpadic(Clifts,T,p,e21); /* Find comb with coord = 0 */
     		n = lg(Ktors)-1;
 				printf("dim ker tors: %ld\n",n);
@@ -394,17 +388,9 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
     		if(P0_tested == 0)
 				{
 					printf("Checking l tors\n");
-					W = PicInflate_U(J2,U2,NULL); /* TODO */
-					/*for(i=1;i<=g+1;i++) gel(Wlifts,i) = FqM_Fq_mul(gel(Wlifts,i),gel(Ktors,i),T,pe2);
+					for(i=1;i<=g+1;i++) gel(Wlifts,i) = FqM_Fq_mul(gel(Wlifts,i),gel(Ktors,i),T,pe2);
 					W = gel(Wlifts,1);
-  	  		for(i=2;i<=g+1;i++) W = FpXM_add(W,gel(Wlifts,i),pe2);*/
-      		/*if(PicMember(J2,W)==0)
-      		{
-        		printf("Not a proper lift!!! Changing charts\n");
-        		P0++;
-        		c0 = NULL;
-        		continue;
-      		}*/
+  	  		for(i=2;i<=g+1;i++) W = FpXM_add(W,gel(Wlifts,i),pe2);
 					if(!PicIsZero(J2,PicMul(J2,W,l,0)))
           {
             printf("Not actually l-torsion!!! Changing charts\n");
@@ -415,10 +401,12 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 					P0_tested = 1;
     		}
 				if(e2 == efin)
-				{ /* Alredy done ? */
+				{ /* Already done ? */
 					if(W == NULL) /* Update W, if notalready done, and return it */
 					{
-						W = PicInflate_U(J,U2,NULL); /* TODO */
+						for(i=1;i<=g+1;i++) gel(Wlifts,i) = FqM_Fq_mul(gel(Wlifts,i),gel(Ktors,i),T,pe2);
+          	W = gel(Wlifts,1);
+          	for(i=2;i<=g+1;i++) W = FpXM_add(W,gel(Wlifts,i),pe2);
 					}
 					return gerepileupto(av,W);
 				}
