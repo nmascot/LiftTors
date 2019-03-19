@@ -100,6 +100,19 @@ GEN PicInflate_U(GEN J, GEN U) /* Takes IGS given by coords // V */
 	return gerepileupto(av,W);
 }
 
+GEN PicLift_worker(GEN V0j, ulong shift, GEN uv, GEN AinvB, GEN CAinv, GEN T, GEN pe21)
+{
+	pari_sp av = avma;
+	GEN abcd,drho;
+	abcd = M2ABCD_1block(V0j,0,shift,uv); /* Split */
+  drho = FpXM_sub(FqM_mul(gel(abcd,1),AinvB,T,pe21),gel(abcd,2),pe21); /* aA^-1B-b */
+	drho = FqM_mul(CAinv,drho,T,pe21); /* CA^-1aA^-1B - CA^-1b */
+	drho = FpXM_add(gel(abcd,4),drho,pe21); /* d + CA^-1aA^-1B - CA^-1b */
+	drho = FpXM_sub(drho,FqM_mul(gel(abcd,3),AinvB,T,pe21),pe21); /* d + CA^-1aA^-1B - CA^-1b - cA^-1B */
+	drho = mat2col(drho);
+	return gerepilecopy(av,drho);
+}
+
 GEN PicLift_RandLift_U(GEN U, GEN U0, GEN KM, GEN T, GEN p, GEN pe1, GEN pe21, long e21)
 {
 	pari_sp av;
@@ -171,7 +184,6 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
   GEN K,U,U2;
 	GEN GWV,wV;
   GEN ABCD,uv,Ainv,CAinv,AinvB,rho;
-  GEN drho,abcd;
   GEN KM,red;
   ulong g,nZ,nW;
   ulong nGW=2,nV,d0,nc,k0=0,P0=0;
@@ -259,20 +271,37 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
   	/* TODO do not deform U1[1]? */
   	/* TODO swap loops and parallelise */
   	K = cgetg(nGW*d0+2,t_MAT);
-  	k = 1;
-  	for(i=1;i<=nGW;i++)
+		worker = strtofunction("PicLift_worker");
+		pending = 0;
+    i = 1;
+		j = 1;
+		mt_queue_start(&pt,worker);
+		for(k=1;k<=nGW*d0||pending;k++)
+    {
+			if(k<=nGW*d0)
+      { /* GW[i] shifts by p^e1*V0[j] */
+				args = mkvecn(7,gel(V0,j),utoi((i-1)*nV),uv,AinvB,CAinv,T,pe21);
+				mt_queue_submit(&pt,k,args);
+				j++;
+				if(j>d0) {j=1;i++;}
+			}
+			else mt_queue_submit(&pt,k,NULL);
+			done = mt_queue_get(&pt,&workid,&pending);
+      if(done) gel(K,workid) = done;
+		}
+    mt_queue_end(&pt);
+  	/*for(i=1;i<=nGW;i++)
   	{
     	for(j=1;j<=d0;j++)
-    	{ /* GW[i] shifts by p^e1*V0[j] */
-      	abcd = M2ABCD_1block(gel(V0,j),0,(i-1)*nV,uv); /* Split */
-      	drho = FpXM_sub(FqM_mul(gel(abcd,1),AinvB,T,pe21),gel(abcd,2),pe21); /* aA^-1B-b */
-      	drho = FqM_mul(CAinv,drho,T,pe21); /* CA^-1aA^-1B - CA^-1b */
-      	drho = FpXM_add(gel(abcd,4),drho,pe21); /* d + CA^-1aA^-1B - CA^-1b */
-      	drho = FpXM_sub(drho,FqM_mul(gel(abcd,3),AinvB,T,pe21),pe21); /* d + CA^-1aA^-1B - CA^-1b - cA^-1B */
+      	abcd = M2ABCD_1block(gel(V0,j),0,(i-1)*nV,uv); 
+      	drho = FpXM_sub(FqM_mul(gel(abcd,1),AinvB,T,pe21),gel(abcd,2),pe21); 
+      	drho = FqM_mul(CAinv,drho,T,pe21); 
+      	drho = FpXM_add(gel(abcd,4),drho,pe21);
+      	drho = FpXM_sub(drho,FqM_mul(gel(abcd,3),AinvB,T,pe21),pe21);
       	gel(K,k) = mat2col(drho);
       	k++;
     	}
-  	}
+  	}*/
   	gel(K,nGW*d0+1) = mat2col(rho);
   	/* Find a random solution to the inhomogeneous system */
   	KM = matkerpadic(K,T,p,e21);
@@ -336,6 +365,8 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
       		}
     		}
     		mt_queue_end(&pt);
+				/*printf("Got lifts. Differences between W's:\n");
+				for(i=1;i<=g;i++) pari_printf("%Ps\n",liftall(gmodulo(gsub(matimagepadic(gel(Wlifts,i),T,p,e2),matimagepadic(gel(Wlifts,g+1),T,p,e2)),pe1)));*/
 				/*printf("Checking lifts:");
 				for(i=1;i<=g+1;i++) printf("%ld",PicMember(J2,gel(Wlifts,i)));*/
 				Ktors = matkerpadic(Clifts,T,p,e21); /* Find comb with coord = 0 */

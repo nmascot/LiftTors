@@ -223,6 +223,44 @@ GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong 
 	}
 }
 
+GEN DivSub_IGS(GEN GA, GEN WB, GEN KV, GEN T, GEN p, long e, GEN pe)
+{
+  pari_sp av = avma;
+  ulong nIGS,nZ,P,nE,E,nV,nB,n;
+  GEN KB,K,col,res;
+	nIGS = lg(GA)-1;
+  nZ = lg(KV);
+  nV = lg(gel(KV,1))-1;
+  KB = mateqnpadic(WB,T,p,e);
+  nB = lg(gel(KB,1))-1;
+  /* Prepare a mat K of size a v stack of KV + nIGS copies of KB */
+  /* and copy KV at the top */
+  nE = nV + nIGS*nB;
+  K = cgetg(nZ,t_MAT);
+  for(P=1;P<nZ;P++)
+  {
+    col = cgetg(nE+1,t_COL);
+    for(E=1;E<=nV;E++)
+    {
+      gel(col,E) = gcoeff(KV,E,P);
+    }
+    gel(K,P) = col;
+  }
+  /* nIGS times, take rand s in WA, and stack s.KB down K */
+  for(n=1;n<=nIGS;n++)
+  {
+    for(E=1;E<=nB;E++)
+    {
+      for(P=1;P<nZ;P++)
+      {
+        gcoeff(K,nV+(n-1)*nB+E,P) = Fq_mul(gcoeff(GA,P,n),gcoeff(KB,E,P),T,pe);
+      }
+    }
+  }
+  res = matkerpadic(K,T,p,e);
+  return gerepileupto(av,res);
+}
+
 GEN PicNeg(GEN J, GEN W, long flag)
 {
   pari_sp av = avma;

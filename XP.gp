@@ -4,7 +4,7 @@ read("GalRep.gp");
 f = x^5+x^4; h = x^3+x+1; \\ X1(13)
 l = 7; \\ The representation occurs in the 7-torsion of the Jacobian
 p = 17; \\ We choose to get it 17-adically
-e = 256; \\ Target p-adic accuracy is O(17^32)
+e = 16; \\ Target p-adic accuracy is O(17^32)
 chi = x^2-x-2; \\ Char.poly. of the Frobenius at p (another possible choice is x^2-2*x-1)
 Lp = hyperellcharpoly(Mod([f,h],p));
 P1 = [-1,1]; P2 = [0,0];
