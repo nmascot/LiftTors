@@ -48,7 +48,7 @@ install("JgetFrobMat","G","JgetFrobMat","./libpic.so");
 install("Frob","GGGG","Frob","./libpic.so");
 
 install("PicLift_worker","GUGGGGG",,"./liblift.so");
-install("PicLiftTors_Chart_worker","GGGGGGGLGUUG",,"./liblift.so");
+install("PicLiftTors_Chart_worker","GGGGGGGGLGUUG",,"./liblift.so");
 install("PicLiftTors","GGLG",,"./liblift.so");
 
 install("PicNorm","GGG","PicNorm","./libfreyruck.so");

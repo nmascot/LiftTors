@@ -66,14 +66,14 @@ GEN PicDeflate_U(GEN J, GEN W, ulong nIGS)
   return gerepilecopy(av,U);
 }
 
-GEN PicInflate_U(GEN J, GEN U) /* Takes IGS given by coords // V */
-{
+GEN PicInflate_U(GEN J, GEN U, GEN I) /* Takes IGS given by coords // V */
+{  /* I : indices of rows forming invtble block -> make it 1 */
 	pari_sp av = avma;
 	GEN T,pe,p;
 	long e;
-	GEN V,KV,GWV,wV,W;
+	GEN V,KV,GWV,wV,W,M;
 	ulong d0,g;
-	ulong nU,nV;
+	ulong nU,nV,nW;
 	ulong i,j,k;
 
 	JgetTpe(J,&T,&pe,&p,&e);
@@ -83,6 +83,7 @@ GEN PicInflate_U(GEN J, GEN U) /* Takes IGS given by coords // V */
 	nV = lg(V)-1;
 	d0 = Jgetd0(J);
 	g = Jgetg(J);
+	nW = d0+1-g;
 
 	GWV = cgetg(nU*nV+1,t_MAT); /* w*V for w in GW */
   k = 1;
@@ -96,7 +97,18 @@ GEN PicInflate_U(GEN J, GEN U) /* Takes IGS given by coords // V */
     }
   }
   GWV = FqM_image(GWV,T,p);
-  W = DivSub(V,GWV,KV,d0+1-g,T,p,e,pe,3); /* TODO pass precomputed IGS of V */
+  W = DivSub(V,GWV,KV,nW,T,p,e,pe,3); /* TODO pass precomputed IGS of V */
+	if(I)
+	{ /* Change basis to make block = 1 */
+		M = cgetg(nW+1,t_MAT);
+		for(j=1;j<=nW;j++)
+		{
+			gel(M,j) = cgetg(nW+1,t_COL);
+			for(i=1;i<=nW;i++) gcoeff(M,i,j) = gcoeff(W,I[i],j);
+		}
+		M = ZpXQM_inv(M,T,p,e);
+		W = FqM_mul(W,M,T,pe);
+	}
 	return gerepileupto(av,W);
 }
 
@@ -151,7 +163,7 @@ GEN PicLift_RandLift_U(GEN U, GEN U0, GEN KM, GEN T, GEN p, GEN pe1, GEN pe21, l
 	return gerepileupto(av,newU);
 }
 
-GEN PicLiftTors_Chart_worker(GEN J, GEN l, GEN U, GEN U0, GEN KM, GEN pe1, GEN pe21, long e21, GEN c0, ulong k0, ulong P0, GEN randseed)
+GEN PicLiftTors_Chart_worker(GEN J, GEN l, GEN U, GEN U0, GEN I, GEN KM, GEN pe1, GEN pe21, long e21, GEN c0, ulong k0, ulong P0, GEN randseed)
 {
   pari_sp av = avma;
 	GEN T,p,pe2;
@@ -164,7 +176,7 @@ GEN PicLiftTors_Chart_worker(GEN J, GEN l, GEN U, GEN U0, GEN KM, GEN pe1, GEN p
 
 	/* Get a random lift */
 	U = PicLift_RandLift_U(U,U0,KM,T,p,pe1,pe21,e21);
-  W = PicInflate_U(J,U);
+  W = PicInflate_U(J,U,I);
   /* Mul by l, get coordinates, and compare them to those of W0 */
   c = PicChart(J,PicMul(J,W,l,0),P0);
   c = FqV_Fq_mul(c,ZpXQ_inv(gel(c,k0),T,p,e2),T,pe2); /* Normalize proj coords */
@@ -214,7 +226,6 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 	efin2 = efin/2; /* Upper bound for e21 for all iterations */
 	pefin2 = powis(p,efin2);
 	U0 = matkerpadic(Vs,T,p,efin2); /* # = nV-nW = d0 */
-	/*U0 = gerepileupto(av,U0);*/
 	V0 = cgetg(d0+1,t_VEC);
 	for(i=1;i<=d0;i++) gel(V0,i) = DivMul(FqM_FqC_mul(V,gel(U0,i),T,pefin2),V,T,pefin2); /* s*V for s in subspace of V whose rows in sW are 0 */
 	/* TODO parallel? */
@@ -290,18 +301,6 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
       if(done) gel(K,workid) = done;
 		}
     mt_queue_end(&pt);
-  	/*for(i=1;i<=nGW;i++)
-  	{
-    	for(j=1;j<=d0;j++)
-      	abcd = M2ABCD_1block(gel(V0,j),0,(i-1)*nV,uv); 
-      	drho = FpXM_sub(FqM_mul(gel(abcd,1),AinvB,T,pe21),gel(abcd,2),pe21); 
-      	drho = FqM_mul(CAinv,drho,T,pe21); 
-      	drho = FpXM_add(gel(abcd,4),drho,pe21);
-      	drho = FpXM_sub(drho,FqM_mul(gel(abcd,3),AinvB,T,pe21),pe21);
-      	gel(K,k) = mat2col(drho);
-      	k++;
-    	}
-  	}*/
   	gel(K,nGW*d0+1) = mat2col(rho);
   	/* Find a random solution to the inhomogeneous system */
   	KM = matkerpadic(K,T,p,e21);
@@ -310,7 +309,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
   	{
     	printf("Lift by mul\n");
 			U = PicLift_RandLift_U(U,U0,KM,T,p,pe1,pe21,e21);
-			W = PicInflate_U(J2,U);
+			W = PicInflate_U(J2,U,NULL);
     	W = PicMul(J2,W,pe21,0); /* Make it l-tors */
 			if(e2==efin) /* Already done ? */
 				return gerepileupto(av,W);
@@ -352,7 +351,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
       		if(i<=g+1)
       		{
         		randseed = utoi(pari_rand());
-        		args = mkvecn(12,J2,l,U,U0,KM,pe1,pe21,stoi(e21),c0,utoi(k0),utoi(P0),randseed);
+        		args = mkvecn(13,J2,l,U,U0,sW,KM,pe1,pe21,stoi(e21),c0,utoi(k0),utoi(P0),randseed);
         		mt_queue_submit(&pt,i,args);
       		}
       		else mt_queue_submit(&pt,i,NULL);
@@ -366,9 +365,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
     		}
     		mt_queue_end(&pt);
 				/*printf("Got lifts. Differences between W's:\n");
-				for(i=1;i<=g;i++) pari_printf("%Ps\n",liftall(gmodulo(gsub(matimagepadic(gel(Wlifts,i),T,p,e2),matimagepadic(gel(Wlifts,g+1),T,p,e2)),pe1)));*/
-				/*printf("Checking lifts:");
-				for(i=1;i<=g+1;i++) printf("%ld",PicMember(J2,gel(Wlifts,i)));*/
+				for(i=1;i<=g;i++) pari_printf("%Ps\n",liftall(gmodulo(gsub(gel(Wlifts,i),gel(Wlifts,g+1)),pe1)));*/
 				Ktors = matkerpadic(Clifts,T,p,e21); /* Find comb with coord = 0 */
     		n = lg(Ktors)-1;
 				printf("dim ker tors: %ld\n",n);
@@ -397,7 +394,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
     		if(P0_tested == 0)
 				{
 					printf("Checking l tors\n");
-					W = PicInflate_U(J2,U2);
+					W = PicInflate_U(J2,U2,NULL); /* TODO */
 					/*for(i=1;i<=g+1;i++) gel(Wlifts,i) = FqM_Fq_mul(gel(Wlifts,i),gel(Ktors,i),T,pe2);
 					W = gel(Wlifts,1);
   	  		for(i=2;i<=g+1;i++) W = FpXM_add(W,gel(Wlifts,i),pe2);*/
@@ -421,7 +418,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 				{ /* Alredy done ? */
 					if(W == NULL) /* Update W, if notalready done, and return it */
 					{
-						W = PicInflate_U(J,U2);
+						W = PicInflate_U(J,U2,NULL); /* TODO */
 					}
 					return gerepileupto(av,W);
 				}
