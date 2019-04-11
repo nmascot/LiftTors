@@ -2,7 +2,7 @@ install("ZpXQ_div","GGGGGL");
 read("Dimensions.gp");
 
 \\ Choose p^e and N
-N=12;
+N=18;
 \\ Choose E
 a4=a6=1;
 fE='x^3+a4*'x+a6;
@@ -34,7 +34,7 @@ BestpSplitE(fE,D,N,NE,pmax)=
 	[p0,a0];
 }
 
-[p,a]=BestpSplitE(fE,D,N,E.disc,200);
+[p,a]=BestpSplitE(fE,D,N,E.disc,1000);
 e=4;
 pe=p^e;
 t1=ffgen([p,a],'t);
@@ -174,6 +174,15 @@ ToCusp(s,N)= \\ Finds [p',*;q';*] in SL2(Z) with p~p', q~q' mod N
 	SL2lift([p,-v*h;q,u*h]);
 }
 
+{
+Cusp2X1(s,N)= \\ Finds [*,*;c';d'] in SL2(Z) with c~c', d~d' mod N
+  my(c,d,u,v,g,h);
+  [c,d]=s;
+  [u,v,g]=gcdext(c,d);
+  h=lift(1/Mod(g,N));
+  SL2lift([c,-v*h;d,u*h]);
+}
+
 ActOnCuspi(g,i)=\\ g in SL2 -> the j s.t. g*cusp#i = cusp#j
 {
 my(c=Cusps[i]);
@@ -206,42 +215,93 @@ for(c=1,#Cusps, \\ this col = l(c)
 }
 \\ Values at cusps
 z = Mod(Mod(zetaN.pol,p),T);
+E1atCusp(s,N,z)=
 {
-E1_cusps = matrix(#Cusps,#Cusps);
-for(s=1,#Cusps,
-	M=ToCusp(Cusps[s],N);
-	for(v=1,#Cusps,
-		[c,d] = Cusps[v]*M;
-		E1_cusps[s,v] = if(c%N==0,
-			1/2*(z^d+1)/(z^d-1),
-			Mod(1/2-frac(c/N),p))
-	)
-);
+	my([c,d]=s);
+	c=c%N;
+	d=d%N;
+	if(c==0,
+		1/2*(z^d+1)/(z^d-1),
+		1/2-c/N
+	);
 }
 
 \\ TODO
 E1 = Mod(Mod(E1,p),T);
 
 {
-\\ Matrix representing M2(Gamma(N))
-d=DimMk(2,-1,N);
-M2=matrix(#SL2,d);
-M2_cusps=matrix(#Cusps,d);
+\\ Generators of M2(Gamma(N))
+d=DimMk(2,-1,N); \\ dim
+d2=min(2*d,#SL2); \\ # pts at which we observe lin indep
 while(1,
+	Mtest=matrix(d2,d);
+	M2gens=vector(d);
 	for(i=1,d,
 		u=random(#Cusps)+1;
 		v=random(#Cusps)+1;
-		for(P=1,#SL2, \\ this row = values at pt alpha*g, g=SL2[P]
-    	M2[P,i]=E1[P,u]*E1[P,v];
+		M2gens[i]=[u,v];
+		for(P=1,d2, \\ this row = values at pt alpha*g, g=SL2[P]
+    	Mtest[P,i]=E1[P,u]*E1[P,v];
   	);
-		for(s=1,#Cusps, \\ values at cusps
-      M2_cusps[s,i]=E1_cusps[s,u]*E1_cusps[s,v];
-    )
 	);
-	if(matrank(M2)==d,break);
+	if(matrank(Mtest)==d,break);
 	print("M2 fail");
 );
 }
+
+M21=matrix(#Cusps,d);
+{
+	for(P=1,#Cusps,
+		MP=Cusp2X1(Cusps[P],N);
+		for(i=1,d,
+			[v,w]=M2gens[i];
+			v=Cusps[v];
+			w=Cusps[w];
+			M21[P,i]=sum(x=1,N,GetCoef(Ml1,v*[1,x;0,1]*MP)*GetCoef(Ml1,w*[1,x;0,1]*MP))
+		)
+	);
+}
+M21=Mod(Mod(M21,p),T);
+\\ Extract basis
+M21big=M21;
+B=matindexrank(M21big)[2];
+d=#B;
+M21=matrix(#Cusps,d);
+M2basis=vector(d,j,M2gens[B[j]]);
+{
+for(i=1,#Cusps,
+	for(j=1,d,
+		M21[i,j]=M21big[i,B[j]]
+	)
+);
+}
+
+e01=DimData(1,N)[4];
+M21_cusps=matrix(e01,d);
+{
+	n=1;
+	done=vector(#Cusps);
+	Cusps1=vector(e01);
+	for(m=1,#Cusps,
+		if(done[m],next);
+		s=Cusps[m];
+		Cusps1[n]=s;
+		for(x=1,N,
+			sx=s*[1,0;x,1]; \\ ([1,x;0,1]*s~)~
+			done[select(t->Mod(t,N)==sx||Mod(-t,N)==sx,Cusps,1)[1]]=1
+		);
+		Ms=ToCusp(s,N);
+		for(i=1,d,
+			[v,w]=M2basis[i];
+      v=Cusps[v];
+      w=Cusps[w];
+			M21_cusps[n,i]=sum(x=1,N,E1atCusp(v*[1,x;0,1]*Ms,N,z)*E1atCusp(w*[1,x;0,1]*Ms,N,z))
+		);
+		n++
+	);
+}
+
+M21=Mod(Mod(M21,p),T);
 
 /*M=Mod(Mod(Ml1,p),T);
 {
