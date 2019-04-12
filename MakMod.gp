@@ -249,6 +249,22 @@ while(1,
 );
 }
 
+/*TODO test: On M2(Gamma(N)), sum_c cusp f(c) = 0? OK!
+{
+for(i=1,#Cusps,
+	for(j=1,#Cusps,
+		S=0;
+		for(s=1,#Cusps,
+    	c=Cusps[s];
+    	Mc=ToCusp(c,N);
+			S+=E1atCusp(Cusps[i]*Mc,N,z)*E1atCusp(Cusps[j]*Mc,N,z);
+		);
+		print([i,j,liftall(S)]);
+	)
+);
+}
+ TODO end test */
+
 M21=matrix(#Cusps,d);
 {
 	for(P=1,#Cusps,
@@ -277,7 +293,7 @@ for(i=1,#Cusps,
 }
 
 e01=DimData(1,N)[4];
-M21_cusps=matrix(e01,d);
+M21_cusps=matrix(e01,d); \\ Values at cusps / width = residues
 {
 	n=1;
 	done=vector(#Cusps);
@@ -286,6 +302,7 @@ M21_cusps=matrix(e01,d);
 		if(done[m],next);
 		s=Cusps[m];
 		Cusps1[n]=s;
+		h=gcd(N,s[2]); \\ Width of cusp wrt Gamma1(N)
 		for(x=1,N,
 			sx=s*[1,0;x,1]; \\ ([1,x;0,1]*s~)~
 			done[select(t->Mod(t,N)==sx||Mod(-t,N)==sx,Cusps,1)[1]]=1
@@ -295,7 +312,7 @@ M21_cusps=matrix(e01,d);
 			[v,w]=M2basis[i];
       v=Cusps[v];
       w=Cusps[w];
-			M21_cusps[n,i]=sum(x=1,N,E1atCusp(v*[1,x;0,1]*Ms,N,z)*E1atCusp(w*[1,x;0,1]*Ms,N,z))
+			M21_cusps[n,i]=sum(x=1,N,E1atCusp(v*[1,x;0,1]*Ms,N,z)*E1atCusp(w*[1,x;0,1]*Ms,N,z))/h
 		);
 		n++
 	);
