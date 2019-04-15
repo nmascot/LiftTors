@@ -1,13 +1,15 @@
 install("ZpXQ_div","GGGGGL");
 read("Dimensions.gp");
+setrand(1);
 
 \\ Choose p^e and N
-N=18;
+N=12;
 \\ Choose E
 a4=a6=1;
 fE='x^3+a4*'x+a6;
 E=ellinit([a4,a6]);
 \\ Choose q=p^a splitting E[N]
+\\ TODO better from charpoly?
 D=elldivpol(E,N);
 D/=content(D);
 
@@ -35,7 +37,7 @@ BestpSplitE(fE,D,N,NE,pmax)=
 }
 
 [p,a]=BestpSplitE(fE,D,N,E.disc,1000);
-e=4;
+e=1;
 pe=p^e;
 t1=ffgen([p,a],'t);
 E1=ellinit(E,t1); \\ E / Fq
@@ -71,6 +73,10 @@ LiftTorsPt(P,f,D,T,p,e)=
 /*PtRed(P,t)=subst(Mod(liftpol(P),t.p),variable(t.mod),t);
 eWeil(E,P,Q,N,t)=padicappr('x^N-1,Mod(ellweilpairing(ellinit(E,t),PtRed(P,t),PtRed(Q,t),N).pol,t1.mod)+O((t.p)^padicprec(polcoef(liftpol(P[1]),0),t.p)))[1];*/
 
+GetCoef(A,a)=my(i,j);[i,j]=liftall(Mod(a,N));if(i==0,i=N);if(j==0,j=N);A[i,j];
+ZNnorm(x,N)=my(y=x%N);if(y==0,N,y);
+ZNneg(x,N)=my(y=lift(Mod(-x,N)));if(y==0,N,y);
+
 ENtors(E,fE,N,D,xD)=
 {
 	my(PhiN,P0,Q0,zetaN,EN);
@@ -97,7 +103,18 @@ ENtors(E,fE,N,D,xD)=
 	[EN,zetaN];
 }
 
+matfind(A,x)=
+{
+	for(j=1,#A,
+		for(i=1,#(A[,j]),
+			if(A[i,j]==x,return([i,j]))
+		)
+	);
+	[];
+}
+
 [EN,zetaN] = ENtors(E1,fE,N,D,xD);
+ENFrob=matconcat(apply(C->matfind(EN,apply(x->x^p,GetCoef(EN,C))),[[1,0],[0,1]]~));
 
 \\ Lift to Qq
 /*export(T);
@@ -108,10 +125,6 @@ export(fE);
 export(LiftTorsPt);*/
 EN=apply(P->liftall(LiftTorsPt(P,fE,D,T,p,e)),EN);
 
-GetCoef(A,a)=my(i,j);[i,j]=liftall(Mod(a,N));if(i==0,i=N);if(j==0,j=N);A[i,j];
-ZNnorm(x,N)=my(y=x%N);if(y==0,N,y);
-ZNneg(x,N)=my(y=lift(Mod(-x,N)));if(y==0,N,y);
-
 l2(P,Q)=my([xP,yP]=GetCoef(EN,P),[xQ,yQ]=GetCoef(EN,Q));ZpXQ_div(yQ-yP,xQ-xP,T,pe,p,e); \\ Slope of line (PQ)
 \\ TODO methode Kamal addchain
 l1(P,Q)=sum(n=0,N-1,l2(P,Q+n*P)); \\ sum_n l2(P,Q+nP) ~ sum_n l(P) +l(Q+nP)-l(Q+nP) ~ l*l(P)
@@ -121,6 +134,9 @@ printf("lambdas");
 Ml1=matrix(N,N);
 for(x=1,N-1,Ml1[x,N]=l1([x,0],[0,1])); \\ P=alpha(x,0) -> Q=alpha(0,1)
 for(x=1,N,for(y=1,N-1,Ml1[x,y]=l1([x,y],[1,0]))); \\ P=alpha(x,y), y!=0 -> Q=alpha(1,0)
+
+\\ TODO?
+Ml1=Mod(Mod(Ml1,pe),T);
 
 printf("SL2");
 \\ Find all of SL(2,l), TODO that's 12x too many pts, restrict.
@@ -191,7 +207,7 @@ c=liftint(Mod(c,N));
 select(x->x==c,Cusps,1)[1];
 }
 
-{
+/*{
 \\ Matrix representing Eis1(Gamma1(N))
 E11=matrix(#Cusps,#Cusps);
 for(c=1,#Cusps, \\ this col = l(c)
@@ -202,9 +218,9 @@ for(c=1,#Cusps, \\ this col = l(c)
 		E11[P,c]=sum(n=1,N,GetCoef(Ml1,Cusps[c]*[a,b;-v*x+a*n,u*x+b*n]))
 	)
 );
-}
+}*/
 
-{
+/*{
 \\ Matrix representing Eis1(Gamma(N))
 E1=matrix(#SL2,#Cusps);
 for(c=1,#Cusps, \\ this col = l(c)
@@ -212,9 +228,10 @@ for(c=1,#Cusps, \\ this col = l(c)
       E1[P,c]=GetCoef(Ml1,Cusps[c]*SL2[P]);
    )
 );
-}
+}*/
 \\ Values at cusps
 z = Mod(Mod(zetaN.pol,p),T);
+
 E1atCusp(s,N,z)=
 {
 	my([c,d]=s);
@@ -226,28 +243,27 @@ E1atCusp(s,N,z)=
 	);
 }
 
-\\ TODO
-E1 = Mod(Mod(E1,p),T);
-
-{
 \\ Generators of M2(Gamma(N))
+/*print("Gens of M2(Gamma1)");
 d=DimMk(2,-1,N); \\ dim
 d2=min(2*d,#SL2); \\ # pts at which we observe lin indep
 while(1,
 	Mtest=matrix(d2,d);
 	M2gens=vector(d);
 	for(i=1,d,
+		print(i,"/",d);
 		u=random(#Cusps)+1;
 		v=random(#Cusps)+1;
 		M2gens[i]=[u,v];
 		for(P=1,d2, \\ this row = values at pt alpha*g, g=SL2[P]
-    	Mtest[P,i]=E1[P,u]*E1[P,v];
+			MP=SL2[P];
+    	Mtest[P,i]=Mod(GetCoef(Ml1,Cusps[u]*MP),p)*Mod(GetCoef(Ml1,Cusps[v]*MP),p);
   	);
 	);
 	if(matrank(Mtest)==d,break);
 	print("M2 fail");
 );
-}
+}*/
 
 /*TODO test: On M2(Gamma(N)), sum_c cusp f(c) = 0? OK!
 {
@@ -265,26 +281,33 @@ for(i=1,#Cusps,
 }
  TODO end test */
 
-M21=matrix(#Cusps,d);
+printf("Gens of M2(Gamma1)");
+d=DimMk(2,1,N); \\ dim
+d1=min(2*d,#Cusps); \\ # pts at which we observe lin indep, TODO ?
+d2=d1; \\ # gens
+M21=matrix(#Cusps,d2);
+M21gens=vector(d2);
+\\ TODO use xP ?
 {
-	for(P=1,#Cusps,
-		MP=Cusp2X1(Cusps[P],N);
-		for(i=1,d,
-			[v,w]=M2gens[i];
-			v=Cusps[v];
-			w=Cusps[w];
-			M21[P,i]=sum(x=1,N,GetCoef(Ml1,v*[1,x;0,1]*MP)*GetCoef(Ml1,w*[1,x;0,1]*MP))
+while(1,
+	for(j=1,d2,
+		v=Cusps[1+random(#Cusps)];
+    w=Cusps[1+random(#Cusps)];
+    M21gens[j]=[v,w];
+		for(P=1,#Cusps,
+			MP=Cusp2X1(Cusps[P],N);
+			M21[P,j]=sum(x=1,N,GetCoef(Ml1,v*[1,x;0,1]*MP)*GetCoef(Ml1,w*[1,x;0,1]*MP))
 		)
 	);
-}
-M21=Mod(Mod(M21,p),T);
-\\ Extract basis
-M21big=M21;
-B=matindexrank(M21big)[2];
-d=#B;
+	\\ Extract basis
+	M21big=Mod(M21,p);
+	B=matindexrank(M21big)[2];
+	if(#B>d,error("Bug M2(Gamma1)"));
+	if(#B==d,break);
+	print("Not gen:",#B,"/",d)
+);
 M21=matrix(#Cusps,d);
-M2basis=vector(d,j,M2gens[B[j]]);
-{
+M21basis=vector(d,j,M21gens[B[j]]);
 for(i=1,#Cusps,
 	for(j=1,d,
 		M21[i,j]=M21big[i,B[j]]
@@ -292,8 +315,9 @@ for(i=1,#Cusps,
 );
 }
 
-e01=DimData(1,N)[4];
+e01=DimData(1,N)[4]; \\ #Cusps of X1(N)
 M21_cusps=matrix(e01,d); \\ Values at cusps / width = residues
+zf = Mod('x,polcyclo(N));
 {
 	n=1;
 	done=vector(#Cusps);
@@ -303,22 +327,20 @@ M21_cusps=matrix(e01,d); \\ Values at cusps / width = residues
 		s=Cusps[m];
 		Cusps1[n]=s;
 		h=gcd(N,s[2]); \\ Width of cusp wrt Gamma1(N)
-		for(x=1,N,
+		for(x=1,N, \\ Mark processed cups
 			sx=s*[1,0;x,1]; \\ ([1,x;0,1]*s~)~
 			done[select(t->Mod(t,N)==sx||Mod(-t,N)==sx,Cusps,1)[1]]=1
 		);
 		Ms=ToCusp(s,N);
 		for(i=1,d,
-			[v,w]=M2basis[i];
-      v=Cusps[v];
-      w=Cusps[w];
-			M21_cusps[n,i]=sum(x=1,N,E1atCusp(v*[1,x;0,1]*Ms,N,z)*E1atCusp(w*[1,x;0,1]*Ms,N,z))/h
+			[v,w]=M21basis[i];
+			M21_cusps[n,i]=sum(x=1,N,E1atCusp(v*[1,x;0,1]*Ms,N,zf)*E1atCusp(w*[1,x;0,1]*Ms,N,zf))/h
 		);
 		n++
 	);
 }
 
-M21=Mod(Mod(M21,p),T);
+\\M21=Mod(Mod(M21,p),T);
 
 /*M=Mod(Mod(Ml1,p),T);
 {
