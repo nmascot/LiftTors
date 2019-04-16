@@ -3,7 +3,7 @@ read("Dimensions.gp");
 setrand(1);
 
 \\ Choose p^e and N
-N=12;
+N=25;
 \\ Choose E
 a4=a6=1;
 fE='x^3+a4*'x+a6;
@@ -13,9 +13,35 @@ E=ellinit([a4,a6]);
 D=elldivpol(E,N);
 D/=content(D);
 
-BestpSplitE(fE,D,N,NE,pmax)=
+mordroot1(f,p)=
+\\ Computes the order of x in Fp[x]/(f). Assumes f irreducible mod p.
 {
-	my(m=0,D2,p,a,p0=0,a0=0,fa);
+ my(x=variable(f),N,fa,l,v);
+ N=p^poldegree(f)-1;
+ fa=factor(N);
+ for(i=1,#fa~,
+  [l,v]=fa[i,];
+  while(v,
+   if(Mod(x^(N/l)-1,p)%Mod(f,p),break);
+   N/=l;
+   v-=1
+  )
+ );
+ N;
+}
+
+mordroot(f,p)=
+\\ Computes a LOWER bound for the order of x in Fp[x]/f. Gives exact value if f sqfree mod p.
+{
+  my(fa,N,e);
+  fa=factormod(f,p);
+  lcm(apply(g->mordroot1(g,p),fa[,1]));
+}
+
+BestpSplitE(E,fE,D,N,pmax)=
+{
+	my(m=0,D2,p,a,p0=0,a0=0,fa,pN,chi,NE);
+	NE=E.disc;
 	while(1,
 		D2=polresultant(D,('y-m*'x)^2-fE,'x);
 		D2=D2/gcd(D2,D2');
@@ -23,12 +49,15 @@ BestpSplitE(fE,D,N,NE,pmax)=
 		m=if(m>0,-m,-m+1);
 	);
 	D2/=content(D2);
+	pN=factor(N)[,1];
 	forprime(p=2,pmax,
-		if(Mod(N*NE,p)==0,next);
-		if(p0 && znorder(Mod(p,N))>=a0,next);
+		if(Mod(N*NE,p)==0,next); \\ Bad primes
+		if(p0 && znorder(Mod(p,N))>=a0,next); \\ Need to contain mu_N
+		chi='x^2-ellap(E,p)*'x+p;
+		if(p0 && lcm(apply(l->mordroot(chi,l),pN))>=a0,next); \\ Test charpoly
 		fa=factormod(D2,p,1);
 		print([p,vecmax(fa[,2]),[p0,a0]]);
-		if(vecmax(fa[,2])>1,next);
+		if(vecmax(fa[,2])>1,print("Mult");next);
 		a=vecmax(fa[,1]);
 		if(p0==0,[p0,a0]=[p,a]);
 		if(a<a0,[p0,a0]=[p,a])
@@ -36,8 +65,8 @@ BestpSplitE(fE,D,N,NE,pmax)=
 	[p0,a0];
 }
 
-[p,a]=BestpSplitE(fE,D,N,E.disc,1000);
-e=1;
+[p,a]=BestpSplitE(E,fE,D,N,1000);
+e=4;
 pe=p^e;
 t1=ffgen([p,a],'t);
 E1=ellinit(E,t1); \\ E / Fq
@@ -115,6 +144,7 @@ matfind(A,x)=
 
 [EN,zetaN] = ENtors(E1,fE,N,D,xD);
 ENFrob=matconcat(apply(C->matfind(EN,apply(x->x^p,GetCoef(EN,C))),[[1,0],[0,1]]~));
+ENFrob=Mod(ENFrob,N);
 
 \\ Lift to Qq
 /*export(T);
