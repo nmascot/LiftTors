@@ -232,7 +232,7 @@ TorsSpaceGetPols(J,Z)=
 {
   my(A,AI,AF);
   A = AllPols(Z,JgetT(J),Jgetp(J),Jgete(J),Jgetpe(J)); \\ p-adic approximation of a set of polynomials which all define a subfield of the field cut out by the representation, with equality iff. no repeated roots
-  print(#A," candidate polynomials");
+	print(#A," candidate polynomials");
   AI = select(x->x[3]!=[],A); \\ Drop the approximations that could not be identified as rationals
   print(#AI," identified polynomials");
   AF = select(x->#Set(x[1])==#(x[1]),AI); \\ Drop the polynomials having multiple roots
@@ -249,7 +249,7 @@ RR_rescale(L,p)=
   M;
 }
 
-GalRep(C,l,p,e,Lp,chi)=
+GalRep(C,l,p,e,Lp,chi,force_a)=
 /* Main function.
 	 Given C=[f,g,d0,L,LL,L1,L2,Bad]
 	 where f(x,y)=0 defines a curve C of genus g
@@ -276,11 +276,11 @@ GalRep(C,l,p,e,Lp,chi)=
   if(chi,
 		print("T = part of J[",l,"] where Frob_",p," acts by ",chi);
 		d = poldegree(chi); \\ Dimension of representation
-		a = mordroot(chi,l) \\ q = p^a
+		a = if(force_a,force_a,mordroot(chi,l)) \\ q = p^a
 	,
 		print("T = all of J[",l,"]");
 		d=2*g;
-		a = mordroot(Lp,l)
+		a = if(force_a,force_a,mordroot(Lp,l))
 	);
 	J=PicInit(f,g,d0,L,LL,Bad,p,a,e);
 	U=PicEvalInit(J,[L1,L2]); \\ Evaluation data
