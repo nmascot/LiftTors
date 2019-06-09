@@ -301,6 +301,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 	Z = TorsSpaceFrobEval(J,TI,U,l,d,matFrob);
 	print("\n--> Expansion and identification");
 	AF = TorsSpaceGetPols(J,Z); \\ List of polynomials defining the representation
+	if(AF==[],error("Could not identify any squarefree polynomial. Consider retrying with higher p-adic accuracy."));
 	F = AF[1][3];
 	ZF = apply(z->Mod(apply(c->c+O(p^e),z),JgetT(J)),AF[1][1]);
 	[F,ZF];
