@@ -303,10 +303,10 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
 GEN Jlift(GEN J, ulong e2)
 {
 	pari_sp av = avma, avZ;
-	GEN J2,T,p,pe2,f,vars,L,FrobMat2;
+	GEN J2,T,p,pe2,f,vars,L,FrobCyc,FrobMat2;
 	long g,d0;
 	GEN Z,Z2,V1,V2,V3,W0,V,KV,KV3,P,x,y,fx,U;
-	ulong nZ,i;
+	ulong nZ,nCyc,i,k,o,c;
   if(Jgete(J)>=e2)
 	{
 		pari_warn(warner,"Current accuracy already higher than required in Jlift, not changing anything");
@@ -334,17 +334,26 @@ GEN Jlift(GEN J, ulong e2)
 	
 	Z = JgetZ(J);
 	nZ = lg(Z);
+	FrobCyc = JgetFrobCyc(J);
+	nCyc = lg(FrobCyc);
 	avZ = avma;
 	Z2 = cgetg(nZ,t_VEC);
-	for(i=1;i<nZ;i++)
+	i=1;
+	for(o=1;o<nCyc;o++)
 	{
-		/* TODO use Frob */
 		P = gel(Z,i);
-		x = gel(P,1);
-		y = gel(P,2);
-		fx = poleval(f,x);
-		y = CurveLiftPty(fx,y,T,p,e2);
-		gel(Z2,i) = mkvec2(x,y);
+    x = gel(P,1);
+    y = gel(P,2);
+    fx = poleval(f,x);
+    y = CurveLiftPty(fx,y,T,p,e2);
+		c = FrobCyc[o];
+		for(k=0;k<c;k++)
+		{
+			gel(Z2,i+k) = mkvec2(x,y);
+			x = Frob(x,FrobMat2,T,pe2);
+			y = Frob(y,FrobMat2,T,pe2);
+		}
+		i += c;
 	}
 	Z2 = gerepilecopy(avZ,Z2);
 	V1 = FnsEvalAt_Rescale(gel(L,1),Z2,vars,T,p,e2,pe2);

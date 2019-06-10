@@ -23,6 +23,7 @@ install("RRInit","GUUGGGUL","PicInit","./librr.so");
 install("RREval","GG","PicEval","./librr.so");
 install("OnePol","GGGG","OnePol","./librr.so");
 install("AllPols","GGGLG","AllPols","./librr.so");
+install("Jlift","GU","Jlift","./librr.so");
 
 install("PicRed","GU","PicRed","./libpic.so");
 install("PicChord","GGGL","PicChord","./libpic.so");

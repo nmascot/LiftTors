@@ -28,7 +28,7 @@ mordroot(f,p)=
 	e=vecmax(fa[,2]);
 	if(e>1,
 	 e=p^ceil(log(e)/log(p));
-	 print("mordroot warning: returning upper bound ",N*e,", but order may be as low as ",N);
+	 warning("mordroot returning upper bound ",N*e,", but order may be as low as ",N);
 	 N*=e
 	);
 	N;
@@ -266,7 +266,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 	 and if chi is nonzero,
 	 we must have chi || (Lp mod l).*/
 {
-	my([f,g,d0,L,LL,L1,L2,Bad]=C,d,J,J1,U,B,matFrob,WB,cWB,TI,Z,AF,F,ZF);
+	my([f,g,d0,L,LL,L1,L2,Bad]=C,d,J,J1,U,B,matFrob,WB,cWB,TI,Z,AF,F,ZF,e1=1);
 	/* TODO rescale to remove denoms */
 	L = RR_rescale(L,p);
   LL = RR_rescale(LL,p);
@@ -288,19 +288,25 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 	print("The matrix of Frob is");
 	printp(centerlift(matfrobenius(Mod(matFrob,l))));
 	[WB,cWB] = TorsSpaceFrobGen(J1,l,B,matFrob); \\ Generating set of T under Frob and coordinates of these generators on B
-	print("\n--> Lifting ",#WB," points ",p,"-adically");
-	if(#WB > Jgetg(J),
-  	my(J=J,l=l); WB = parapply(W->PicLiftTors(J,W,1,l),WB); \\ More efficient in parallel
-	,
-  	WB = apply(W->PicLiftTors(J,W,1,l),WB); \\ Less efficient in parallel (TODO tune)
+	while(1,
+		print("\n--> Lifting ",#WB," points ",p,"-adically");
+		if(#WB > Jgetg(J),
+  		my(J=J,e1=e1,l=l); WB = parapply(W->PicLiftTors(J,W,e1,l),WB); \\ More efficient in parallel
+		,
+  		WB = apply(W->PicLiftTors(J,W,e1,l),WB); \\ Less efficient in parallel (TODO tune)
+		);
+		print("\n--> All of T");
+		TI = TorsSpaceFrob(J,WB,cWB,l,matFrob);
+		print("\n--> Evaluation of ",#TI[2]," points");
+		Z = TorsSpaceFrobEval(J,TI,l,d,matFrob);
+		print("\n--> Expansion and identification");
+		AF = TorsSpaceGetPols(J,Z); \\ List of polynomials defining the representation
+		if(AF!=[],break);
+		e1=e;
+		e*=2;
+		warning("Could not identify any squarefree polynomial. Increasing p-adic accuracy: ",O(p^e),".");
+		J = Jlift(J,e);
 	);
-	print("\n--> All of T");
-	TI = TorsSpaceFrob(J,WB,cWB,l,matFrob);
-	print("\n--> Evaluation of ",#TI[2]," points");
-	Z = TorsSpaceFrobEval(J,TI,l,d,matFrob);
-	print("\n--> Expansion and identification");
-	AF = TorsSpaceGetPols(J,Z); \\ List of polynomials defining the representation
-	if(AF==[],error("Could not identify any squarefree polynomial. Consider retrying with higher p-adic accuracy."));
 	F = AF[1][3];
 	ZF = apply(z->Mod(apply(c->c+O(p^e),z),JgetT(J)),AF[1][1]);
 	[F,ZF];
