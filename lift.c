@@ -240,7 +240,6 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 	/* Main loop */
   while(1)
   {
-		printf("BEGIN LOOP\n");
     e2 = 2*e1;
     if(e2>efin) e2 = efin;
 		e21 = e2-e1;
@@ -421,8 +420,6 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 		/* END LIFTING */
     e1 = e2;
 		pe1 = pe2;
-		printf("END LOOP\n");
-		/*J1 = J2;*/
 		if(c0)
 			gerepileall(av1,3,&U,&pe1,&c0);
 		else
