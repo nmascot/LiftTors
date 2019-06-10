@@ -170,6 +170,17 @@ GEN FnsEvalAt_Rescale(GEN Fns, GEN Z, GEN vars, GEN T, GEN p, long e, GEN pe)
 	}
 }
 
+GEN CurveLiftPty(GEN fx, GEN y, GEN T, GEN p, long e)
+{
+	pari_sp av = avma;
+	y = gmodulo(liftall(y),T);
+  y = gadd(y,zeropadic(p,e));
+  y = padicappr(fx,y);
+  y = gel(y,1);
+  y = liftall(y);
+	return gerepileupto(av,y);
+}
+
 GEN CurveRandPt(GEN f, GEN T, GEN p, long e, GEN bad)
 {
 	pari_sp av = avma, av1;
@@ -194,23 +205,36 @@ GEN CurveRandPt(GEN f, GEN T, GEN p, long e, GEN bad)
 		dfx = RgX_deriv(fx);
 		dy = poleval(dfx,y);
 		if(gequal0(dy)) continue; /* Bad for Hensel */
-		/* TODO check if bad */
-		y = gmodulo(liftall(y),T);
-		y = gadd(y,zeropadic(p,e));
-		y = padicappr(fx,y);
-		y = gel(y,1);
-		y = liftall(y);
+		y = CurveLiftPty(fx,y,T,p,e);
     P = mkvec2(x,y);
     return gerepilecopy(av,P);
   }
 }
 
-GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN L2, GEN bad, GEN p, ulong a, long e)
+GEN RREvalInit(GEN J)
+{
+  pari_sp av = avma;
+  GEN L,Z,T,p,pe,vars,res;
+  long e;
+  ulong i;
+  L = JgetL(J);
+  Z = JgetZ(J);
+  JgetTpe(J,&T,&pe,&p,&e);
+  vars = variables_vecsmall(Jgetf(J));
+  res = cgetg(3,t_VEC);
+  for(i=1;i<=2;i++)
+  {
+    gel(res,i) = FnsEvalAt_Rescale(gel(L,i+2),Z,vars,T,p,e,pe);
+  }
+  return gerepilecopy(av,res);
+}
+
+GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
 {
 	pari_sp avP,av = avma;
   int newpt;
   ulong nZ,n,ncyc,i;
-  GEN vars,pe,t,T,FrobMat,Z,Zp,P,Pp,Q,FrobCyc,x,y,V1,V2,V3,W0,V,KV,KV3,J;
+  GEN vars,pe,t,T,FrobMat,Z,Zp,P,Pp,Q,FrobCyc,x,y,V1,V2,V3,W0,V,KV,KV3,U,J;
 
 	vars = variables_vecsmall(f);
 	nZ = 5*d0+1;
@@ -262,39 +286,94 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN L2, GEN bad, GEN p, ulong a, lon
   setlg(FrobCyc,ncyc+1);
 
 	printf("PicInit: Evaluating rational functions\n");
-	V1 = FnsEvalAt_Rescale(L,Z,vars,T,p,e,pe);
-	V2 = FnsEvalAt_Rescale(L2,Z,vars,T,p,e,pe);
+	V1 = FnsEvalAt_Rescale(gel(L,1),Z,vars,T,p,e,pe);
+	V2 = FnsEvalAt_Rescale(gel(L,2),Z,vars,T,p,e,pe);
 	V3 = DivAdd(V1,V2,3*d0+1-g,T,p,e,pe,0);
 	W0 = V1;
 	V = V2;
   KV = mateqnpadic(V,T,p,e);
   KV3 = mateqnpadic(V3,T,p,e);
-
-  J = mkvecn(lgJ,f,stoi(g),stoi(d0),T,p,stoi(e),pe,FrobMat,V,KV,W0,Z,FrobCyc,V3,KV3);
+	U = cgetg(3,t_VEC);
+  for(i=1;i<=2;i++)
+    gel(U,i) = FnsEvalAt_Rescale(gel(L,i+2),Z,vars,T,p,e,pe);
+  J = mkvecn(lgJ,f,stoi(g),stoi(d0),L,T,p,stoi(e),pe,FrobMat,V,KV,W0,Z,FrobCyc,V3,KV3,U);
 	return gerepilecopy(av,J);
 }
 
-GEN RREvalInit(GEN J, GEN Li)
+GEN Jlift(GEN J, ulong e2)
 {
-	pari_sp av = avma;
-	GEN Z,T,p,pe,vars,res;
-	long e;
-	ulong i;
-	Z = JgetZ(J);
-	JgetTpe(J,&T,&pe,&p,&e);
-	vars = variables_vecsmall(Jgetf(J));
-	res = cgetg(3,t_VEC);
-	for(i=1;i<=2;i++)
+	pari_sp av = avma, avZ;
+	GEN J2,T,p,pe2,f,vars,L,FrobMat2;
+	long g,d0;
+	GEN Z,Z2,V1,V2,V3,W0,V,KV,KV3,P,x,y,fx,U;
+	ulong nZ,i;
+  if(Jgete(J)>=e2)
 	{
-		gel(res,i) = FnsEvalAt_Rescale(gel(Li,i),Z,vars,T,p,e,pe);
+		pari_warn(warner,"Current accuracy already higher than required in Jlift, not changing anything");
+		return gcopy(J);
 	}
-	return gerepilecopy(av,res);
+
+	T = JgetT(J);
+	p = Jgetp(J);
+	f = Jgetf(J);
+	vars = variables_vecsmall(f);
+	g = Jgetg(J);
+	d0 = Jgetd0(J);
+	L = JgetL(J);
+
+  J2 = cgetg(lgJ+1,t_VEC);
+  gel(J2,1) = f;
+  gel(J2,2) = stoi(g);
+  gel(J2,3) = stoi(d0);
+  gel(J2,4) = L;
+  gel(J2,5) = T;
+  gel(J2,6) = p;
+  gel(J2,7) = utoi(e2);
+  gel(J2,8) = pe2 = powiu(p,e2);
+  gel(J2,9) = FrobMat2 = ZpXQ_FrobMat(T,p,e2,pe2);
+	
+	Z = JgetZ(J);
+	nZ = lg(Z);
+	avZ = avma;
+	Z2 = cgetg(nZ,t_VEC);
+	for(i=1;i<nZ;i++)
+	{
+		/* TODO use Frob */
+		P = gel(Z,i);
+		x = gel(P,1);
+		y = gel(P,2);
+		fx = poleval(f,x);
+		y = CurveLiftPty(fx,y,T,p,e2);
+		gel(Z2,i) = mkvec2(x,y);
+	}
+	Z2 = gerepilecopy(avZ,Z2);
+	V1 = FnsEvalAt_Rescale(gel(L,1),Z2,vars,T,p,e2,pe2);
+  V2 = FnsEvalAt_Rescale(gel(L,2),Z2,vars,T,p,e2,pe2);
+  V3 = DivAdd(V1,V2,3*d0+1-g,T,p,e2,pe2,0);
+  W0 = V1;
+  V = V2;
+  KV = mateqnpadic(V,T,p,e2);
+  KV3 = mateqnpadic(V3,T,p,e2);
+  gel(J2,10) = V;
+  gel(J2,11) = KV;
+  gel(J2,12) = W0;
+  gel(J2,13) = Z2;
+  gel(J2,14) = JgetFrobCyc(J);
+  gel(J2,15) = V3;
+  gel(J2,16) = KV3;
+	U = cgetg(3,t_VEC);
+  for(i=1;i<=2;i++)
+  {
+    gel(U,i) = FnsEvalAt_Rescale(gel(L,i+2),Z2,vars,T,p,e2,pe2);
+  }
+	gel(J2,17) = U;
+  return gerepilecopy(av,J2);
 }
 
-GEN RREval(GEN J, GEN W, GEN Li) /* Li = L(2D0-Ei), deg Ei = d0-g (i=1,2) */
+GEN RREval(GEN J, GEN W)
 {
 	pari_sp av = avma;
-	GEN T,p,pe,V,KV;
+	GEN T,p,pe,V,KV,U;
 	long e;
 	GEN S1,S2,s2,K;
 	ulong d0,g,nV,i;
@@ -305,12 +384,13 @@ GEN RREval(GEN J, GEN W, GEN Li) /* Li = L(2D0-Ei), deg Ei = d0-g (i=1,2) */
 	V = JgetV(J);
 	nV = lg(V);
 	KV = JgetKV(J);
+	U = JgetEvalData(J); /* L(2D0-Ei), deg Ei = d0-g (i=1,2) */
 
-	S1 = DivAdd(W,gel(Li,1),2*d0+1,T,p,e,pe,0); /* L(4D0-D-E1) */
+	S1 = DivAdd(W,gel(U,1),2*d0+1,T,p,e,pe,0); /* L(4D0-D-E1) */
 	S1 = DivSub(V,S1,KV,1,T,p,e,pe,2); /* L(2D0-D-E1) */
 	S2 = DivMul(gel(S1,1),V,T,pe); /* L(4D0-D-E1-ED) */
 	S2 = DivSub(W,S2,KV,d0+1-g,T,p,e,pe,2); /* L(2D0-E1-ED) */
-	S2 = DivAdd(S2,gel(Li,2),2*d0+1,T,p,e,pe,0); /* L(4D0-E1-E2-ED) */
+	S2 = DivAdd(S2,gel(U,2),2*d0+1,T,p,e,pe,0); /* L(4D0-E1-E2-ED) */
 	S2 = DivSub(V,S2,KV,1,T,p,e,pe,2); /* L(2D0-E1-E2-ED) */
   s2 = gel(S2,1);
 	s2 = gerepilecopy(av,s2);

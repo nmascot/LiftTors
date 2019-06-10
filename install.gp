@@ -19,9 +19,8 @@ install("AddChain","GL","AddChain","./libexp.so");
 
 install("PlaneZeta","GU","PlaneZeta","./libplanereg.so");
 
-install("RRInit","GUUGGGGUL","PicInit","./librr.so");
-install("RREvalInit","GG","PicEvalInit","./librr.so");
-install("RREval","GGG","PicEval","./librr.so");
+install("RRInit","GUUGGGUL","PicInit","./librr.so");
+install("RREval","GG","PicEval","./librr.so");
 install("OnePol","GGGG","OnePol","./librr.so");
 install("AllPols","GGGLG","AllPols","./librr.so");
 

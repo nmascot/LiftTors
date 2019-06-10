@@ -5,25 +5,27 @@
 GEN Jgetf(GEN J) {return gel(J,1);}
 long Jgetg(GEN J) {return itos(gel(J,2));}
 long Jgetd0(GEN J) {return itos(gel(J,3));}
-GEN JgetT(GEN J) {return gel(J,4);}
-GEN Jgetp(GEN J) {return gel(J,5);}
-long Jgete(GEN J) {return itos(gel(J,6));}
-GEN Jgetpe(GEN J) {return gel(J,7);}
-GEN JgetFrobMat(GEN J) {return gel(J,8);}
-GEN JgetV(GEN J) {return gel(J,9);}
-GEN JgetKV(GEN J) {return gel(J,10);}
-GEN JgetW0(GEN J) {return gel(J,11);}
-GEN JgetZ(GEN J) {return gel(J,12);}
-GEN JgetFrobCyc(GEN J) {return gel(J,13);}
-GEN JgetV3(GEN J) {return gel(J,14);}
-GEN JgetKV3(GEN J) {return gel(J,15);}
+GEN JgetL(GEN J) {return gel(J,4);}
+GEN JgetT(GEN J) {return gel(J,5);}
+GEN Jgetp(GEN J) {return gel(J,6);}
+long Jgete(GEN J) {return itos(gel(J,7));}
+GEN Jgetpe(GEN J) {return gel(J,8);}
+GEN JgetFrobMat(GEN J) {return gel(J,9);}
+GEN JgetV(GEN J) {return gel(J,10);}
+GEN JgetKV(GEN J) {return gel(J,11);}
+GEN JgetW0(GEN J) {return gel(J,12);}
+GEN JgetZ(GEN J) {return gel(J,13);}
+GEN JgetFrobCyc(GEN J) {return gel(J,14);}
+GEN JgetV3(GEN J) {return gel(J,15);}
+GEN JgetKV3(GEN J) {return gel(J,16);}
+GEN JgetEvalData(GEN J) {return gel(J,17);}
 
 void JgetTpe(GEN J, GEN* T, GEN* pe, GEN* p, long* e)
 {
-	*T = gel(J,4);
-	*p = gel(J,5);
-	*e = itos(gel(J,6));
-	*pe = gel(J,7);
+	*T = gel(J,5);
+	*p = gel(J,6);
+	*e = itos(gel(J,7));
+	*pe = gel(J,8);
 }
 
 
@@ -35,18 +37,20 @@ GEN PicRed(GEN J, ulong e)
 	gel(Je,1) = gcopy(Jgetf(J));
 	gel(Je,2) = stoi(Jgetg(J));
 	gel(Je,3) = stoi(Jgetd0(J));
-	gel(Je,4) = gcopy(JgetT(J));
-	gel(Je,5) = p = gcopy(Jgetp(J));
-	gel(Je,6) = utoi(e);
-	gel(Je,7) = pe = powiu(p,e);
-	gel(Je,8) = FpM_red(JgetFrobMat(J),pe);
-	gel(Je,9) = FpXM_red(JgetV(J),pe);
-	gel(Je,10) = FpXM_red(JgetKV(J),pe);
-	gel(Je,11) = FpXM_red(JgetW0(J),pe);
-	gel(Je,12) = FpXT_red(JgetZ(J),pe);
-	gel(Je,13) = gcopy(JgetFrobCyc(J));
-	gel(Je,14) = FpXM_red(JgetV3(J),pe);
-	gel(Je,15) = FpXM_red(JgetKV3(J),pe);
+	gel(Je,4) = gcopy(JgetL(J));
+	gel(Je,5) = gcopy(JgetT(J));
+	gel(Je,6) = p = gcopy(Jgetp(J));
+	gel(Je,7) = utoi(e);
+	gel(Je,8) = pe = powiu(p,e);
+	gel(Je,9) = FpM_red(JgetFrobMat(J),pe);
+	gel(Je,10) = FpXM_red(JgetV(J),pe);
+	gel(Je,11) = FpXM_red(JgetKV(J),pe);
+	gel(Je,12) = FpXM_red(JgetW0(J),pe);
+	gel(Je,13) = FpXT_red(JgetZ(J),pe);
+	gel(Je,14) = gcopy(JgetFrobCyc(J));
+	gel(Je,15) = FpXM_red(JgetV3(J),pe);
+	gel(Je,16) = FpXM_red(JgetKV3(J),pe);
+	gel(Je,17) = FpXM_red(JgetEvalData(J),pe);
 	return Je;
 }
 

@@ -1,10 +1,11 @@
 #include<pari/pari.h>
 
-#define lgJ 15
+#define lgJ 17
 
 GEN Jgetf(GEN J);
 long Jgetg(GEN J);
 long Jgetd0(GEN J);
+GEN JgetL(GEN J);
 GEN JgetT(GEN J);
 GEN Jgetp(GEN J);
 long Jgete(GEN J);
@@ -17,6 +18,7 @@ GEN JgetZ(GEN J);
 GEN JgetFrobCyc(GEN J);
 GEN JgetV3(GEN J);
 GEN JgetKV3(GEN J);
+GEN JgetEvalData(GEN J);
 void JgetTpe(GEN J, GEN* T, GEN* pe, GEN* p, long* e);
 
 GEN PicRed(GEN J, ulong e);

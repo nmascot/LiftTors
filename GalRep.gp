@@ -282,8 +282,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 		d=2*g;
 		a = if(force_a,force_a,mordroot(Lp,l))
 	);
-	J=PicInit(f,g,d0,L,LL,Bad,p,a,e);
-	U=PicEvalInit(J,[L1,L2]); \\ Evaluation data
+	J=PicInit(f,g,d0,[L,LL,L1,L2],Bad,p,a,e);
 	J1 = PicRed(J,1); \\ Reduction mod p
 	[B,matFrob] = TorsBasis(J1,l,Lp,chi); \\ Basis of the mod p^1 space and matrix of Frob_p
 	print("The matrix of Frob is");
@@ -298,7 +297,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 	print("\n--> All of T");
 	TI = TorsSpaceFrob(J,WB,cWB,l,matFrob);
 	print("\n--> Evaluation of ",#TI[2]," points");
-	Z = TorsSpaceFrobEval(J,TI,U,l,d,matFrob);
+	Z = TorsSpaceFrobEval(J,TI,l,d,matFrob);
 	print("\n--> Expansion and identification");
 	AF = TorsSpaceGetPols(J,Z); \\ List of polynomials defining the representation
 	if(AF==[],error("Could not identify any squarefree polynomial. Consider retrying with higher p-adic accuracy."));
