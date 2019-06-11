@@ -312,7 +312,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 	[F,ZF];
 }
 
-HyperGalRep(f,l,p,e,P1,P2,chi)=
+HyperGalRep(f,l,p,e,P1,P2,chi,force_a)=
 /* Computes the Galois representation afforded by
    the piece of l-torsion of the Jacobian
    of the hyperelliptic curve C:y²=f(x)
@@ -330,10 +330,10 @@ HyperGalRep(f,l,p,e,P1,P2,chi)=
 	Lp = hyperellcharpoly(Mod(f,p)); \\ Local L factor of the curve at p, needed to know the number of points on the Jacobian mod p
 	C = Hyper2RR(f,P1,P2);
 	C=concat(C,['y]);
-	GalRep(C,l,p,e,Lp,chi);
+	GalRep(C,l,p,e,Lp,chi,force_a);
 }
 
-SmoothGalRep(f,l,p,e,P1,P2,chi)=
+SmoothGalRep(f,l,p,e,P1,P2,chi,force_a)=
 /* Computes the Galois representation afforded by
    the piece of l-torsion of the Jacobian
    of the hyperelliptic curve f(x,y)=0
@@ -351,7 +351,7 @@ SmoothGalRep(f,l,p,e,P1,P2,chi)=
   C = Smooth2RR(f,P1,P2);
 	Lp = PlaneZeta(C[1],p); \\ Local L factor at p
   C=concat(C,[1]);
-  GalRep(C,l,p,e,Lp,chi);
+  GalRep(C,l,p,e,Lp,chi,force_a);
 }
 
 HyperBestp(f,l,pmax)=
