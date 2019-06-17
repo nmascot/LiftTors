@@ -287,8 +287,9 @@ GEN RRspaceEval(GEN L, GEN vars, GEN pts, GEN T, GEN p, long e, GEN pe)
 			s = liftint(s);
 			s = gmodulo(s,pe);
 			Li = gsubst(L,w,s);
+			/* TODO lift ? */
 			Li = liftall(Li);
-			/* TODO if there is a rescale, lost of p-adic accuracy? */
+			/* TODO if there is a rescale, loss of p-adic accuracy? */
 			gel(res,i) = FnsEvalAt_Rescale(Li,pts,vars,T,p,e,pe);
 		}
 		return gerepilecopy(av,res);
