@@ -2,8 +2,8 @@
 #include "linalg.h"
 #include "freyruck.h"
 
-GEN FnSubstMod(GEN F, long var, GEN val, GEN T, GEN pe) /* /!\ Not memory-clean */
-{
+/*GEN FnSubstMod(GEN F, long var, GEN val, GEN T, GEN pe)*/ /* /!\ Not memory-clean */
+/*{
 	GEN valm,res;
 	pari_CATCH(e_INV)
 	{
@@ -25,7 +25,7 @@ GEN FnSubstMod(GEN F, long var, GEN val, GEN T, GEN pe) /* /!\ Not memory-clean 
 	}
 	pari_ENDCATCH
 	return res;
-}
+}*/
 
 GEN EvalRatMod(GEN F, long var, GEN x, GEN T, GEN p, long e, GEN pe) /* /!\ Not memory-clean */
 {
@@ -168,6 +168,136 @@ GEN FnsEvalAt_Rescale(GEN Fns, GEN Z, GEN vars, GEN T, GEN p, long e, GEN pe)
 		rF = FnsEvalAt(rF,Z,vars,T,p,e,pe);
 		for(j=1;j<nK;j++) gel(S,redo[j]) = gel(rF,j);
 	}
+}
+
+GEN Fn1_FieldOfDef(GEN f, long var)
+{
+	GEN W,W1,c;
+	long i,d;
+	if(typ(f)==t_RFRAC)
+	{
+		W1 = Fn1_FieldOfDef(gel(f,1),var);
+		W = Fn1_FieldOfDef(gel(f,2),var);
+		if(W1 && W && !gequal(W1,W)) pari_err(e_MODULUS,"function",W1,W);
+		return W1?W1:W;
+	}
+
+	if(typ(f)==t_POL)
+	{
+		W = NULL;
+		d = poldegree(f,var);
+		for(i=0;i<=d;i++)
+		{
+			c = polcoef(f,i,var);
+			if(typ(c)==t_POLMOD)
+			{
+				W1=gel(c,1);
+				if(W && !gequal(W1,W)) pari_err(e_MODULUS,"function",W1,W);
+				W = W1;
+			}
+		}
+		return W;
+	}
+	if(typ(f)==t_POLMOD) return gel(f,1);
+	return NULL;
+}
+
+GEN Fn2_FieldOfDef(GEN f, GEN vars)
+{
+	GEN W,W1,c;
+  long i,d;
+  if(typ(f)==t_RFRAC)
+  {
+    W1 = Fn2_FieldOfDef(gel(f,1),vars);
+    W = Fn2_FieldOfDef(gel(f,2),vars);
+    if(W1 && W && !gequal(W1,W)) pari_err(e_MODULUS,"function",W1,W);
+    return W1?W1:W;
+  }
+
+  if(typ(f)==t_POL)
+  {
+    W = NULL;
+    d = poldegree(f,vars[1]);
+    for(i=0;i<=d;i++)
+    {
+      c = polcoef(f,i,vars[1]);
+			W1 = Fn1_FieldOfDef(c,vars[2]);
+      if(W1)
+      {
+        if(W && !gequal(W1,W)) pari_err(e_MODULUS,"function",W1,W);
+        W = W1;
+      }
+    }
+    return W;
+  }
+  if(typ(f)==t_POLMOD) return gel(f,1);
+  return NULL;
+}
+
+GEN RRspace_FieldOfDef(GEN L, GEN vars)
+{
+	GEN W,W1;
+	ulong n,i;
+	n = lg(L);
+	W = NULL;
+	for(i=1;i<n;i++)
+	{
+		W1 = Fn2_FieldOfDef(gel(L,i),vars);
+		if(W1)
+		{
+			if(W && !gequal(W1,W)) pari_err(e_MODULUS,"function",W1,W);
+      W = W1;
+    }
+	}
+	return W;
+}
+
+GEN RRspaceEval(GEN L, GEN vars, GEN pts, GEN T, GEN p, long e, GEN pe)
+{
+	pari_sp av = avma;
+	long w,dW;
+	GEN W,S,s,Li,res;
+	ulong i;
+
+	W = RRspace_FieldOfDef(L,vars);
+	/* TODO delete
+	 * L1 = gel(L,1);
+	coeff1 = pollead(numerator(pollead(numerator(L1),vars[1])),vars[2]);
+	ty = typ(coeff1);*/
+	if(W) /* Algebraic case */
+	{
+		/* Get field of definition */
+		w = gvar(W);
+		dW = poldegree(W,w);
+		/* Lift */
+		L = liftpol(L);
+		/* Find embeddings into Qp[t]/(T) */
+		S = polrootsmod(W,mkvec2(T,p));
+		if(lg(S) < dW+1) /* Should have all embeddings */
+			pari_err(e_MISC,"Field of definition of Riemann-Roch space cannot be totally embedded into Q_q");
+		res = cgetg(dW+1,t_VEC);
+		for(i=1;i<=dW;i++)
+		{
+			s = gel(S,i); /* Embedding mod p */
+			s = liftint(s);
+			s = gadd(s,zeropadic(p,e));
+			s = padicappr(W,s);
+			s = gel(s,1);
+			s = liftint(s);
+			s = gmodulo(s,pe);
+			Li = gsubst(L,w,s);
+			/* TODO lift ? */
+			Li = liftall(Li);
+			/* TODO if there is a rescale, lost of p-adic accuracy? */
+			gel(res,i) = FnsEvalAt_Rescale(Li,pts,vars,T,p,e,pe);
+		}
+		return gerepilecopy(av,res);
+	}
+	else /* Rational case */
+  {
+    avma = av;
+    return mkvec(FnsEvalAt_Rescale(L,pts,vars,T,p,e,pe));
+  }
 }
 
 GEN CurveLiftPty(GEN fx, GEN y, GEN T, GEN p, long e)
