@@ -31,7 +31,9 @@ void JgetTpe(GEN J, GEN* T, GEN* pe, GEN* p, long* e)
 
 GEN PicRed(GEN J, ulong e)
 {
-	GEN Je,p,pe;
+	pari_sp av = avma;
+	GEN Je,p,pe,U,Ue;
+	ulong i,j,n;
 	if(Jgete(J)<e) pari_err(e_MISC,"Cannot perform this reduction");
 	Je = cgetg(lgJ+1,t_VEC);
 	gel(Je,1) = gcopy(Jgetf(J));
@@ -50,8 +52,17 @@ GEN PicRed(GEN J, ulong e)
 	gel(Je,14) = gcopy(JgetFrobCyc(J));
 	gel(Je,15) = FpXM_red(JgetV3(J),pe);
 	gel(Je,16) = FpXM_red(JgetKV3(J),pe);
-	gel(Je,17) = FpXM_red(JgetEvalData(J),pe);
-	return Je;
+	U = JgetEvalData(J);
+	Ue = cgetg(3,t_VEC);
+	for(i=1;i<=2;i++)
+	{
+		n = lg(gel(U,i));
+		gel(Ue,i) = cgetg(n,t_VEC);
+		for(j=1;j<n;j++)
+			gmael(Ue,i,j) = FpXM_red(gmael(U,i,j),pe);
+	}
+	gel(Je,17) = Ue;
+	return gerepileupto(av,Je);
 }
 
 GEN DivMul(GEN f, GEN W, GEN T, GEN pe)
