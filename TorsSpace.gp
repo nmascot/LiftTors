@@ -175,7 +175,7 @@ TorsSpaceFrobEval(J,TI,l,d,matFrob)=
       Z[i] = z;
       i = ActOni(matFrob,i,l);
       if(Z[i] != [],break);
-      z = apply(x->Frob(x,JgetFrobMat(J),JgetT(J),Jgetpe(J)),z);
+      z = apply(x->apply(y->Frob(y,JgetFrobMat(J),JgetT(J),Jgetpe(J)),x),z);
     )
   );
   Z;

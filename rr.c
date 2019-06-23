@@ -341,21 +341,14 @@ GEN CurveRandPt(GEN f, GEN T, GEN p, long e, GEN bad)
   }
 }
 
-GEN RREvalInit(GEN J)
+GEN RREvalInit(GEN L, GEN vars, GEN Z, GEN T, GEN p, long e, GEN pe)
 {
   pari_sp av = avma;
-  GEN L,Z,T,p,pe,vars,res;
-  long e;
+  GEN res;
   ulong i;
-  L = JgetL(J);
-  Z = JgetZ(J);
-  JgetTpe(J,&T,&pe,&p,&e);
-  vars = variables_vecsmall(Jgetf(J));
   res = cgetg(3,t_VEC);
   for(i=1;i<=2;i++)
-  {
-    gel(res,i) = FnsEvalAt_Rescale(gel(L,i+2),Z,vars,T,p,e,pe);
-  }
+    gel(res,i) = RRspaceEval(gel(L,i+2),vars,Z,T,p,e,pe);
   return gerepilecopy(av,res);
 }
 
@@ -423,9 +416,7 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
 	V = V2;
   KV = mateqnpadic(V,T,p,e);
   KV3 = mateqnpadic(V3,T,p,e);
-	U = cgetg(3,t_VEC);
-  for(i=1;i<=2;i++)
-    gel(U,i) = FnsEvalAt_Rescale(gel(L,i+2),Z,vars,T,p,e,pe);
+	U = RREvalInit(L,vars,Z,T,p,e,pe);
   J = mkvecn(lgJ,f,stoi(g),stoi(d0),L,T,p,stoi(e),pe,FrobMat,V,KV,W0,Z,FrobCyc,V3,KV3,U);
 	return gerepilecopy(av,J);
 }
@@ -512,8 +503,9 @@ GEN Jlift(GEN J, ulong e2)
 GEN RREval(GEN J, GEN W)
 {
 	pari_sp av = avma;
-	GEN T,p,pe,V,KV,U;
+	GEN T,p,pe,V,KV,U,res;
 	long e;
+	ulong n1,n2,i1,i2;
 	GEN S1,S2,s2,K;
 	ulong d0,g,nV,i;
 	
@@ -523,23 +515,37 @@ GEN RREval(GEN J, GEN W)
 	V = JgetV(J);
 	nV = lg(V);
 	KV = JgetKV(J);
-	U = JgetEvalData(J); /* L(2D0-Ei), deg Ei = d0-g (i=1,2) */
+	U = JgetEvalData(J); /* L(2D0-Ei), deg Ei = d0-g (i=1,2), repeated for each embedding into Qq */
+	n1 = lg(gel(U,1)); /* Deg of E1 / Q */
+	n2 = lg(gel(U,2)); /* Deg of E2 / Q */
 
-	S1 = DivAdd(W,gel(U,1),2*d0+1,T,p,e,pe,0); /* L(4D0-D-E1) */
-	S1 = DivSub(V,S1,KV,1,T,p,e,pe,2); /* L(2D0-D-E1) */
-	S2 = DivMul(gel(S1,1),V,T,pe); /* L(4D0-D-E1-ED) */
-	S2 = DivSub(W,S2,KV,d0+1-g,T,p,e,pe,2); /* L(2D0-E1-ED) */
-	S2 = DivAdd(S2,gel(U,2),2*d0+1,T,p,e,pe,0); /* L(4D0-E1-E2-ED) */
-	S2 = DivSub(V,S2,KV,1,T,p,e,pe,2); /* L(2D0-E1-E2-ED) */
-  s2 = gel(S2,1);
-	s2 = gerepilecopy(av,s2);
-  K = cgetg(nV+1,t_MAT);
-  for(i=1;i<nV;i++) gel(K,i) = gel(V,i);
-  gel(K,nV) = s2;
-  K = matkerpadic(K,T,p,e);
-	K = gel(K,1);
-	setlg(K,nV);
-	return gerepilecopy(av,K);
+	res = cgetg(n1,t_MAT);
+	/* TODO free memory */
+	for(i1=1;i1<n1;i1++)
+	{
+		gel(res,i1) = cgetg(n2,t_COL);
+		S1 = DivAdd(W,gmael(U,1,i1),2*d0+1,T,p,e,pe,0); /* L(4D0-D-E1) */
+		S1 = DivSub(V,S1,KV,1,T,p,e,pe,2); /* L(2D0-D-E1), generically 1-dimensional */
+		S1 = gel(S1,1); /* Generator */
+		for(i2=1;i2<n2;i2++)
+		{
+			S2 = DivMul(S1,V,T,pe); /* L(4D0-D-E1-ED) */
+			S2 = DivSub(W,S2,KV,d0+1-g,T,p,e,pe,2); /* L(2D0-E1-ED) */
+			S2 = DivAdd(S2,gmael(U,2,i2),2*d0+1,T,p,e,pe,0); /* L(4D0-E1-E2-ED) */
+			S2 = DivSub(V,S2,KV,1,T,p,e,pe,2); /* L(2D0-E1-E2-ED), generically 1-dimensional */
+  		s2 = gel(S2,1); /* Generator */
+			/*s2 = gerepilecopy(av,s2); TODO */
+			/* get coords of s2 w.r.t. V */
+  		K = cgetg(nV+1,t_MAT);
+  		for(i=1;i<nV;i++) gel(K,i) = gel(V,i);
+  		gel(K,nV) = s2;
+  		K = matkerpadic(K,T,p,e);
+			K = gel(K,1);
+			setlg(K,nV);
+			gcoeff(res,i2,i1)=K;
+		}
+	}
+	return gerepilecopy(av,res);
 }
 
 GEN PolExpId(GEN Z, GEN T, GEN pe) /* bestappr of prod(x-z), z in Z */
@@ -566,11 +572,24 @@ GEN PolExpId(GEN Z, GEN T, GEN pe) /* bestappr of prod(x-z), z in Z */
 GEN OnePol(GEN N, GEN D, GEN T, GEN pe)
 {
 	pari_sp av = avma;
-	GEN R,F;
-	ulong k,n;
+	GEN R,pol0,F;
+	ulong k,n,i1,i2;
+	long n1,n2;
 	n = lg(N);
+	RgM_dimensions(gel(N,1),&n2,&n1);
 	R = cgetg(n,t_VEC);
-  for(k=1;k<n;k++) gel(R,k) = Fq_mul(gel(N,k),gel(D,k),T,pe);
+	pol0 = mkpoln(0);
+	setvarn(pol0,varn(T));
+	/* TODO other combis than sum */
+  for(k=1;k<n;k++)
+	{
+		gel(R,k) = pol0;
+		for(i1=1;i1<=n1;i1++)
+		{
+			for(i2=1;i2<=n2;i2++)
+				gel(R,k) = ZX_add(gel(R,k),Fq_mul(gmael3(N,k,i1,i2),gmael3(D,k,i1,i2),T,pe));
+		}
+	}
 	F = PolExpId(R,T,pe);
 	return gerepileupto(av,F);
 }
@@ -579,35 +598,57 @@ GEN AllPols(GEN F, GEN T, GEN p, long e, GEN pe)
 {
 	pari_sp av = avma;
 	GEN Ft,F1,f,pols;
-	ulong nF,lF,npols,n,i,j,m;
+	ulong nF,lF,npols,n,i,j,i1,i2,m;
+	long n1,n2;
 	struct pari_mt pt;
 	GEN worker,done;
 	long pending,workid;
 
 	nF = lg(F); /* Number of vectors */
-	lF = lg(gel(F,1))-1; /* Size of each vector */
+	RgM_dimensions(gel(F,1),&n2,&n1);
+	lF = lg(gmael3(F,1,1,1))-1; /* Size of each vector */
+	/* F = list of nF-1 matrices of size n2*n1 of vectors of size lF */
 	Ft = cgetg(lF,t_VEC);
-	for(i=1;i<lF;i++)
-	{ 
-		gel(Ft,i) = cgetg(nF,t_VEC);
-		for(j=1;j<nF;j++) gmael(Ft,i,j) = gmael(F,j,i);
+	/* Ft[j,i,i1,i2] = F[i,i1,i2,j] */
+	for(j=1;j<lF;j++)
+	{
+		gel(Ft,j) = cgetg(nF,t_VEC);
+		for(i=1;i<nF;i++)
+		{
+			gmael(Ft,j,i) = cgetg(n1+1,t_MAT);
+			for(i1=1;i1<=n1;i1++)
+			{
+				gmael3(Ft,j,i,i1) = cgetg(n2+1,t_COL);
+				for(i2=1;i2<=n2;i2++)
+					gmael4(Ft,j,i,i1,i2) = gmael4(F,i,i1,i2,j);
+			}
+		}
 	}
 	F1 = cgetg(lF,t_VEC);
 	npols = 0;
-	for(i=1;i<lF;i++) /* Find the i such that the ith coord of the vectors are all invertible */
-	{ 
+	for(i=1;i<lF;i++) /* Find the i such that the ith coord of all the vectors in all the matrices are invertible, and store there inverses */
+	{
 		npols++;
 		gel(F1,i) = cgetg(nF,t_VEC);
 		for(j=1;j<nF;j++)
 		{
-			f = gmael(F,j,i);
-			if(ZX_is0mod(f,p))
+			gmael(F1,i,j) = cgetg(n1+1,t_MAT);
+			for(i1=1;i1<=n1;i1++)
 			{
-				gel(F1,i) = NULL;
-				npols--;
-				break;
+				gmael3(F1,i,j,i1) = cgetg(n2+1,t_COL);
+				for(i2=1;i2<=n2;i2++)
+				{
+					f = gmael4(F,j,i1,i2,i);
+					if(ZX_is0mod(f,p))
+					{
+						gel(F1,i) = NULL;
+						npols--;
+						i2=n2+1;i1=n1+1;j=nF;
+					}
+					else
+						gmael4(F1,i,j,i1,i2) = ZpXQ_inv(f,T,p,e); /* TODO do it later in case we give up this i */
+				}
 			}
-			gmael(F1,i,j) = ZpXQ_inv(f,T,p,e);
 		}
 	}
 	npols *= (lF-2);
@@ -615,8 +656,6 @@ GEN AllPols(GEN F, GEN T, GEN p, long e, GEN pe)
 	pending = 0;
   worker = strtofunction("OnePol");
   mt_queue_start(&pt,worker);
-	i=m=1;
-	j=0;n=0;
 	done = NULL;
 	for(i=j=m=n=1;i<lF||pending;n++,j++)
 	{
@@ -625,12 +664,11 @@ GEN AllPols(GEN F, GEN T, GEN p, long e, GEN pe)
 			j=1;
 			i++;
 		}
-		if(gel(F1,j)==NULL || i==j) continue;
+		if(gel(F1,j)==NULL || i==j) continue; /* Skip if denom=0 or if denom=num */
 		mt_queue_submit(&pt,n,i<lF?mkvecn(4,gel(Ft,i),gel(F1,j),T,pe):NULL);
 		done = mt_queue_get(&pt,&workid,&pending);
 		if(done)
 		{
-			//printf("Getting poly number %ld\n",m);
 			gel(pols,m) = done;
 			m++;
 		}
