@@ -31,6 +31,7 @@ GEN EvalRatMod(GEN F, long var, GEN x, GEN T, GEN p, long e, GEN pe) /* /!\ Not 
 {
 	GEN N,D;
 	if(typ(F)==t_INT) return Z2Fq(F,T);
+	if(varn(F)==varn(T)) return F;
 	if(gvar(F)!=var) pari_err(e_MISC,"Bad var 1");
 	if(typ(F)==t_POL)
 	{
@@ -286,7 +287,6 @@ GEN RRspaceEval(GEN L, GEN vars, GEN pts, GEN T, GEN p, long e, GEN pe)
 			s = liftint(s);
 			s = gmodulo(s,pe);
 			Li = gsubst(L,w,s);
-			/* TODO lift ? */
 			Li = liftall(Li);
 			/* TODO if there is a rescale, lost of p-adic accuracy? */
 			gel(res,i) = FnsEvalAt_Rescale(Li,pts,vars,T,p,e,pe);
@@ -494,7 +494,7 @@ GEN Jlift(GEN J, ulong e2)
 	U = cgetg(3,t_VEC);
   for(i=1;i<=2;i++)
   {
-    gel(U,i) = FnsEvalAt_Rescale(gel(L,i+2),Z2,vars,T,p,e2,pe2);
+    gel(U,i) = RRspaceEval(gel(L,i+2),vars,Z2,T,p,e2,pe2);
   }
 	gel(J2,17) = U;
   return gerepilecopy(av,J2);
