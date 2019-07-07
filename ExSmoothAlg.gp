@@ -3,15 +3,13 @@ read("TorsHensel.gp");
 
 f = x^3*y+y^3+x; \\ Equation for the curve (must be smooth)
 \\ To evaluate points on the Jacobian, we need two divisors of degree d-g (=1 in this case)
-\\ Here we use the rational points (0:0:1) and (1:0:0)
+\\ Here we use these points, whcih are define over different cubic fields:
 P1 = [1,Mod(w,w^3+w+1),1];
 P2 = [-1,Mod(w,w^3-w-1),1];
 
 l = 2; \\ The representation we want is in the 2-torsion of the Jacobian
 p = 5; \\ We choose to work 5-adically
-e = 64; \\ to accuracy O(5^64)
-\\ If instead we want the 3-torsion, we can take:
-\\l=3;p=43;e=512;
+e = 2048; \\ to accuracy O(5^2048)
 chi = 0; \\ We want all the l-torsion, not a subspace.
 
 [F,ZF] = SmoothGalRep(f,l,p,e,[P1],[P2],chi);
