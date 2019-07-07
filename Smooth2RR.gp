@@ -1,3 +1,5 @@
+read("PtIsOnCurve.gp");
+
 LSmooth(n,d,x,y)=
 {
 	my(L=List(),mu=min(d-1,n));
@@ -54,13 +56,37 @@ TotalDeg(f,x,y)=
 	d;
 }
 
+Homogenize_sub(f,z,d)=
+{
+	my(d2,y);
+	if(f==0,return(0));
+	d2=poldegree(f);
+	y=variable(f);
+	Pol(vector(d2+1,i,z^(d-d2+i-1)*polcoef(f,d2-i+1)),y);
+}
+
+Homogenize(f,d)=
+{
+	my(v=variables(f),z);
+	z=varlower("z",v[2]);
+	Pol(vector(d+1,i,Homogenize_sub(polcoef(f,d-i+1),z,i-1)),v[1]);
+}
+
+
 Smooth2RR(f0,P01,P02)=
 { \\ P01,P02 should be lists of rat pts (TODO for now distinct)
 	\\ d even: of size d/2-1
 	\\ d odd : of size d-1
-	my(x,y,d,g,d0,L,M,L1,L2);
-	[x,y] = variables(f0);
+	my(F,x,y,d,g,d0,L,M,L1,L2);
+	[x,y]=variables(f0);
 	d = TotalDeg(f0,x,y);
+	F=Homogenize(f0,d);
+	for(i=1,#P01,
+    if(!PtIsOnCurve(F,P01[i]),error("The point ",P01[i], " is not on this curve."))
+  );
+  for(i=1,#P02,
+    if(!PtIsOnCurve(F,P02[i]),error("The point ",P02[i], " is not on this curve."))
+  );
 	[f,P1,P2] = SmoothGeneric(f0,d,P01,P02);
 	g = (d-1)*(d-2);
 	g = g/2;

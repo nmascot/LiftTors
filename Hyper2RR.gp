@@ -1,3 +1,5 @@
+read("PtIsOnCurve.gp");
+
 HyperRR(n,g,u,v)=
 {
 	concat(vector(n+1-poldegree(u,'x),i,'x^(i-1)*u),(y-v)*vector(n-g,i,x^(i-1)));
@@ -7,6 +9,8 @@ Hyper2RR(f0,P1,P2)= /* y^2=f0(x). P1,P2 rat pts, not conjugate by hyper invol. *
 {
 	my([x1,y1]=P1,[x2,y2]=P2,f,h,g,d0,L,LL,L1,L2);
 	f = subst(f0,variable(f0),'x);
+	if(!PtIsOnHyperCurve(f,P1),error("The point ",P1," is not on this hyperelliptic curve."));
+	if(!PtIsOnHyperCurve(f,P2),error("The point ",P2," is not on this hyperelliptic curve."));
 	if(type(f)=="t_VEC" && #f==2, \\ Long Weierstrass equation
 		[f,h]=f;
 		y1=2*y1+subst(h,'x,x1);
