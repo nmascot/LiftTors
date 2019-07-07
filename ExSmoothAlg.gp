@@ -3,7 +3,7 @@ read("TorsHensel.gp");
 
 f = x^3*y+y^3+x; \\ Equation for the curve (must be smooth)
 \\ To evaluate points on the Jacobian, we need two divisors of degree d-g (=1 in this case)
-\\ Here we use these points, whcih are define over different cubic fields:
+\\ Here we use these points, which are defined over different cubic fields:
 P1 = [1,Mod(w,w^3+w+1),1];
 P2 = [-1,Mod(w,w^3-w-1),1];
 
