@@ -283,6 +283,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 		d=2*g;
 		a = if(force_a,force_a,mordroot(Lp,l))
 	);
+	print("Working with q=",p,"^",a);
 	J=PicInit(f,g,d0,[L,LL,L1,L2],Bad,p,a,e);
 	J1 = PicRed(J,1); \\ Reduction mod p
 	[B,matFrob] = TorsBasis(J1,l,Lp,chi); \\ Basis of the mod p^1 space and matrix of Frob_p

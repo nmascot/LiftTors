@@ -13,16 +13,19 @@ LSmooth(n,d,x,y)=
 
 SmoothGeneric(f0,d,P01,P02)=
 {
-	my(A,f,x,y,u,v,w,P1,P2);
+	my(A,f,x,y,u,v,w,P1,P2,n=0);
 	[x,y] = variables(f0);
-	if(polcoeff(f0,d,x)!=0 && polcoeff(f0,d,y)!=0,return([f0,P01,P02]));
 	f = f0;
-	A = matid(3);
 	while(1,
-		A = Mat(0);
-		while(matdet(A)==0,
-			A = matrix(3,3,i,j,random(3)-1);
+		if(n,
+			A = Mat(0);
+			while(matdet(A)==0,
+				A = matrix(3,3,i,j,random(3)-1);
+			)
+		,
+			A=matid(3)
 		);
+		n+=1;
 		F = matrix(d+1,d+1,i,j,polcoeff(polcoeff(f0,i-1,x),j-1,y));
 		[u,v,w] = A*[x,y,1]~;
 		f = sum(i=0,d,sum(j=0,d,F[i+1,j+1]*u^i*v^j*w^(d-i-j)));
