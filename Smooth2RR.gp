@@ -56,12 +56,11 @@ TotalDeg(f,x,y)=
 	d;
 }
 
-Homogenize_sub(f,z,d)=
+Homogenize_sub(f,y,z,d)=
 {
-	my(d2,y);
+	my(d2);
 	if(f==0,return(0));
-	d2=poldegree(f);
-	y=variable(f);
+	d2=poldegree(f,y);
 	Pol(vector(d2+1,i,z^(d-d2+i-1)*polcoef(f,d2-i+1)),y);
 }
 
@@ -69,7 +68,7 @@ Homogenize(f,d)=
 {
 	my(v=variables(f),z);
 	z=varlower("z",v[2]);
-	Pol(vector(d+1,i,Homogenize_sub(polcoef(f,d-i+1),z,i-1)),v[1]);
+	Pol(vector(d+1,i,Homogenize_sub(polcoef(f,d-i+1),v[2],z,i-1)),v[1]);
 }
 
 
