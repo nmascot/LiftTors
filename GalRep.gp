@@ -238,6 +238,7 @@ TorsSpaceGetPols(J,Z)=
   print(#AI," identified polynomials");
   AF = select(x->#Set(x[1])==#(x[1]),AI); \\ Drop the polynomials having multiple roots
   print(#AF," faithful polynomials");
+	if(#AF==0 && #A==#AI,error("None of the evaluation maps gives a squarefree polynomial. Try again with different points."));
   vecsort(AF,x->sizebyte(x[3]));
 }
 
