@@ -548,16 +548,25 @@ GEN RREval(GEN J, GEN W)
 	return gerepilecopy(av,res);
 }
 
+GEN PolExp(GEN Z, GEN T, GEN pe) /* /!\ not memory-clean */
+{
+	ulong nZ,i;
+	GEN f;
+	nZ = lg(Z);
+  f = cgetg(nZ,t_VEC);
+  for(i=1;i<nZ;i++) gel(f,i) = mkpoln(2,gen_1,gmodulo(gmodulo(gel(Z,i),pe),T));
+  f = liftpol(factorback(f));
+	return f;
+}
+
 GEN PolExpId(GEN Z, GEN T, GEN pe) /* bestappr of prod(x-z), z in Z */
 {
 	pari_sp av = avma;
 	GEN f,c,a;
 	ulong nZ,i;
-	nZ = lg(Z);
-	f = cgetg(nZ,t_VEC);
-	for(i=1;i<nZ;i++) gel(f,i) = mkpoln(2,gen_1,gmodulo(gmodulo(gel(Z,i),pe),T));
-	f = liftpol(factorback(f));
-	for(i=2;i<lg(f);i++)
+	nZ =lg(Z);
+	f = PolExp(Z,T,pe);
+	for(i=2;i<nZ;i++)
 	{
 		c = gel(f,i);
 		if(degpol(c)>0) pari_err(e_MISC,"Irrational coefficient: %Ps k=%lu",c,i-2);
@@ -570,27 +579,38 @@ GEN PolExpId(GEN Z, GEN T, GEN pe) /* bestappr of prod(x-z), z in Z */
 }
 
 GEN OnePol(GEN N, GEN D, GEN T, GEN pe)
-{
+{ /* Actually returns a vector of n1*n2 pols (all elem. symm. fns) */
 	pari_sp av = avma;
-	GEN R,pol0,F;
-	ulong k,n,i1,i2;
-	long n1,n2;
+	GEN R,Z,F;
+	ulong k,n,i1,i2,i;
+	long n1,n2,n12;
 	n = lg(N);
 	RgM_dimensions(gel(N,1),&n2,&n1);
+	n12 = n1*n2;
 	R = cgetg(n,t_VEC);
-	pol0 = mkpoln(0);
-	setvarn(pol0,varn(T));
-	/* TODO other combis than sum */
+	Z = cgetg(n12+1,t_VEC);
   for(k=1;k<n;k++)
 	{
-		gel(R,k) = pol0;
+		i=1;
 		for(i1=1;i1<=n1;i1++)
 		{
 			for(i2=1;i2<=n2;i2++)
-				gel(R,k) = ZX_add(gel(R,k),Fq_mul(gmael3(N,k,i1,i2),gmael3(D,k,i1,i2),T,pe));
+			{
+				gel(Z,i) = Fq_mul(gmael3(N,k,i1,i2),gmael3(D,k,i1,i2),T,pe);
+				i++;
+			}
 		}
+		gel(R,k) = PolExp(Z,T,pe);
+		setvarn(gel(R,k),0);
 	}
-	F = PolExpId(R,T,pe);
+	F = cgetg(n12+1,t_VEC);
+	Z = cgetg(n,t_VEC);
+	for(i=0;i<n12;i++)
+	{
+		for(k=1;k<n;k++)
+			gel(Z,k) = polcoef(gel(R,k),i,0);
+		gel(F,i+1) = PolExpId(Z,T,pe);
+	}
 	return gerepileupto(av,F);
 }
 
@@ -598,14 +618,15 @@ GEN AllPols(GEN F, GEN T, GEN p, long e, GEN pe)
 {
 	pari_sp av = avma;
 	GEN Ft,F1,f,pols;
-	ulong nF,lF,npols,n,i,j,i1,i2,m;
-	long n1,n2;
+	ulong nF,lF,npols,n,i,j,i1,i2,m,k;
+	long n1,n2,n12;
 	struct pari_mt pt;
 	GEN worker,done;
 	long pending,workid;
 
 	nF = lg(F); /* Number of vectors */
 	RgM_dimensions(gel(F,1),&n2,&n1);
+	n12 = n1*n2;
 	lF = lg(gmael3(F,1,1,1))-1; /* Size of each vector */
 	/* F = list of nF-1 matrices of size n2*n1 of vectors of size lF */
 	Ft = cgetg(lF,t_VEC);
@@ -651,7 +672,7 @@ GEN AllPols(GEN F, GEN T, GEN p, long e, GEN pe)
 			}
 		}
 	}
-	npols *= (lF-2);
+	npols *= (lF-2)*n12;
 	pols = cgetg(npols+1,t_VEC);
 	pending = 0;
   worker = strtofunction("OnePol");
@@ -669,8 +690,11 @@ GEN AllPols(GEN F, GEN T, GEN p, long e, GEN pe)
 		done = mt_queue_get(&pt,&workid,&pending);
 		if(done)
 		{
-			gel(pols,m) = done;
-			m++;
+			for(k=1;k<=n12;k++)
+			{
+				gel(pols,m) = gel(done,k);
+				m++;
+			}
 		}
 	}		
   mt_queue_end(&pt);
