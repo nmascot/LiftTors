@@ -268,7 +268,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 	 and if chi is nonzero,
 	 we must have chi || (Lp mod l).*/
 {
-	my([f,g,d0,L,LL,L1,L2,Bad]=C,d,J,J1,U,B,matFrob,WB,cWB,TI,Z,AF,F,ZF,e1=1);
+	my([f,g,d0,L,LL,L1,L2,Bad]=C,d,J,J1,U,B,matFrob,WB,cWB,TI,Z,AF,F,ZF,M,i,e1=1);
 	/* TODO rescale to remove denoms */
 	L = RR_rescale(L,p);
   LL = RR_rescale(LL,p);
@@ -290,6 +290,10 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 	[B,matFrob] = TorsBasis(J1,l,Lp,chi); \\ Basis of the mod p^1 space and matrix of Frob_p
 	print("The matrix of Frob is");
 	printp(centerlift(matfrobenius(Mod(matFrob,l))));
+	i=1;M=Mod(matFrob,l);
+	while(M!=1,M*=matFrob;i++);
+	print("It has order ",i);
+	if(i<a,warning("Therefore working in degree a=",a," is not optimal. Consider restarting the computation while forcing a=",i,"."));
 	[WB,cWB] = TorsSpaceFrobGen(J1,l,B,matFrob); \\ Generating set of T under Frob and coordinates of these generators on B
 	while(1,
 		print("\n--> Lifting ",#WB," points ",p,"-adically");
