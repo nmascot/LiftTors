@@ -25,9 +25,8 @@ GEN PlaneZeta(GEN f, ulong p)
 	P = utoi(p);
 
 	N = cgetg(g+1,t_VECSMALL);
-	x = cgetg(g+2,t_POL);
-	setvarn(x,varn(t));
-	for(i=1;i<=g;i++) gel(x,i+1) = gen_0;
+	x = cgetg(g+1,t_VEC);
+	for(i=1;i<=g;i++) gel(x,i) = gen_0;
 	pa = 1;
 	for(a=1;a<=g;a++)
 	{
@@ -42,10 +41,10 @@ GEN PlaneZeta(GEN f, ulong p)
 			m = ix;
 			for(i=1;i<=a;i++)
 			{
-				gel(x,i+1) = utoi(m%p);
+				gel(x,i) = utoi(m%p);
 				m = m/p;
 			}
-			fx = poleval(f,x);
+			fx = poleval(f,gtopolyrev(x,varn(T)));
 			n += lg(polrootsmod(fx,mkvec2(T,P)))-1;
 		}
 		if(itou(gel(f00,df+2))%p == 0) n++;
