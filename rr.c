@@ -31,8 +31,9 @@ GEN EvalRatMod(GEN F, long var, GEN x, GEN T, GEN p, long e, GEN pe) /* /!\ Not 
 {
 	GEN N,D;
 	if(typ(F)==t_INT) return Z2Fq(F,T);
+	if(typ(F)==t_FRAC) return Z2Fq(Fp_div(gel(F,1),gel(F,2),pe),T);
 	if(varn(F)==varn(T)) return F;
-	if(gvar(F)!=var) pari_err(e_MISC,"Bad var 1");
+	if(gvar(F)!=var) pari_err(e_MISC,"Bad var 1 in %Ps",F);
 	if(typ(F)==t_POL)
 	{
 		N = liftall(poleval(F,gmodulo(gmodulo(x,T),pe)));
@@ -55,6 +56,7 @@ GEN FnEvalAt(GEN F, GEN P, GEN vars, GEN T, GEN p, long e/*GEN E*/, GEN pe)
 	long /*e = itos(E),*/d;
 	ulong i;
 	if(typ(F)==t_INT) return Z2Fq(F,T);
+	if(typ(F)==t_FRAC) return Z2Fq(Fp_div(gel(F,1),gel(F,2),pe),T);
 	if(typ(F)==t_RFRAC)
 	{
 		N = FnEvalAt(gel(F,1),P,vars,T,p,e,pe);
@@ -64,7 +66,7 @@ GEN FnEvalAt(GEN F, GEN P, GEN vars, GEN T, GEN p, long e/*GEN E*/, GEN pe)
 		return gerepileupto(av,ZpXQ_div(N,D,T,pe,p,e));
 	}
 	if(gvar(F)==vars[2]) return liftall(poleval(F,gmodulo(gmodulo(gel(P,2),T),pe)));
-	if(gvar(F)!=vars[1]) pari_err(e_MISC,"Bad var 2");
+	if(gvar(F)!=vars[1]) pari_err(e_MISC,"Bad var 2 in %Ps",F);
 	d = lg(F);
 	Fy = cgetg(d,t_POL);
 	setsigne(Fy,1);
@@ -416,6 +418,7 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
 	V = V2;
   KV = mateqnpadic(V,T,p,e);
   KV3 = mateqnpadic(V3,T,p,e);
+	printf("PicInit: Constructing evaluation maps\n");
 	U = RREvalInit(L,vars,Z,T,p,e,pe);
   J = mkvecn(lgJ,f,stoi(g),stoi(d0),L,T,p,stoi(e),pe,FrobMat,V,KV,W0,Z,FrobCyc,V3,KV3,U);
 	return gerepilecopy(av,J);
