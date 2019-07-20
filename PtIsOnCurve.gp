@@ -16,6 +16,6 @@ PtIsOnHyperCurve(F,P)=
 	,
 		f=F
 	);
-	PtIsOnCurve(y^2+h*y-f,P);
+	PtIsOnCurve('y^2+h*'y-f,P);
 }
 	

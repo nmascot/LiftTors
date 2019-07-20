@@ -79,7 +79,7 @@ Smooth2RR(f0,P01,P02)=
 { \\ P01,P02 should be lists of rat pts (TODO for now distinct)
 	\\ d even: of size d/2-1
 	\\ d odd : of size d-1
-	my(F,x,y,d,g,d0,L,M,L1,L2);
+	my(F,x,y,d,g,d0,f,P1,P2,L,M,L1,L2);
 	[x,y]=variables(f0);
 	d = TotalDeg(f0,x,y);
 	F=Homogenize(f0,d);
