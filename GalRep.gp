@@ -315,6 +315,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 		J = Jlift(J,e);
 	);
 	F = AF[1][3];
+	if(#variables(F)>1,F=subst(F,variables(F)[2],0));
 	ZF = apply(z->Mod(apply(c->c+O(p^e),z),JgetT(J)),AF[1][1]);
 	[F,ZF];
 }
