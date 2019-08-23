@@ -1,6 +1,7 @@
 read("TorsSpace.gp");
 read("Hyper2RR.gp");
 read("Smooth2RR.gp");
+read("Super2RR.gp");
 
 mordroot1(f,p)=
 \\ Computes the order of x in Fp[x]/(f). Assumes f irreducible mod p.
@@ -336,7 +337,7 @@ HyperGalRep(f,l,p,e,P1,P2,chi,force_a)=
 SmoothGalRep(f,l,p,e,P1,P2,chi,force_a)=
 /* Computes the Galois representation afforded by
    the piece of l-torsion of the Jacobian
-   of the hyperelliptic curve f(x,y)=0
+   of the plane curve f(x,y)=0
    on which Frob_p has charpoly chi
    (chi=0 means take all the l-torsion)
    by working at p-adic accuracy O(p^e).
@@ -352,6 +353,26 @@ SmoothGalRep(f,l,p,e,P1,P2,chi,force_a)=
 	Lp = PlaneZeta(C[1],p); \\ Local L factor at p
   C=concat(C,[1]);
   GalRep(C,l,p,e,Lp,chi,force_a);
+}
+
+SuperGalRep(f,m,l,p,e,P,chi,force_a)=
+/* Computes the Galois representation afforded by
+   the piece of l-torsion of the Jacobian
+   of the superelliptic curve y^m=f
+   on which Frob_p has charpoly chi
+   (chi=0 means take all the l-torsion)
+   by working at p-adic accuracy O(p^e).
+   Requires f squarefree mod p and m coprime with deg(f).
+ 	 If chi is nonzero,
+   we must have chi || (Lp mod l)
+   where Lp is the local L factor at p. */
+{
+	my(Lp,C);
+	if(!issquarefree(Mod(f,p)),error(f," i not squarefree mod ",p));
+	C = Super2RR(f,m,P);
+	Lp = SuperZeta(f,m,p);
+	C = concat(C,['y]);
+	GalRep(C,l,p,e,Lp,chi,force_a);
 }
 
 HyperBestp(f,l,pmax)=
