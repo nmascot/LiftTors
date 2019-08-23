@@ -277,7 +277,7 @@ GEN DivSub_IGS(GEN GA, GEN WB, GEN KV, GEN T, GEN p, long e, GEN pe)
 }
 
 GEN PicNeg(GEN J, GEN W, long flag)
-{
+{ /* flag: 1: choose s randomly, 2: also return s */
   pari_sp av = avma;
   GEN s,sV,WN,res;
   GEN V,KV,T,p,pe;
@@ -353,7 +353,7 @@ long PicMember(GEN J, GEN W)
 
 
 GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
-{
+{ /* flag: 1: choose s randomly, 2: also return s */
 	pari_sp av = avma;
 	GEN WAWB,WAB,s,sV,WC,res;
 	GEN V,KV,KV3,W0,T,p,pe;
@@ -407,7 +407,7 @@ GEN PicSub(GEN J, GEN WA, GEN WB)
 }
 
 GEN PicMul(GEN J, GEN W, GEN n, long flag)
-{
+{ /* flag: 2: sign matters, 1: pass to PicChord and PicNeg */
 	pari_sp av = avma;
 	GEN C,Wlist,WA,WB;
 	ulong nC,i;
