@@ -8,11 +8,11 @@ P1 = [Mod(w,w^2+6),0,2];
 P2 = [Mod(w-1,w^2-7),0,2];
 
 l = 2; \\ The representation we want is in the 2-torsion of the Jacobian
-p = 11; \\ We choose to work 5-adically
-e = 1024; \\ to accuracy O(5^2048)
+p = 11; \\ We choose to work 11-adically
+e = 1024; \\ to accuracy O(11^1024)
 chi = 0; \\ We want all the l-torsion, not a subspace.
 
-[F,ZF] = SmoothGalRep(f,l,p,e,[P1],[P2],chi);
+[F,ZF] = SmoothGalRep(f,l,p,e,[P1],[P2],chi,4); \\ TODO use a=2 once FreyRuck is improved
 print(F);
 print("Factoring the polynomial");
 fa=factor(F);

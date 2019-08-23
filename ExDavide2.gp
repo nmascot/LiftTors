@@ -8,11 +8,11 @@ P1 = [1,Mod(w,w^4+1),0];
 P2 = [Mod(w,w^4+2),0,1];
 
 l = 2; \\ The representation we want is in the 2-torsion of the Jacobian
-p = 29; \\ We choose to work 5-adically
-e = 2048; \\ to accuracy O(5^2048)
+p = 29; \\ We choose to work 29-adically
+e = 2048; \\ to accuracy O(29^2048)
 chi = 0; \\ We want all the l-torsion, not a subspace.
 
-[F,ZF] = SmoothGalRep(f,l,p,e,[P1],[P2],chi);
+[F,ZF] = SmoothGalRep(f,l,p,e,[P1],[P2],chi,4);
 print(F);
 print("Factoring the polynomial");
 fa=factor(F);

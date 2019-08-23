@@ -370,7 +370,7 @@ SuperGalRep(f,m,l,p,e,P,chi,force_a)=
    (chi=0 means take all the l-torsion)
    by working at p-adic accuracy O(p^e).
    Requires f squarefree mod p and m coprime with deg(f).
- 	 If chi is nonzero,
+	 If chi is nonzero,
    we must have chi || (Lp mod l)
    where Lp is the local L factor at p. */
 {
