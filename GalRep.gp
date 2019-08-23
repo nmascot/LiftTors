@@ -375,7 +375,7 @@ SuperGalRep(f,m,l,p,e,P,chi,force_a)=
    where Lp is the local L factor at p. */
 {
 	my(Lp,C);
-	if(!issquarefree(Mod(f,p)),error(f," i not squarefree mod ",p));
+	if(!issquarefree(Mod(f,p)),error(f," is not squarefree mod ",p));
 	C = Super2RR(f,m,P);
 	Lp = SuperZeta(f,m,p);
 	C = concat(C,['y]);
