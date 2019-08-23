@@ -1,5 +1,5 @@
 read("install.gp");
-read("galrep.gp");
+read("GalRep.gp");
 l=3;
 read("H2/vap.gp");
 p=11;

@@ -4,6 +4,11 @@ WeiRed(f,h)=
  2^poldegree(F)*subst(F,x,x/2);
 }
 
+install("PicDeflate_U","GGL",,"./liblift.so");
+install("PicInflate_U","GG",,"./liblift.so");
+install("PicMember","lGG",,"./libpic.so");
+
+
 install("matkerpadic","GGGL",,"./liblinalg.so");
 install("mateqnpadic","GGGL",,"./liblinalg.so");
 install("VecSmallCompl","GU","VecSmallCompl","./liblinalg.so");
@@ -12,13 +17,14 @@ install("matF","GGGU","matF","./liblinalg.so");
 install("NAF","G","NAF","./libexp.so");
 install("AddChain","GL","AddChain","./libexp.so");
 
-install("PlaneZeta","GU","PlaneZeta","./libplanereg.so");
+install("PlaneZeta","GU","PlaneZeta","./libzeta.so");
+install("SuperZeta","GUU","SuperZeta","./libzeta.so");
 
-install("RRInit","GUUGGGGUL","PicInit","./librr.so");
-install("RREvalInit","GG","PicEvalInit","./librr.so");
-install("RREval","GGG","PicEval","./librr.so");
+install("RRInit","GUUGGGUL","PicInit","./librr.so");
+install("RREval","GG","PicEval","./librr.so");
 install("OnePol","GGGG","OnePol","./librr.so");
 install("AllPols","GGGLG","AllPols","./librr.so");
+install("Jlift","GU","Jlift","./librr.so");
 
 install("PicRed","GU","PicRed","./libpic.so");
 install("PicChord","GGGL","PicChord","./libpic.so");
@@ -42,9 +48,9 @@ install("Jgete","lG","Jgete","./libpic.so");
 install("JgetFrobMat","G","JgetFrobMat","./libpic.so");
 install("Frob","GGGG","Frob","./libpic.so");
 
-install("PicLift_worker","UUUGGGGGGG","PicLift_worker","./liblift.so");
-install("PicLiftTors_worker","GGGGGGUUUUGGLGLGGGU","PicLiftTors_worker","./liblift.so");
-install("PicLiftTors","GGLG","PicLiftTors","./liblift.so");
+install("PicLift_worker","GUGGGGG",,"./liblift.so");
+install("PicLiftTors_Chart_worker","GGGGGGGGLGUUG",,"./liblift.so");
+install("PicLiftTors","GGLG",,"./liblift.so");
 
 install("PicNorm","GGG","PicNorm","./libfreyruck.so");
 install("PicFreyRuckMulti","GGGGGG","PicFreyRuckMulti","./libfreyruck.so");

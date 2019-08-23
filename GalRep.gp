@@ -1,6 +1,7 @@
 read("TorsSpace.gp");
 read("Hyper2RR.gp");
 read("Smooth2RR.gp");
+read("Super2RR.gp");
 
 mordroot1(f,p)=
 \\ Computes the order of x in Fp[x]/(f). Assumes f irreducible mod p.
@@ -28,7 +29,7 @@ mordroot(f,p)=
 	e=vecmax(fa[,2]);
 	if(e>1,
 	 e=p^ceil(log(e)/log(p));
-	 print("mordroot warning: returning upper bound ",N*e,", but order may be as low as ",N);
+	 warning("mordroot returning upper bound ",N*e,", but order may be as low as ",N);
 	 N*=e
 	);
 	N;
@@ -232,11 +233,12 @@ TorsSpaceGetPols(J,Z)=
 {
   my(A,AI,AF);
   A = AllPols(Z,JgetT(J),Jgetp(J),Jgete(J),Jgetpe(J)); \\ p-adic approximation of a set of polynomials which all define a subfield of the field cut out by the representation, with equality iff. no repeated roots
-  print(#A," candidate polynomials");
+	print(#A," candidate polynomials");
   AI = select(x->x[3]!=[],A); \\ Drop the approximations that could not be identified as rationals
   print(#AI," identified polynomials");
   AF = select(x->#Set(x[1])==#(x[1]),AI); \\ Drop the polynomials having multiple roots
   print(#AF," faithful polynomials");
+	if(#AF==0 && #A==#AI,error("None of the evaluation maps gives a squarefree polynomial. Try again with different points."));
   vecsort(AF,x->sizebyte(x[3]));
 }
 
@@ -249,7 +251,7 @@ RR_rescale(L,p)=
   M;
 }
 
-GalRep(C,l,p,e,Lp,chi)=
+GalRep(C,l,p,e,Lp,chi,force_a)=
 /* Main function.
 	 Given C=[f,g,d0,L,LL,L1,L2,Bad]
 	 where f(x,y)=0 defines a curve C of genus g
@@ -266,7 +268,7 @@ GalRep(C,l,p,e,Lp,chi)=
 	 and if chi is nonzero,
 	 we must have chi || (Lp mod l).*/
 {
-	my([f,g,d0,L,LL,L1,L2,Bad]=C,d,J,J1,U,B,matFrob,WB,cWB,TI,Z,AF,F,ZF);
+	my([f,g,d0,L,LL,L1,L2,Bad]=C,d,J,J1,U,B,matFrob,WB,cWB,TI,Z,AF,F,ZF,M,i,e1=1);
 	/* TODO rescale to remove denoms */
 	L = RR_rescale(L,p);
   LL = RR_rescale(LL,p);
@@ -276,37 +278,49 @@ GalRep(C,l,p,e,Lp,chi)=
   if(chi,
 		print("T = part of J[",l,"] where Frob_",p," acts by ",chi);
 		d = poldegree(chi); \\ Dimension of representation
-		a = mordroot(chi,l) \\ q = p^a
+		a = if(force_a,force_a,mordroot(chi,l)) \\ q = p^a
 	,
 		print("T = all of J[",l,"]");
 		d=2*g;
-		a = mordroot(Lp,l)
+		a = if(force_a,force_a,mordroot(Lp,l))
 	);
-	J=PicInit(f,g,d0,L,LL,Bad,p,a,e);
-	U=PicEvalInit(J,[L1,L2]); \\ Evaluation data
+	print("Working with q=",p,"^",a);
+	J=PicInit(f,g,d0,[L,LL,L1,L2],Bad,p,a,e);
 	J1 = PicRed(J,1); \\ Reduction mod p
 	[B,matFrob] = TorsBasis(J1,l,Lp,chi); \\ Basis of the mod p^1 space and matrix of Frob_p
 	print("The matrix of Frob is");
 	printp(centerlift(matfrobenius(Mod(matFrob,l))));
+	i=1;M=Mod(matFrob,l);
+	while(M!=1,M*=matFrob;i++);
+	print("It has order ",i);
+	if(i<a,warning("Therefore working in degree a=",a," is not optimal. Consider restarting the computation while forcing a=",i,"."));
 	[WB,cWB] = TorsSpaceFrobGen(J1,l,B,matFrob); \\ Generating set of T under Frob and coordinates of these generators on B
-	print("\n--> Lifting ",#WB," points ",p,"-adically");
-	if(#WB > Jgetg(J),
-  	my(J=J,l=l); WB = parapply(W->PicLiftTors(J,W,1,l),WB); \\ More efficient in parallel
-	,
-  	WB = apply(W->PicLiftTors(J,W,1,l),WB); \\ Less efficient in parallel (TODO tune)
+	while(1,
+		print("\n--> Lifting ",#WB," points ",p,"-adically");
+		if(#WB > Jgetg(J),
+  		my(J=J,e1=e1,l=l); WB = parapply(W->PicLiftTors(J,W,e1,l),WB); \\ More efficient in parallel
+		,
+  		WB = apply(W->PicLiftTors(J,W,e1,l),WB); \\ Less efficient in parallel (TODO tune)
+		);
+		print("\n--> All of T");
+		TI = TorsSpaceFrob(J,WB,cWB,l,matFrob);
+		print("\n--> Evaluation of ",#TI[2]," points");
+		Z = TorsSpaceFrobEval(J,TI,l,d,matFrob);
+		print("\n--> Expansion and identification");
+		AF = TorsSpaceGetPols(J,Z); \\ List of polynomials defining the representation
+		if(AF!=[],break);
+		e1=e;
+		e*=2;
+		warning("Could not identify any squarefree polynomial. Increasing p-adic accuracy: ",O(p^e),".");
+		J = Jlift(J,e);
 	);
-	print("\n--> All of T");
-	TI = TorsSpaceFrob(J,WB,cWB,l,matFrob);
-	print("\n--> Evaluation of ",#TI[2]," points");
-	Z = TorsSpaceFrobEval(J,TI,U,l,d,matFrob);
-	print("\n--> Expansion and identification");
-	AF = TorsSpaceGetPols(J,Z); \\ List of polynomials defining the representation
 	F = AF[1][3];
+	if(#variables(F)>1,F=subst(F,variables(F)[2],0));
 	ZF = apply(z->Mod(apply(c->c+O(p^e),z),JgetT(J)),AF[1][1]);
 	[F,ZF];
 }
 
-HyperGalRep(f,l,p,e,P1,P2,chi)=
+HyperGalRep(f,l,p,e,P1,P2,chi,force_a)=
 /* Computes the Galois representation afforded by
    the piece of l-torsion of the Jacobian
    of the hyperelliptic curve C:y²=f(x)
@@ -324,13 +338,13 @@ HyperGalRep(f,l,p,e,P1,P2,chi)=
 	Lp = hyperellcharpoly(Mod(f,p)); \\ Local L factor of the curve at p, needed to know the number of points on the Jacobian mod p
 	C = Hyper2RR(f,P1,P2);
 	C=concat(C,['y]);
-	GalRep(C,l,p,e,Lp,chi);
+	GalRep(C,l,p,e,Lp,chi,force_a);
 }
 
-SmoothGalRep(f,l,p,e,P1,P2,chi)=
+SmoothGalRep(f,l,p,e,P1,P2,chi,force_a)=
 /* Computes the Galois representation afforded by
    the piece of l-torsion of the Jacobian
-   of the hyperelliptic curve f(x,y)=0
+   of the plane curve f(x,y)=0
    on which Frob_p has charpoly chi
    (chi=0 means take all the l-torsion)
    by working at p-adic accuracy O(p^e).
@@ -345,12 +359,32 @@ SmoothGalRep(f,l,p,e,P1,P2,chi)=
   C = Smooth2RR(f,P1,P2);
 	Lp = PlaneZeta(C[1],p); \\ Local L factor at p
   C=concat(C,[1]);
-  GalRep(C,l,p,e,Lp,chi);
+  GalRep(C,l,p,e,Lp,chi,force_a);
+}
+
+SuperGalRep(f,m,l,p,e,P,chi,force_a)=
+/* Computes the Galois representation afforded by
+   the piece of l-torsion of the Jacobian
+   of the superelliptic curve y^m=f
+   on which Frob_p has charpoly chi
+   (chi=0 means take all the l-torsion)
+   by working at p-adic accuracy O(p^e).
+   Requires f squarefree mod p and m coprime with deg(f).
+	 If chi is nonzero,
+   we must have chi || (Lp mod l)
+   where Lp is the local L factor at p. */
+{
+	my(Lp,C);
+	if(!issquarefree(Mod(f,p)),error(f," i not squarefree mod ",p));
+	C = Super2RR(f,m,P);
+	Lp = SuperZeta(f,m,p);
+	C = concat(C,['y]);
+	GalRep(C,l,p,e,Lp,chi,force_a);
 }
 
 HyperBestp(f,l,pmax)=
 {
-	my(D,P,a,i);
+	my(D,P,A,a,i);
 	if(type(f)=="t_VEC",
 		D = poldisc(4*f[1]+f[2]^2)
 	,
@@ -368,7 +402,7 @@ HyperBestp(f,l,pmax)=
 SmoothBestp(f0,D,l,pmax)=
 {
 	\\ TODO compute D
-	my(x,y,d,f,P,a,i);
+	my(x,y,d,f,P,A,a,i);
 	[x,y] = variables(f0);
   d = TotalDeg(f0,x,y);
   f = SmoothGeneric(f0,d)[1];

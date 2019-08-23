@@ -5,49 +5,64 @@
 GEN Jgetf(GEN J) {return gel(J,1);}
 long Jgetg(GEN J) {return itos(gel(J,2));}
 long Jgetd0(GEN J) {return itos(gel(J,3));}
-GEN JgetT(GEN J) {return gel(J,4);}
-GEN Jgetp(GEN J) {return gel(J,5);}
-long Jgete(GEN J) {return itos(gel(J,6));}
-GEN Jgetpe(GEN J) {return gel(J,7);}
-GEN JgetFrobMat(GEN J) {return gel(J,8);}
-GEN JgetV(GEN J) {return gel(J,9);}
-GEN JgetKV(GEN J) {return gel(J,10);}
-GEN JgetW0(GEN J) {return gel(J,11);}
-GEN JgetZ(GEN J) {return gel(J,12);}
-GEN JgetFrobCyc(GEN J) {return gel(J,13);}
-GEN JgetV3(GEN J) {return gel(J,14);}
-GEN JgetKV3(GEN J) {return gel(J,15);}
+GEN JgetL(GEN J) {return gel(J,4);}
+GEN JgetT(GEN J) {return gel(J,5);}
+GEN Jgetp(GEN J) {return gel(J,6);}
+long Jgete(GEN J) {return itos(gel(J,7));}
+GEN Jgetpe(GEN J) {return gel(J,8);}
+GEN JgetFrobMat(GEN J) {return gel(J,9);}
+GEN JgetV(GEN J) {return gel(J,10);}
+GEN JgetKV(GEN J) {return gel(J,11);}
+GEN JgetW0(GEN J) {return gel(J,12);}
+GEN JgetZ(GEN J) {return gel(J,13);}
+GEN JgetFrobCyc(GEN J) {return gel(J,14);}
+GEN JgetV3(GEN J) {return gel(J,15);}
+GEN JgetKV3(GEN J) {return gel(J,16);}
+GEN JgetEvalData(GEN J) {return gel(J,17);}
 
 void JgetTpe(GEN J, GEN* T, GEN* pe, GEN* p, long* e)
 {
-	*T = gel(J,4);
-	*p = gel(J,5);
-	*e = itos(gel(J,6));
-	*pe = gel(J,7);
+	*T = gel(J,5);
+	*p = gel(J,6);
+	*e = itos(gel(J,7));
+	*pe = gel(J,8);
 }
 
 
 GEN PicRed(GEN J, ulong e)
 {
-	GEN Je,p,pe;
+	pari_sp av = avma;
+	GEN Je,p,pe,U,Ue;
+	ulong i,j,n;
 	if(Jgete(J)<e) pari_err(e_MISC,"Cannot perform this reduction");
 	Je = cgetg(lgJ+1,t_VEC);
 	gel(Je,1) = gcopy(Jgetf(J));
 	gel(Je,2) = stoi(Jgetg(J));
 	gel(Je,3) = stoi(Jgetd0(J));
-	gel(Je,4) = gcopy(JgetT(J));
-	gel(Je,5) = p = gcopy(Jgetp(J));
-	gel(Je,6) = utoi(e);
-	gel(Je,7) = pe = powiu(p,e);
-	gel(Je,8) = FpM_red(JgetFrobMat(J),pe);
-	gel(Je,9) = FpXM_red(JgetV(J),pe);
-	gel(Je,10) = FpXM_red(JgetKV(J),pe);
-	gel(Je,11) = FpXM_red(JgetW0(J),pe);
-	gel(Je,12) = FpXT_red(JgetZ(J),pe);
-	gel(Je,13) = gcopy(JgetFrobCyc(J));
-	gel(Je,14) = FpXM_red(JgetV3(J),pe);
-	gel(Je,15) = FpXM_red(JgetKV3(J),pe);
-	return Je;
+	gel(Je,4) = gcopy(JgetL(J));
+	gel(Je,5) = gcopy(JgetT(J));
+	gel(Je,6) = p = gcopy(Jgetp(J));
+	gel(Je,7) = utoi(e);
+	gel(Je,8) = pe = powiu(p,e);
+	gel(Je,9) = FpM_red(JgetFrobMat(J),pe);
+	gel(Je,10) = FpXM_red(JgetV(J),pe);
+	gel(Je,11) = FpXM_red(JgetKV(J),pe);
+	gel(Je,12) = FpXM_red(JgetW0(J),pe);
+	gel(Je,13) = FpXT_red(JgetZ(J),pe);
+	gel(Je,14) = gcopy(JgetFrobCyc(J));
+	gel(Je,15) = FpXM_red(JgetV3(J),pe);
+	gel(Je,16) = FpXM_red(JgetKV3(J),pe);
+	U = JgetEvalData(J);
+	Ue = cgetg(3,t_VEC);
+	for(i=1;i<=2;i++)
+	{
+		n = lg(gel(U,i));
+		gel(Ue,i) = cgetg(n,t_VEC);
+		for(j=1;j<n;j++)
+			gmael(Ue,i,j) = FpXM_red(gmael(U,i,j),pe);
+	}
+	gel(Je,17) = Ue;
+	return gerepileupto(av,Je);
 }
 
 GEN DivMul(GEN f, GEN W, GEN T, GEN pe)
@@ -223,8 +238,122 @@ GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong 
 	}
 }
 
-GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
+GEN DivSub_IGS(GEN GA, GEN WB, GEN KV, GEN T, GEN p, long e, GEN pe)
 {
+  pari_sp av = avma;
+  ulong nIGS,nZ,P,nE,E,nV,nB,n;
+  GEN KB,K,col,res;
+	nIGS = lg(GA)-1;
+  nZ = lg(KV);
+  nV = lg(gel(KV,1))-1;
+  KB = mateqnpadic(WB,T,p,e);
+  nB = lg(gel(KB,1))-1;
+  /* Prepare a mat K of size a v stack of KV + nIGS copies of KB */
+  /* and copy KV at the top */
+  nE = nV + nIGS*nB;
+  K = cgetg(nZ,t_MAT);
+  for(P=1;P<nZ;P++)
+  {
+    col = cgetg(nE+1,t_COL);
+    for(E=1;E<=nV;E++)
+    {
+      gel(col,E) = gcoeff(KV,E,P);
+    }
+    gel(K,P) = col;
+  }
+  /* nIGS times, take rand s in WA, and stack s.KB down K */
+  for(n=1;n<=nIGS;n++)
+  {
+    for(E=1;E<=nB;E++)
+    {
+      for(P=1;P<nZ;P++)
+      {
+        gcoeff(K,nV+(n-1)*nB+E,P) = Fq_mul(gcoeff(GA,P,n),gcoeff(KB,E,P),T,pe);
+      }
+    }
+  }
+  res = matkerpadic(K,T,p,e);
+  return gerepileupto(av,res);
+}
+
+GEN PicNeg(GEN J, GEN W, long flag)
+{ /* flag: 1: choose s randomly, 2: also return s */
+  pari_sp av = avma;
+  GEN s,sV,WN,res;
+  GEN V,KV,T,p,pe;
+  long g,d0,e;
+
+  V = JgetV(J);
+  KV = JgetKV(J);
+  JgetTpe(J,&T,&pe,&p,&e);
+  g = Jgetg(J);
+  d0 = Jgetd0(J);
+
+  /* (s) = -2_0-D-N */
+  if(flag & 1) s = RandVec_padic(W,T,p,pe);
+  else s = gel(W,1);
+  sV = DivMul(s,V,T,pe); /* L(4D_0-D-N) */
+  WN = DivSub(W,sV,KV,d0+1-g,T,p,e,pe,2); /* L(2D_0-N) */
+
+  if(flag & 2)
+  {
+    res = cgetg(3,t_VEC);
+    gel(res,1) = gcopy(WN);
+    gel(res,2) = gcopy(s);
+    return gerepileupto(av,res);
+  }
+  else
+  {
+    return gerepileupto(av,WN);
+  }
+}
+
+long PicMember(GEN J, GEN W)
+{
+	pari_sp av = avma;
+	GEN T,pe,p,w,V,wV,KV,KwV,K,W2;
+	long e;
+	ulong nW,nZ,nKV,nE;
+	ulong P,E,n;
+	long res;
+
+	JgetTpe(J,&T,&pe,&p,&e);
+	V = JgetV(J);
+	KV = JgetKV(J);
+	nZ = lg(KV)-1;
+	nKV = lg(gel(KV,1))-1;
+	nW = lg(W)-1;
+
+	do
+		w = RandVec_1(W,pe);
+	while(gequal0(w));
+	wV = DivMul(w,V,T,pe);
+	KwV = mateqnpadic(wV,T,p,e);
+  /* Prepare a mat K of size a v stack of KV + nW copies of KW */
+  /* and copy KV at the top */
+  nE = nKV*(nW+1);
+  K = cgetg(nZ+1,t_MAT);
+  for(P=1;P<=nZ;P++)
+  {
+    gel(K,P) = cgetg(nE+1,t_COL);
+    for(E=1;E<=nKV;E++)
+    {
+      gcoeff(K,E,P) = gcoeff(KV,E,P);
+			for(n=1;n<=nW;n++)
+			{
+				gcoeff(K,n*nKV+E,P) = Fq_mul(gcoeff(W,P,n),gcoeff(KwV,E,P),T,pe);
+			}
+		}
+  }
+  W2 = matkerpadic_safe(K,T,p,e);
+	res = (lg(W2)-1==nW?1:0);
+	avma = av;
+	return res;
+}
+
+
+GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
+{ /* flag: 1: choose s randomly, 2: also return s */
 	pari_sp av = avma;
 	GEN WAWB,WAB,s,sV,WC,res;
 	GEN V,KV,KV3,W0,T,p,pe;
@@ -264,7 +393,7 @@ GEN PicAdd(GEN J, GEN WA, GEN WB)
 	pari_sp av = avma;
 	GEN W;
 	W = PicChord(J,WA,WB,0);
-	W = PicChord(J,W,JgetW0(J),0);
+	W = PicNeg(J,W,0);
 	return gerepileupto(av,W);
 }
 
@@ -272,22 +401,19 @@ GEN PicSub(GEN J, GEN WA, GEN WB)
 {
 	pari_sp av = avma;
 	GEN W;
-	W = PicChord(J,WB,JgetW0(J),0);
+	W = PicNeg(J,WB,0);
 	W = PicChord(J,W,WA,0);
 	return gerepileupto(av,W);
 }
 
-GEN PicNeg(GEN J, GEN W) { return PicChord(J,W,JgetW0(J),0); }
-
 GEN PicMul(GEN J, GEN W, GEN n, long flag)
-{
+{ /* flag: 2: sign matters, 1: pass to PicChord and PicNeg */
 	pari_sp av = avma;
-	GEN W0,C,Wlist,WA,WB;
+	GEN C,Wlist,WA,WB;
 	ulong nC,i;
 	long a,b;
 
-	W0 = JgetW0(J);
-	if(gequal0(n)) return W0;
+	if(gequal0(n)) return gcopy(JgetW0(J));
 	if(gequal(n,gen_1)) return gcopy(W);
 	C = AddChain(n,flag&2);
 	nC = lg(C);
@@ -300,10 +426,19 @@ GEN PicMul(GEN J, GEN W, GEN n, long flag)
 	for(i=2;i<nC;i++)
 	{
 		a = gmael(C,i,2)[1];
-		WA = a?gel(Wlist,a):W0;
 		b = gmael(C,i,2)[2];
-		WB = b?gel(Wlist,b):W0;
-		gel(Wlist,i) = PicChord(J,WA,WB,(i==nC-1)&&(flag&1));
+		if(a)
+		{
+			WA = gel(Wlist,a);
+			if(b)
+			{
+				WB = gel(Wlist,b);
+				gel(Wlist,i) = PicChord(J,WA,WB,(i==nC-1)&&(flag&1));
+			}
+			else gel(Wlist,i) = PicNeg(J,WA,(i==nC-1)&&(flag&1));
+		}
+		else gel(Wlist,i) = b?PicNeg(J,gel(Wlist,b),(i==nC-1)&&(flag&1)):gcopy(JgetW0(J));
+		/* Does not respect flag if a==b==0 but this is not supposed to happen */
 	}
 	return gerepileupto(av,gel(Wlist,nC-1));
 }
@@ -464,7 +599,7 @@ long PicEq(GEN J, GEN WA, GEN WB)
 		}
 	}
 
-	r = lg(matkerpadic(K,T,p,e))-1;
+	r = lg(matkerpadic_safe(K,T,p,e))-1;
 
 	avma = av;
 	return r;
@@ -478,26 +613,24 @@ long PicIsZero(GEN J, GEN W)
 GEN PicChart(GEN J, GEN W, ulong P0) /* /!\ Not Galois-equivariant ! */
 {
 	pari_sp av = avma;
-	ulong d0,g,n1,n2,nV,nZ,nW;
+	ulong d0,g,n1,nZ,nW;
 	ulong j,P;
 	long e;
 	GEN V,KV,T,p,pe;
-	GEN K,col,s,sV,U,res;
+	GEN K,col,s,sV,U;
 
 	g = Jgetg(J);
 	d0 = Jgetd0(J);
 	n1 = d0-g;
-	n2 = d0-g;
 	V = JgetV(J);
 	KV = JgetKV(J);
-	nV = lg(V)-1;
 	nZ = lg(gel(V,1))-1;
 	nW = lg(W)-1;
 	JgetTpe(J,&T,&pe,&p,&e);
 
 	K = cgetg(nW+1,t_MAT);
 	for(j=1;j<=nW;j++)
-	{
+	{ /* C = sum of pts P0+1, ..., P0+d0-g */
 		col = cgetg(n1+1,t_COL);
 		for(P=1;P<=n1;P++) gel(col,P) = gcoeff(W,P+P0,j);
 		gel(K,j) = col;
@@ -509,35 +642,16 @@ GEN PicChart(GEN J, GEN W, ulong P0) /* /!\ Not Galois-equivariant ! */
 		avma = av;
 		return NULL;
 	}
-	s = FqM_FqC_mul(W,gel(K,1),T,pe);
+	s = FqM_FqC_mul(W,gel(K,1),T,pe); /* Generator of L(2D0-D-C) */
 
-	sV = cgetg(nV+1,t_MAT);
-	for(j=1;j<=nV;j++)
+	sV = DivMul(s,V,T,pe); /* L(4D0-D-C-E_D) */
+	U = DivSub(W,sV,KV,d0+1-g,T,p,e,pe,2); /* L(2D0-C-E_D) */
+	for(j=1;j<=nW;j++) /* Remove zero rows */
 	{
-		col = cgetg(nZ+1,t_COL);
-		for(P=1;P<=nZ;P++) gel(col,P) = Fq_mul(gel(s,P),gcoeff(V,P,j),T,pe);
-		gel(sV,j) = col;
+		for(P=1;P<=n1;P++) gcoeff(U,P0+P,j) = gcoeff(U,P0+n1+P,j);
+		setlg(gel(U,j),nZ-n1+1);
 	}
-	U = DivSub(W,sV,KV,d0+1-g,T,p,e,pe,2);
-	K = cgetg(d0+2-g,t_MAT);
-  for(j=1;j<=d0+1-g;j++)
-  { 
-    col = cgetg(n2+1,t_COL);
-    for(P=1;P<=n2;P++) gel(col,P) = gcoeff(U,P0+n1+P,j);
-    gel(K,j) = col;
-  }
-	K = matkerpadic(K,T,p,e);
-	if(lg(K)!=2) 
-  {
-    pari_printf("Genericity 2 failed in PicChart\n");
-    avma = av;
-    return NULL;
-  }
-	s = FqM_FqC_mul(U,gel(K,1),T,pe);
-	res = cgetg(nZ-n1-n2,t_COL);
-	for(j=1;j<=P0;j++) gel(res,j) = gel(s,j);
-	for(j=P0+n1+n2+1;j<=nZ;j++) gel(res,j-n1-n2) = gel(s,j);
-	return gerepilecopy(av,res);
+	return gerepilecopy(av,mat2col(U));
 }
 
 GEN rand_subset(ulong n, ulong r)

@@ -157,7 +157,7 @@ TorsSpaceFrob(J,gens,cgens,l,matFrob)=
   [V,Vec(ImodF)];
 }
 
-TorsSpaceFrobEval(J,TI,U,l,d,matFrob)=
+TorsSpaceFrobEval(J,TI,l,d,matFrob)=
 \\ Given a submodule T of J[l] of Fl-dimension d specified by TI, 
 \\ where TI is formed of a list ofrepresentatives of orbits of T under Frob
 \\ as output by the previous function,
@@ -167,7 +167,7 @@ TorsSpaceFrobEval(J,TI,U,l,d,matFrob)=
 {
   my(J=J,T=TI[1],ImodF=TI[2],Z,ZmodF,i,z);
   Z = vector(l^d-1,i,[]);
-  ZmodF = parapply(i->PicEval(J,T[i],U),ImodF);
+  ZmodF = parapply(i->PicEval(J,T[i]),ImodF);
   for(n=1,#ImodF,
     i = ImodF[n];
     z = ZmodF[n];
@@ -175,7 +175,7 @@ TorsSpaceFrobEval(J,TI,U,l,d,matFrob)=
       Z[i] = z;
       i = ActOni(matFrob,i,l);
       if(Z[i] != [],break);
-      z = apply(x->Frob(x,JgetFrobMat(J),JgetT(J),Jgetpe(J)),z);
+      z = apply(x->apply(y->Frob(y,JgetFrobMat(J),JgetT(J),Jgetpe(J)),x),z);
     )
   );
   Z;
