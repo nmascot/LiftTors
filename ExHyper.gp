@@ -9,7 +9,10 @@ e = 32; \\ Target p-adic accuracy is O(17^32)
 chi = x^2-x-2; \\ Char.poly. of the Frobenius at p (another possible choice is x^2-2*x-1)
 P1 = [-1,1]; P2 = [0,0]; \\ We need two non-conjugate rational points
 [F,ZF] = HyperGalRep([f,h],l,p,e,P1,P2,chi);
+printf("\nPolynomial defining the linear representation:");
 print(F);
 [G,ZG,VG] = ProjPol(ZF,l,2,0);
+printf("\nPolynomial defining the projective representation:");
 print(G);
+printf("\nReduced version:");
 print(polredabs(G));
