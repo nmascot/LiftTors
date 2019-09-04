@@ -8,12 +8,12 @@ P1 = [0,0,1];
 P2 = [1,0,0];
 
 l = 2; \\ The representation we want is in the 2-torsion of the Jacobian
-p = 5; \\ We choose to work 5-adically
-e = 64; \\ to accuracy O(5^64)
+p = 13; \\ We choose to work 5-adically
+e = 32; \\ to accuracy O(5^64)
 \\ If instead we want the 3-torsion, we can take:
 \\l=3;p=43;e=512;
 chi = 0; \\ We want all the l-torsion, not a subspace.
 
-[F,ZF] = SmoothGalRep(f,l,p,e,[P1],[P2],chi);
+[F,ZF] = SmoothGalRep(f,l,p,e,[P1],[P2],chi,2);
 print(F);
 Mat(factor(F)[,1])
