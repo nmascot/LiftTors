@@ -140,7 +140,7 @@ GEN FnsEvalAt_Rescale(GEN Fns, GEN Z, GEN vars, GEN T, GEN p, long e, GEN pe)
 		/* Are the evals (and hence the fns) independent ? */
 		if(nK==1)
 		{
-			printf("Good, no relation\n");
+			if(DEBUGLEVEL) printf("Good, no relation\n");
 			return gerepileupto(av,S);
 		}
 		pari_printf("Found %ld relations, eliminating and re-evaluating\n",nK-1);
@@ -369,7 +369,7 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
   pe = powiu(p,e);
   FrobMat = ZpXQ_FrobMat(T,p,e,pe);
 
-	printf("PicInit: Finding points\n");
+	if(DEBUGLEVEL) printf("PicInit: Finding points\n");
   n = ncyc = 0;
   Z = cgetg(nZ+a,t_VEC);
   Zp = cgetg(nZ+a,t_VEC);
@@ -410,7 +410,7 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
   setlg(Z,n+1);
   setlg(FrobCyc,ncyc+1);
 
-	printf("PicInit: Evaluating rational functions\n");
+	if(DEBUGLEVEL) printf("PicInit: Evaluating rational functions\n");
 	V1 = FnsEvalAt_Rescale(gel(L,1),Z,vars,T,p,e,pe);
 	V2 = FnsEvalAt_Rescale(gel(L,2),Z,vars,T,p,e,pe);
 	V3 = DivAdd(V1,V2,3*d0+1-g,T,p,e,pe,0);
@@ -418,7 +418,7 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
 	V = V2;
   KV = mateqnpadic(V,T,p,e);
   KV3 = mateqnpadic(V3,T,p,e);
-	printf("PicInit: Constructing evaluation maps\n");
+	if(DEBUGLEVEL) printf("PicInit: Constructing evaluation maps\n");
 	U = RREvalInit(L,vars,Z,T,p,e,pe);
   J = mkvecn(lgJ,f,stoi(g),stoi(d0),L,T,p,stoi(e),pe,FrobMat,V,KV,W0,Z,FrobCyc,V3,KV3,U);
 	return gerepilecopy(av,J);

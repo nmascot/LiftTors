@@ -299,10 +299,10 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
   	gel(K,nGW*d0+1) = mat2col(rho);
   	/* Find a random solution to the inhomogeneous system */
   	KM = matkerpadic(K,T,p,e21);
-		printf("dim ker lift: %ld\n",lg(KM)-1);
+		if(DEBUGLEVEL||(lg(KM)==1)) printf("dim ker lift: %ld\n",lg(KM)-1);
 		if(cmpii(pe21,powiu(l,g+1))<=0)
   	{
-    	printf("Lift by mul\n");
+    	if(DEBUGLEVEL) printf("Lift by mul\n");
 			U = PicLift_RandLift_U(U,U0,KM,T,p,pe1,pe21,e21);
 			W = PicInflate_U(J2,U,NULL);
     	W = PicMul(J2,W,pe21,0); /* Make it l-tors */
@@ -312,7 +312,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 		}
 		else
 		{
-			printf("Lift by chart\n");
+			if(DEBUGLEVEL) printf("Lift by chart\n");
 			Clifts = cgetg(g+2,t_MAT);
 			Ulifts = cgetg(g+2,t_VEC);
 			Wlifts = cgetg(g+2,t_VEC);
@@ -323,7 +323,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 				avma = av2;
     		if(c0==NULL) /* Compute coords of 0 if not already done */
     		{
-					printf("Computing coords of 0\n");
+					if(DEBUGLEVEL) printf("Computing coords of 0\n");
       		/* Find coords of 0 */
       		c0 = PicChart(J,JgetW0(J),P0);
       		nc = lg(c0)-1;
@@ -361,9 +361,9 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
     		mt_queue_end(&pt);
 				Ktors = matkerpadic(Clifts,T,p,e21); /* Find comb with coord = 0 */
     		n = lg(Ktors)-1;
-				printf("dim ker tors: %ld\n",n);
+				if(DEBUGLEVEL || n!=1) printf("dim ker tors: %ld\n",n);
     		if(n>1)
-    		{ /* l-tors is étale, so this can only happen if CHart is not diffeo - > change chart */
+    		{ /* l-tors is étale, so this can only happen if Chart is not diffeo - > change chart */
       		printf("Dim ker tors = %ld, changing charts\n",n);
       		P0++; /* New chart */
 					P0_tested = 0;
@@ -386,7 +386,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 				/* But first check if really l-tors, as the chart might not be injective ! */
     		if(P0_tested == 0)
 				{
-					printf("Checking l tors\n");
+					if(DEBUGLEVEL) printf("Checking l tors\n");
 					for(i=1;i<=g+1;i++) gel(Wlifts,i) = FqM_Fq_mul(gel(Wlifts,i),gel(Ktors,i),T,pe2);
 					W = gel(Wlifts,1);
   	  		for(i=2;i<=g+1;i++) W = FpXM_add(W,gel(Wlifts,i),pe2);
