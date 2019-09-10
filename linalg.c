@@ -449,3 +449,21 @@ GEN FqM_MinorCompl(GEN A, GEN T, GEN p)
 	gmael(uv,2,2) = VecSmallCompl(gel(IJ,2),n);
 	return gerepilecopy(av,uv);
 }
+
+GEN Subspace_normalize(GEN V, GEN I, GEN T, GEN pe, GEN p, long e)
+{ /* V represents a subspace, I list of rows. Change basis so that I-block of V==1. */
+	pari_sp av = avma;
+	GEN P;
+	ulong n,i,j;
+	n = lg(V);
+	P = cgetg(n,t_MAT);
+	for(j=1;j<n;j++)
+	{
+		gel(P,j) = cgetg(n,t_COL);
+		for(i=1;i<n;i++)
+			gcoeff(P,i,j) = gcoeff(V,I[i],j);
+	}
+	P = ZpXQM_inv(P,T,p,e);
+	V = FqM_mul(V,P,T,pe);
+	return gerepileupto(av,V);
+}

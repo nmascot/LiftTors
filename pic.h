@@ -41,4 +41,4 @@ long PicEq(GEN J, GEN WA, GEN WB);
 long PicIsZero(GEN J, GEN W);
 GEN PicRand0(GEN J);
 
-GEN PicChart(GEN J, GEN W, ulong P0);
+GEN PicChart(GEN J, GEN W, ulong P0, GEN P1);

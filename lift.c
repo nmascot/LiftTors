@@ -71,7 +71,7 @@ GEN PicInflate_U(GEN J, GEN U, GEN I) /* Takes IGS given by coords // V */
 	pari_sp av = avma;
 	GEN T,pe,p;
 	long e;
-	GEN V,KV,GWV,wV,W,M;
+	GEN V,KV,GWV,wV,W;
 	ulong d0,g;
 	ulong nU,nV,nW;
 	ulong i,j,k;
@@ -98,17 +98,8 @@ GEN PicInflate_U(GEN J, GEN U, GEN I) /* Takes IGS given by coords // V */
   }
   GWV = FqM_image(GWV,T,p);
   W = DivSub(V,GWV,KV,nW,T,p,e,pe,3); /* TODO pass precomputed IGS of V */
-	if(I)
-	{ /* Change basis to make block = 1 */
-		M = cgetg(nW+1,t_MAT);
-		for(j=1;j<=nW;j++)
-		{
-			gel(M,j) = cgetg(nW+1,t_COL);
-			for(i=1;i<=nW;i++) gcoeff(M,i,j) = gcoeff(W,I[i],j);
-		}
-		M = ZpXQM_inv(M,T,p,e);
-		W = FqM_mul(W,M,T,pe);
-	}
+	if(I) /* Change basis to make block = 1 */
+		W = Subspace_normalize(W,I,T,pe,p,e);
 	return gerepileupto(av,W);
 }
 
@@ -163,7 +154,7 @@ GEN PicLift_RandLift_U(GEN U, GEN U0, GEN KM, GEN T, GEN p, GEN pe1, GEN pe21, l
 	return gerepileupto(av,newU);
 }
 
-GEN PicLiftTors_Chart_worker(GEN J, GEN l, GEN U, GEN U0, GEN I, GEN KM, GEN pe1, GEN pe21, long e21, GEN c0, ulong k0, ulong P0, GEN randseed)
+GEN PicLiftTors_Chart_worker(GEN J, GEN l, GEN U, GEN U0, GEN I, GEN KM, GEN pe1, GEN pe21, long e21, GEN c0, ulong P0, GEN P1, GEN randseed)
 {
   pari_sp av = avma;
 	GEN T,p,pe2;
@@ -178,10 +169,9 @@ GEN PicLiftTors_Chart_worker(GEN J, GEN l, GEN U, GEN U0, GEN I, GEN KM, GEN pe1
 	U = PicLift_RandLift_U(U,U0,KM,T,p,pe1,pe21,e21);
   W = PicInflate_U(J,U,I);
   /* Mul by l, get coordinates, and compare them to those of W0 */
-  c = PicChart(J,PicMul(J,W,l,0),P0);
-  c = FqV_Fq_mul(c,ZpXQ_inv(gel(c,k0),T,p,e2),T,pe2); /* Normalize proj coords */
+  c = PicChart(J,PicMul(J,W,l,0),P0,P1);
   for(i=1;i<=nc;i++) /* The coords are c0 mod pe1 -> divide */
-    gel(c,i) = ZX_Z_divexact(FpX_sub(gel(c,i),gel(c0,i),pe2),pe1);
+		gel(c,i) = ZX_Z_divexact(FpX_sub(gel(c,i),gel(c0,i),pe2),pe1);
   return gerepilecopy(av,mkvecn(3,U,W,c));
 }
 
@@ -198,8 +188,8 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
   GEN ABCD,uv,Ainv,CAinv,AinvB,rho;
   GEN KM,red;
   ulong g,nZ,nW;
-  ulong nGW=2,nV,d0,nc,k0=0,P0=0;
-	GEN c0=NULL;
+  ulong nGW=2,nV,d0,nc,P0=0;
+	GEN c0=NULL,P1=NULL;
 	int P0_tested=0;
 	GEN Clifts,Ulifts,Wlifts,Ktors;
 	struct pari_mt pt;
@@ -325,17 +315,15 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
     		{
 					if(DEBUGLEVEL) printf("Computing coords of 0\n");
       		/* Find coords of 0 */
-      		c0 = PicChart(J,JgetW0(J),P0);
+      		c0 = PicChart(J,JgetW0(J),P0,NULL);
       		nc = lg(c0)-1;
-      		/* Find index to dehomogenise */
-      		red = NULL;
-      		for(k0=1;k0<=nc;k0++)
-      		{
-        		red = gel(c0,k0);
-        		if(!ZX_is0mod(red,p)) break;
-      		}
-      		c0 = FqV_Fq_mul(c0,ZpXQ_inv(red,T,p,efin),T,pefin); /* Dehomogenize */
-					c0 = gerepileupto(av2,c0);
+      		/* Find indep set of rows to normalize */
+					c0 = col2mat(c0,nc/nW,nW);
+					P1 = FqM_indexrank(c0,T,p);
+					P1= gel(P1,1);
+					c0 = Subspace_normalize(c0,P1,T,pefin,p,efin);
+					c0 = mat2col(c0); /* TODO remove Id block */
+					/* TODO clean up memory */
 					av2 = avma;
     		}
     		/* Find g+1 lifts in parallel */
@@ -346,7 +334,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
       		if(i<=g+1)
       		{
         		randseed = utoi(pari_rand());
-        		args = mkvecn(13,J2,l,U,U0,sW,KM,pe1,pe21,stoi(e21),c0,utoi(k0),utoi(P0),randseed);
+        		args = mkvecn(13,J2,l,U,U0,sW,KM,pe1,pe21,stoi(e21),c0,utoi(P0),P1,randseed);
         		mt_queue_submit(&pt,i,args);
       		}
       		else mt_queue_submit(&pt,i,NULL);
@@ -362,10 +350,12 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 				Ktors = matkerpadic(Clifts,T,p,e21); /* Find comb with coord = 0 */
     		n = lg(Ktors)-1;
 				if(DEBUGLEVEL || n!=1) printf("dim ker tors: %ld\n",n);
-    		if(n>1)
+    		if(n!=1)
     		{ /* l-tors is étale, so this can only happen if Chart is not diffeo - > change chart */
       		printf("Dim ker tors = %ld, changing charts\n",n);
+					pari_err(e_MISC,"");
       		P0++; /* New chart */
+					printf("P0=%lu\n",P0);
 					P0_tested = 0;
 					c0 = NULL; /* Coords of 0 must be recomputed */
       		continue; /* Try again with this new chart */
@@ -401,7 +391,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
     		}
 				if(e2 == efin)
 				{ /* Already done ? */
-					if(W == NULL) /* Update W, if notalready done, and return it */
+					if(W == NULL) /* Update W, if not already done, and return it */
 					{
 						for(i=1;i<=g+1;i++) gel(Wlifts,i) = FqM_Fq_mul(gel(Wlifts,i),gel(Ktors,i),T,pe2);
           	W = gel(Wlifts,1);
@@ -421,7 +411,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
     e1 = e2;
 		pe1 = pe2;
 		if(c0)
-			gerepileall(av1,3,&U,&pe1,&c0);
+			gerepileall(av1,4,&U,&pe1,&c0,&P1);
 		else
 			gerepileall(av1,2,&U,&pe1);
   }

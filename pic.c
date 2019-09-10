@@ -613,7 +613,7 @@ long PicIsZero(GEN J, GEN W)
 	return PicEq(J,W,JgetW0(J));
 }
 
-GEN PicChart(GEN J, GEN W, ulong P0) /* /!\ Not Galois-equivariant ! */
+GEN PicChart(GEN J, GEN W, ulong P0, GEN P1) /* /!\ Not Galois-equivariant ! */
 {
 	pari_sp av = avma;
 	ulong d0,g,n1,nZ,nW;
@@ -647,13 +647,15 @@ GEN PicChart(GEN J, GEN W, ulong P0) /* /!\ Not Galois-equivariant ! */
 	}
 	s = FqM_FqC_mul(W,gel(K,1),T,pe); /* Generator of L(2D0-D-C) */
 
-	sV = DivMul(s,V,T,pe); /* L(4D0-D-C-E_D) */
+	sV = DivMul(s,V,T,pe); /* L(4D0-D-C-E_D), deg E_D = g */
 	U = DivSub(W,sV,KV,d0+1-g,T,p,e,pe,2); /* L(2D0-C-E_D) */
 	for(j=1;j<=nW;j++) /* Remove zero rows */
 	{
 		for(P=1;P<=n1;P++) gcoeff(U,P0+P,j) = gcoeff(U,P0+n1+P,j);
 		setlg(gel(U,j),nZ-n1+1);
 	}
+	if(P1)
+		U = Subspace_normalize(U,P1,T,pe,p,e);
 	return gerepilecopy(av,mat2col(U));
 }
 
