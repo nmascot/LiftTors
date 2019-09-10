@@ -1,2 +1,1 @@
-setrand(2);ExSmooth -> dim ker tors=0, Bus Error
 

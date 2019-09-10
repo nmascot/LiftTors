@@ -98,110 +98,144 @@ TorsBasis(J,l,chi,C)=
 \\ If C==0, then we take T=J[l]
 \\ Also computes the matrix M of Frob w.r.t B, and returns the vector [B,M]
 {
-  my(a,d,N,M,v,chiC,Batch,nBatch,iBatch,iFrob,W,o,T,BW,Bo,BT,R,KR,Rnew,KRnew,Wtest,Wnew,am,S,AddC,W0,z);
-	iBatch = nBatch = 0;
-	a = poldegree(JgetT(J));
-	iFrob = a-1;
+  my(i,a,d,N,M,v,chiC,Batch,nBatch,iBatch,iFrob,W,o,T,BW,Bo,BT,R,KR,Rnew,KRnew,Wtest,Wnew,am,S,AddC,W0,z);
+	iBatch = nBatch = 0; \\ index and length of batch of tors pts
+	a = poldegree(JgetT(J)); \\ work over Fq=Fp[t]/T, q=p^a
+	iFrob = a-1; \\ How many times we have applied Frob to l-tors pt
 	N = polresultant(chi,'x^a-1);
   v = valuation(N,l);
-  M = N/l^v;
+  M = N/l^v; \\ # J(Fq) = M*l^v, coprime
   if(C,
-		d = poldegree(C);
-    chiC = lift(Mod(chi,l)/C); \\ TODO test
+		d = poldegree(C); \\ dim of rep
+    chiC = lift(Mod(chi,l)/C); \\ cofactor
     fa = [C,chiC];
-    fa = polhensellift(chi,fa,l,v);
+    fa = polhensellift(chi,fa,l,v); \\ lift cofactor l-adically
     chiC = fa[2];
-    chiC = centerlift(Mod(chiC,l^v))
+    chiC = centerlift(Mod(chiC,l^v)) \\ center mod l^v
 	,
-		d = poldegree(chi);
-    chiC = 0
+		d = poldegree(chi); \\ dim of rep
+    chiC = 0 \\ no cofactor
   );
-  BW = vector(d);
-  Bo = vector(d);
-  BT = vector(d);
-	R = matrix(d,d);
+  BW = vector(d); \\ list of l-power tors pts
+  Bo = vector(d); \\ list of exponents of orders
+  BT = vector(d); \\ list of l-tors pts
+	Wtest = vector(d); \\ list of pts to pair l-tors with
+	R = matrix(d,d); \\ matrix of pairings
 	AddC = AddChain(l,0);
 	W0 = JgetW0(J);
-  W0 = PicChord(J,W0,W0,1);
-	Wtest = vector(d,i,PicChord(J,PicRand(J),PicRand(J),1));
-	z = Fq_zeta_l(JgetT(J),Jgetp(J),l);
-  r = 0;
+  W0 = PicChord(J,W0,W0,1); \\ Non-trivial origin, needed for pairings
+	\\Wtest = vector(d,i,PicChord(J,PicRand(J),PicRand(J),1));
+	z = Fq_zeta_l(JgetT(J),Jgetp(J),l); \\ primitive l-th root of 1, to linearize parings
+  r = 0; \\ dim of l-tors obtained so far
   while(r<d,
     /*print("Status:",Bo[1..r]);*/
     print("Getting new point");
 		iFrob += 1;
-		if(iFrob==a,
+		if(iFrob==a, \\ No use applying Frob anymore
 			print(" from batch");
-			if(iBatch==nBatch,
-				nBatch = max(ceil((d-r)/a),ceil(default(nbthreads)/2));
+			if(iBatch==nBatch, \\ Have we used all of the previous batch?
+				nBatch = max(ceil((d-r)/a),ceil(default(nbthreads)/2)); \\ If yes, make new batch
 				print("  Generating a new batch of ",nBatch," points in parallel");
 				my(RandTorsPt=RandTorsPt,seed=vector(nBatch,i,random()));
 				Batch = parvector(nBatch,i,RandTorsPt(J,l,M,chiC,seed[i]));
 				print("  Batch of points generated.");
 				iBatch=1;
     	,
-				iBatch+=1;
+				iBatch+=1; \\ Else just move to next pt in batch
 			);
 			[W,o,T]=Batch[iBatch];
     	print(" It has order l^",o);
 		,
-			print(" from Frob");
+			print(" from Frob"); \\ Get new pt by Frob (fast)
 			W = PicFrob(J,W);
 			T = PicFrob(J,T)
 		);
+		\\ (H) At this point, the top-left r*r block of R has full rank
     r += 1;
     BW[r] = W;
     Bo[r] = o;
     BT[r] = T;
-    while(1,		
+		if(Wtest[r]==0, \\ Get new random linear form (unless there already is one from previous attempt)
+			Wtest[r]=PicChord(J,PicRand(J),PicRand(J),1);
+			\\ New form -> new row of R (except rightmost coeff)
+      my(test=Wtest[r]);Rnew = parapply(x->PicFreyRuckMulti(J,x,l,[test],W0,AddC),BT[1..r-1]);
+      for(j=1,r-1,R[r,j] = Fq_mu_l_log(Rnew[j][1],z,JgetT(J),Jgetp(J),l))
+		);
+    while(1, \\ Loop until indep new pt is found, or until we cannot exploit current pt any further
     	print(" Looking for relations...");
-			R[,r] = apply(x->Fq_mu_l_log(x,z,JgetT(J),Jgetp(J),l),PicFreyRuckMulti(J,T,l,Wtest,W0,AddC));
+			\\ New col of R (including bottommost coeff)
+			Rnew = PicFreyRuckMulti(J,T,l,Wtest[1..r],W0,AddC);
+			for(i=1,r,
+				R[i,r] = Fq_mu_l_log(Rnew[i],z,JgetT(J),Jgetp(J),l)
+			);
     	KR = centerlift(matker(Mod(R[,1..r],l)));
+			/*print("R=");
+			printp(R);
+			print("KR=");
+			printp(KR);*/
+			if(#KR>1,error("Bug in TorsSpace, please report")); \\ Not suppoe to happen by (H)
 			if(#KR==0,
 				print(" Good, no relation");
 				next(2)
 			);
-			while(#KR>1,
-				print("  Adding a linear test");
-				Wnew = PicChord(J,PicRand(J),PicRand(J),1);
-				Rnew = parapply(w->PicFreyRuckMulti(J,w,l,[Wnew],W0,AddC)[1],BT[1..r]);
-				Rnew = apply(x->Fq_mu_l_log(x,z,JgetT(J),Jgetp(J),l),Rnew);
-				Rnew = matconcat([R,Rnew]~);
-				KRnew = centerlift(matker(Mod(Rnew[,1..r],l)));
-				if(#KRnew<#KR,
-					R = Rnew;
-					KR = KRnew;
-					Wtest = concat(Wtest,[Wnew])
-				)
-			);
-      KR = KR[,1];
-	    print("Found pseudo-relation ",KR~);
+			KR=KR[,1];
+			\\ So we have a pseudo-relation
+	    print(" Found pseudo-relation ",KR~);
+			\\ Either this is an actual relation, or our linear forms are not independent
 			if(PicIsZero(J,PicLC(J,KR,BT[1..r]))==0,
-				print(" Good, it does not actually hold");
+        print(" Good, it does not actually hold.");
+				\\ So our linear forms are not independent.
+				\\ Find a new one, and replace one the appropriate old one with it
+				print(" Changing linear tests so that we don't get a false positive again.");
+				\\ Note: we could exit there, but it is better to fix the linear forms
+				\\ so as to compute the matrix of Frobenius later on.
+				until(#KRnew==0,
+          Wnew = PicChord(J,PicRand(J),PicRand(J),1); \\ New rand test pt
+          Rnew = parapply(w->PicFreyRuckMulti(J,w,l,[Wnew],W0,AddC)[1],BT[1..r]); \\ Pair it with tors pts
+          Rnew = apply(x->Fq_mu_l_log(x,z,JgetT(J),Jgetp(J),l),Rnew); \\ Discrete logs
+					/*print("New test gives parings ",Rnew);*/
+          Rnew = matconcat([R[1..r,1..r],Rnew]~); \\ Combine with other pairings
+          KRnew = centerlift(matker(Mod(Rnew,l))); \\ Test for relations
+        );
+				\\ So now we have r+1 forms of rank r.
+				\\ Find one that can be removed.
+				KRnew = centerlift(matker(Mod(Rnew~,l)))[,1];
+				i=1;
+				while(KRnew[i]==0,i++);
+				/*print("Dropping test number ",i);*/
+				\\ Replace the i-th old form with the new one
+				Wtest[i] = Wnew;
+				for(j=1,r,R[i,j] = Rnew[r+1,j]);
+				/*print("So now R=");
+				printp(R);*/
 				next(2)
-			);
-      m = vecmin([Bo[i]|i<-[1..r],KR[i]]);
-			if(m>1,
-      	print(" Dividing relation ",KR," by l");
-				iFrob = 0;
-      	S = vector(r,i,if(KR[i],l^(Bo[i]-m)*KR[i],0));
-      	W = PicLC(J,S,BW[1..r]);
-      	[T,o] = TorsOrd(J,W,l);
-      	print(" gives point of order l^",o)
 			,
-        print(" Giving up this point");
-				iFrob = a-1;
-        r -= 1;
-        break
-      );
-      BW[r] = W;
-      Bo[r] = o;
-      BT[r] = T;
+				\\ So we have an actual relation.
+				\\ Try to use it to make a new point.
+      	m = vecmin([Bo[i]|i<-[1..r],KR[i]]);
+				if(m>1,
+      		print(" Dividing relation ",KR," by l");
+					iFrob = 0;
+      		S = vector(r,i,if(KR[i],l^(Bo[i]-m)*KR[i],0));
+      		W = PicLC(J,S,BW[1..r]);
+      		[T,o] = TorsOrd(J,W,l);
+      		print(" gives point of order l^",o);
+					BW[r] = W;
+      		Bo[r] = o;
+      		BT[r] = T;
+				,
+        	print(" Giving up this point");
+					\\ Nothing more to do with this point. Start over with a new one.
+					iFrob = a-1; \\ Reset indices
+        	r -= 1; \\ Erase data about this point
+        	break
+      	)
+			);
     );
   );
 	print("Found basis, now computing the matrix of Frobenius");
 	\\ Now compute matrix of Frobenius
-	\\ First of all, make sure we have enough linear tests
+	/* First of all, make sure we have enough linear tests
 	while(#KR,
   	print("  Adding a linear test");
     Wnew = PicChord(J,PicRand(J),PicRand(J),1);
@@ -214,7 +248,7 @@ TorsBasis(J,l,chi,C)=
       KR = KRnew;
       Wtest = concat(Wtest,[Wnew])
     )
-  );
+  );*/
 	\\ Apply Frobenius to BT, and pair
 	FR = parapply(T->PicFreyRuckMulti(J,PicFrob(J,T),l,Wtest,W0,AddC),BT);
 	FR = apply(x->Fq_mu_l_log(x,z,JgetT(J),Jgetp(J),l),matconcat(FR));
