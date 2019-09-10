@@ -450,7 +450,28 @@ GEN FqM_MinorCompl(GEN A, GEN T, GEN p)
 	return gerepilecopy(av,uv);
 }
 
-GEN Subspace_normalize(GEN V, GEN I, GEN T, GEN pe, GEN p, long e)
+GEN RgM_drop_rows(GEN A, GEN I)
+{
+	GEN B;
+	ulong i,j,k,iB,iI;
+	long m,n;
+	RgM_dimensions(A,&m,&n);
+	k = lg(I)-1;
+	B = cgetg(n,t_MAT);
+	for(j=1;j<=n;j++)
+	{
+		gel(B,j) = cgetg(m-k+1,t_COL);
+		iI=iB=1;
+		for(i=1;i<=m;i++)
+		{
+			if(I[iI]==i) iI++;
+			else gcoeff(B,iB++,j)=gcoeff(A,i,j);
+		}
+	}
+	return B;
+}
+
+GEN Subspace_normalize(GEN V, GEN I, GEN T, GEN pe, GEN p, long e, long drop)
 { /* V represents a subspace, I list of rows. Change basis so that I-block of V==1. */
 	pari_sp av = avma;
 	GEN P;
@@ -465,5 +486,10 @@ GEN Subspace_normalize(GEN V, GEN I, GEN T, GEN pe, GEN p, long e)
 	}
 	P = ZpXQM_inv(P,T,p,e);
 	V = FqM_mul(V,P,T,pe);
-	return gerepileupto(av,V);
+	if(drop)
+	{
+		V = RgM_drop_rows(V,I);
+		return gerepilecopy(av,V);
+	}
+	else return gerepileupto(av,V);
 }

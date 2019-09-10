@@ -21,4 +21,4 @@ GEN M2ABCD(GEN,GEN);
 GEN M2ABCD_1block(GEN,ulong,ulong,GEN);
 GEN VecSmallCompl(GEN,ulong);
 GEN FqM_MinorCompl(GEN,GEN,GEN);
-GEN Subspace_normalize(GEN V, GEN I, GEN T, GEN pe, GEN p, long e);
+GEN Subspace_normalize(GEN V, GEN I, GEN T, GEN pe, GEN p, long e, long drop);

@@ -655,7 +655,7 @@ GEN PicChart(GEN J, GEN W, ulong P0, GEN P1) /* /!\ Not Galois-equivariant ! */
 		setlg(gel(U,j),nZ-n1+1);
 	}
 	if(P1)
-		U = Subspace_normalize(U,P1,T,pe,p,e);
+		U = Subspace_normalize(U,P1,T,pe,p,e,1);
 	return gerepilecopy(av,mat2col(U));
 }
 

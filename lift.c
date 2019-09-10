@@ -99,7 +99,7 @@ GEN PicInflate_U(GEN J, GEN U, GEN I) /* Takes IGS given by coords // V */
   GWV = FqM_image(GWV,T,p);
   W = DivSub(V,GWV,KV,nW,T,p,e,pe,3); /* TODO pass precomputed IGS of V */
 	if(I) /* Change basis to make block = 1 */
-		W = Subspace_normalize(W,I,T,pe,p,e);
+		W = Subspace_normalize(W,I,T,pe,p,e,0);
 	return gerepileupto(av,W);
 }
 
@@ -321,9 +321,9 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 					c0 = col2mat(c0,nc/nW,nW);
 					P1 = FqM_indexrank(c0,T,p);
 					P1= gel(P1,1);
-					c0 = Subspace_normalize(c0,P1,T,pefin,p,efin);
-					c0 = mat2col(c0); /* TODO remove Id block */
-					/* TODO clean up memory */
+					c0 = Subspace_normalize(c0,P1,T,pefin,p,efin,1);
+					c0 = mat2col(c0);
+					gerepileall(av2,2,&c0,&P1);
 					av2 = avma;
     		}
     		/* Find g+1 lifts in parallel */
