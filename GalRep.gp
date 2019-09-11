@@ -119,16 +119,14 @@ TorsBasis(J,l,chi,C)=
   BW = vector(d); \\ list of l-power tors pts
   Bo = vector(d); \\ list of exponents of orders
   BT = vector(d); \\ list of l-tors pts
-	Wtest = vector(d); \\ list of pts to pair l-tors with
+	Wtest = vector(d,i,PicChord(J,PicRand(J),PicRand(J),1)); \\ list of pts to pair l-tors with
 	R = matrix(d,d); \\ matrix of pairings
 	AddC = AddChain(l,0);
 	W0 = JgetW0(J);
   W0 = PicChord(J,W0,W0,1); \\ Non-trivial origin, needed for pairings
-	\\Wtest = vector(d,i,PicChord(J,PicRand(J),PicRand(J),1));
 	z = Fq_zeta_l(JgetT(J),Jgetp(J),l); \\ primitive l-th root of 1, to linearize parings
   r = 0; \\ dim of l-tors obtained so far
   while(r<d,
-    /*print("Status:",Bo[1..r]);*/
     print("Getting new point");
 		iFrob += 1;
 		if(iFrob==a, \\ No use applying Frob anymore
@@ -150,29 +148,26 @@ TorsBasis(J,l,chi,C)=
 			W = PicFrob(J,W);
 			T = PicFrob(J,T)
 		);
-		\\ (H) At this point, the top-left r*r block of R has full rank
+		\\ (H) At this point, the left d*r block of R has full rank r
     r += 1;
     BW[r] = W;
     Bo[r] = o;
     BT[r] = T;
-		if(Wtest[r]==0, \\ Get new random linear form (unless there already is one from previous attempt)
-			Wtest[r]=PicChord(J,PicRand(J),PicRand(J),1);
-			\\ New form -> new row of R (except rightmost coeff)
-      my(test=Wtest[r]);Rnew = parapply(x->PicFreyRuckMulti(J,x,l,[test],W0,AddC),BT[1..r-1]);
-      for(j=1,r-1,R[r,j] = Fq_mu_l_log(Rnew[j][1],z,JgetT(J),Jgetp(J),l))
-		);
     while(1, \\ Loop until indep new pt is found, or until we cannot exploit current pt any further
-    	print(" Looking for relations...");
-			\\ New col of R (including bottommost coeff)
-			Rnew = PicFreyRuckMulti(J,T,l,Wtest[1..r],W0,AddC);
-			for(i=1,r,
+    	print(" Computing pairings...");
+			\\ New col of R
+			Rnew = PicFreyRuckMulti(J,T,l,Wtest,W0,AddC);
+			for(i=1,d,
 				R[i,r] = Fq_mu_l_log(Rnew[i],z,JgetT(J),Jgetp(J),l)
 			);
+    	print(" Looking for relations...");
     	KR = centerlift(matker(Mod(R[,1..r],l)));
-			/*print("R=");
-			printp(R);
-			print("KR=");
-			printp(KR);*/
+			if(default(debug)>=2,
+				print("R=");
+				printp(R);
+				print("KR=");
+				printp(KR)
+			);
 			if(#KR>1,error("Bug in TorsSpace, please report")); \\ Not suppoe to happen by (H)
 			if(#KR==0,
 				print(" Good, no relation");
@@ -180,7 +175,7 @@ TorsBasis(J,l,chi,C)=
 			);
 			KR=KR[,1];
 			\\ So we have a pseudo-relation
-	    print(" Found pseudo-relation ",KR~);
+	    print(" Found pseudo-relation");
 			\\ Either this is an actual relation, or our linear forms are not independent
 			if(PicIsZero(J,PicLC(J,KR,BT[1..r]))==0,
         print(" Good, it does not actually hold.");
@@ -189,37 +184,51 @@ TorsBasis(J,l,chi,C)=
 				print(" Changing linear tests so that we don't get a false positive again.");
 				\\ Note: we could exit there, but it is better to fix the linear forms
 				\\ so as to compute the matrix of Frobenius later on.
-				until(#KRnew==0,
+				until(Mod(Rnew*KR,l), \\ loop until new pairing breaks pseudo-relation
           Wnew = PicChord(J,PicRand(J),PicRand(J),1); \\ New rand test pt
           Rnew = parapply(w->PicFreyRuckMulti(J,w,l,[Wnew],W0,AddC)[1],BT[1..r]); \\ Pair it with tors pts
           Rnew = apply(x->Fq_mu_l_log(x,z,JgetT(J),Jgetp(J),l),Rnew); \\ Discrete logs
-					/*print("New test gives parings ",Rnew);*/
-          Rnew = matconcat([R[1..r,1..r],Rnew]~); \\ Combine with other pairings
-          KRnew = centerlift(matker(Mod(Rnew,l))); \\ Test for relations
+					if(default(debug),print("New test gives parings ",Rnew));
         );
 				\\ So now we have r+1 forms of rank r.
 				\\ Find one that can be removed.
-				KRnew = centerlift(matker(Mod(Rnew~,l)))[,1];
+        Rnew = matconcat([R[,1..r],Rnew]~); \\ Combine with other pairings
+				KRnew = centerlift(matker(Mod(Rnew~,l)))[,1]; \\ Find relation between forms
 				i=1;
 				while(KRnew[i]==0,i++);
-				/*print("Dropping test number ",i);*/
+				if(default(debug)>=2,print("Dropping form number ",i));
 				\\ Replace the i-th old form with the new one
 				Wtest[i] = Wnew;
-				for(j=1,r,R[i,j] = Rnew[r+1,j]);
-				/*print("So now R=");
-				printp(R);*/
+				for(j=1,r,R[i,j] = Rnew[d+1,j]);
+				if(default(debug)>=2,
+					print("So now R=");
+					printp(R)
+				);
 				next(2)
 			,
 				\\ So we have an actual relation.
 				\\ Try to use it to make a new point.
       	m = vecmin([Bo[i]|i<-[1..r],KR[i]]);
+				if(default(debug)>=2,
+					print(" Bo=",Bo);
+					print(" m=",m)
+				);
 				if(m>1,
-      		print(" Dividing relation ",KR," by l");
+      		if(default(debug)>=2,print(" Dividing relation ",KR~," by ",l));
 					iFrob = 0;
       		S = vector(r,i,if(KR[i],l^(Bo[i]-m)*KR[i],0));
       		W = PicLC(J,S,BW[1..r]);
       		[T,o] = TorsOrd(J,W,l);
-      		print(" gives point of order l^",o);
+					if(default(debug)>=2,
+						print(" Making comb ",S);
+      			print(" gives point of order l^",o)
+					);
+					if(PicEq(J,BT[r],T), \\ This can happen if we have generated a Frob-stable suspace
+						print("The new point is equal to the old one, giving up this point");
+						iFrob = a-1; \\ Reset indices
+          	r -= 1; \\ Erase data about this point
+          	break
+					);
 					BW[r] = W;
       		Bo[r] = o;
       		BT[r] = T;
@@ -234,21 +243,6 @@ TorsBasis(J,l,chi,C)=
     );
   );
 	print("Found basis, now computing the matrix of Frobenius");
-	\\ Now compute matrix of Frobenius
-	/* First of all, make sure we have enough linear tests
-	while(#KR,
-  	print("  Adding a linear test");
-    Wnew = PicChord(J,PicRand(J),PicRand(J),1);
-    Rnew = parapply(w->PicFreyRuckMulti(J,w,l,[Wnew],W0,AddC)[1],BT[1..r]);
-    Rnew = apply(x->Fq_mu_l_log(x,z,JgetT(J),Jgetp(J),l),Rnew);
-    Rnew = matconcat([R,Rnew]~);
-    KRnew = centerlift(matker(Mod(Rnew[,1..r],l)));
-    if(#KRnew<#KR,
-      R = Rnew;
-      KR = KRnew;
-      Wtest = concat(Wtest,[Wnew])
-    )
-  );*/
 	\\ Apply Frobenius to BT, and pair
 	FR = parapply(T->PicFreyRuckMulti(J,PicFrob(J,T),l,Wtest,W0,AddC),BT);
 	FR = apply(x->Fq_mu_l_log(x,z,JgetT(J),Jgetp(J),l),matconcat(FR));
