@@ -557,6 +557,7 @@ long PicEq(GEN J, GEN WA, GEN WB)
 	JgetTpe(J,&T,&pe,&p,&e);
 	KV = JgetKV(J);
 
+	/* Take s in WA */
 	s = gel(WA,1);
 	nZ = lg(s)-1;
 	nW = lg(WA)-1;
@@ -564,6 +565,7 @@ long PicEq(GEN J, GEN WA, GEN WB)
 	nKsB = nZ-nW;
 	nK = nKV+nW*nKsB;
 
+	/* Compute s*WB */
 	sWB = cgetg(nW+1,t_MAT);
 	for(j=1;j<=nW;j++)
 	{
@@ -575,6 +577,7 @@ long PicEq(GEN J, GEN WA, GEN WB)
 		gel(sWB,j) = col;
 	}
 
+	/* Equations for s*WB */
 	KsWB = mateqnpadic(sWB,T,p,e);
 
 	K = cgetg(nZ+1,t_MAT);
@@ -583,7 +586,8 @@ long PicEq(GEN J, GEN WA, GEN WB)
 		gel(K,j) = cgetg(nK+1,t_COL);
 	}
 
-
+	/* Find { v in V | v*WA c s*WB } */
+	/* This space is nontrivial iff. A~B */
 	for(j=1;j<=nW;j++)
 	{
 		for(i=1;i<=nKsB;i++)
