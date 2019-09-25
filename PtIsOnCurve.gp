@@ -18,4 +18,6 @@ PtIsOnHyperCurve(F,P)=
 	);
 	PtIsOnCurve('y^2+h*'y-f,P);
 }
+
+PtIsOnSuperCurve(f,m,P)=PtIsOnCurve('y^m-f,P);
 	
