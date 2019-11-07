@@ -1,6 +1,6 @@
 Esplit(p,N,d)= \\ Look for an ell. curve / Fp such tht E[N] splits over Fq, q=p^d.
 {
-  my(q=p^d,q2=(q-1)/2,T=ffinit(p,d,'t),a,b,E,ap,X,g,M,L,V,l,v,lv,c,D);
+  my(q=p^d,q2=(q-1)/2,T=ffinit(p,d,'t),a,b,E,ap,X,g,M,L,V,l,v,lv,c,D,faM,M1);
   if(Mod(p^d,N)!=1,error("Impossible by Weil pairing"));
 	/*m = valuation(N,2);
 	M = N/2^m;*/
@@ -18,16 +18,19 @@ Esplit(p,N,d)= \\ Look for an ell. curve / Fp such tht E[N] splits over Fq, q=p^
 		L=factor(g)[,1]; \\ Primes l s.t. Frob_p not 1/2simple on l-tors
 		V=apply(l->valuation(N,l),L); \\ Multiplicities in N
 		M=N/prod(i=1,#L,L[i]^V[i]); \\ Part of N where Frob 1/2simple
-		if(M>1, \\ N=M*prod(l_i^v_i)
-			if(polsym(Mod('x^2-ap*'x+p,M),d)[d+1]!=2, \\ Check if Frob^d=1 on E[M] by testing a^d+b^d==2
-        print("Frob^",d," not trivial on E[",M,"]");
+		faM = factor(M);
+		M1 = prod(i=1,#faM~,faM[i,1]); \\ Radical of M
+		if(M1>1,
+      print("Checking Frob^",d," trivial on E[",M1,"]");
+			if(polsym(Mod('x^2-ap*'x+p,M1),d)[d+1]!=2, \\ Check if Frob^d=1 on E[M] by testing a^d+b^d==2
+        print("Frob^",d," not trivial on E[",M1,"]");
         next
       )
 		);
 		for(i=1,#L, \\ Check if Frob^d unipotent on E[l^v]
 			l=L[i];
 			v=V[i];
-			\\print("Checking ",l,"^",v);
+			print("Checking Frob^",d," unipotent on E[",l,"^",v,"]");
 			lv=l^v;
 			if(l!=2,
 				c=ap/Mod(2,lv); \\ Frob = c*unipotent on E[l^v]
@@ -36,7 +39,16 @@ Esplit(p,N,d)= \\ Look for an ell. curve / Fp such tht E[N] splits over Fq, q=p^
 					next(2)
 				);
 			);
-			if(Mod(d,lv)==0,next); \\ d kills unipotents in this case
+		);
+		L = matconcat([L,V]); \\ facto prod l_i^v_i
+		L = select(t->Mod(d,t[1]^t[2]),L~)~; \\ d kill unipotents if l_i^v_i | d
+		faM = select(t->t[2]>1,faM~)~; \\ Only keep repeated factors
+		\\ So now Frob^d unipotent on E[l^v] for [l,v] in L,
+		\\ and Frob^d trivial on E[l] but maybe not E[l^v] for [l,v] in faM
+		L = matconcat([L,faM]~);
+		for(i=1,#L~,
+			print("Checking Frob^",d," trivial on E[",L[i,1],"^",L[i,2],"]");
+			lv = L[i,1]^L[i,2];
 			D = elldivpol(E,lv); \\ Check manually that E[l^v] def over Fq
 			X=polrootsmod(D,[T,p]);
 			if(#X<poldegree(D),
@@ -56,36 +68,86 @@ Esplit(p,N,d)= \\ Look for an ell. curve / Fp such tht E[N] splits over Fq, q=p^
   );
 }
 
-GetPt(x,f)=[x,sqrt(subst(f,'x,x))];
+\\GetPt(x,f)=[x,sqrt(subst(f,'x,x))]; \\ Given x, find a point [x,y] on the curve
 
-GetLocalBasis(E,t1,f,l,v)=
+GetOrder(E,P,l)= \\ Given l and a point of order l^v, find v
 {
-	my(D,X,P,Q,z);
-	D = elldivpol(E,l^v);
+	my(n=0);
+	while(P!=[0],
+		P = ellmul(E,P,l);
+		n+=1;
+	);
+	n;
+}
+
+GetzOrder(z,l)= \\ Same as above for roots of 1
+{
+  my(n=0);
+  while(z!=1,
+    z = z^l;
+    n+=1;
+  );
+  n;
+}
+
+GetLocalBasis(E,t1,ab,l,v,D)= \\ l,v -> Basis [P,Q] of E[l^v], plus its Weil pairing and the l^v-division polynomial 
+{
+	my(X,x,y,P,Q,z);
+	print("---- Getting basis of E[",l,"^",v,"] ----");
 	X = polrootsmod(D,t1);
 	while(1,
-		P = GetPt(X[random(#X)+1],f);
-		Q = GetPt(X[random(#X)+1],f);
+		x = X[random(#X)+1];
+		y = sqrt(x^3+ab[1]*x+ab[2]);
+		P = [x,y];
+		x = X[random(#X)+1];
+    y = sqrt(x^3+ab[1]*x+ab[2]);
+    Q = [x,y];
+		print("P has order ",l,"^",GetOrder(E,P,l));
+		print("Q has order ",l,"^",GetOrder(E,P,l));
 		z = ellweilpairing(E,P,Q,l^v);
+		print("z has order ",l,"^",GetzOrder(z,l));
 		if(z^(l^(v-1))!=1,
-			return([P,Q,z])
+			return([P,Q,z,D])
 		)
 	);
 }
 
-GetBasis(E,t1,f,N)=
+ffLiftRoot(F,a,e)=padicappr(F,Mod(a.pol,a.mod)+O((a.p)^e))[1];
+
+LiftTorsPt(P,ab,D,e)=
 {
-	my(faN,Pk,Qk,zk,P,Q,z,l,v);
+	my(x,y,T,p);
+	[x,y] = P;
+	T = x.mod;
+	p = x.p;
+	x = ffLiftRoot(D,x,e);
+	y = ffLiftRoot('y^2-(x^3+ab[1]*x+ab[2]),y,e);
+	[x,y];
+}
+
+GetBasis(p,e,a,N)=
+{
+	my(T,t1,ab,f,EQ,EFq,faN,Pk,Qk,zk,P,Q,z,l,v,lv,D);
+	T=ffinit(p,a,'t);
+	t1=ffgen(T,'t);
+	T = lift(T);
+	ab = liftint(Esplit(p,N,a));
+	EQ=ellinit(ab);
+	EFq=ellinit(ab,t1);
 	faN = factor(N);
 	P = [0];
 	Q = [0];
 	z = 1;
 	for(k=1,#faN~,
 		[l,v] = faN[k,];
-		[Pk,Qk,zk] = GetLocalBasis(E,t1,f,l,v);
-		P = elladd(E,P,Pk);
-		Q = elladd(E,Q,Qk);
-		z *= zk^(N/l^v)
+		lv = l^v;
+		D = elldivpol(EQ,lv);
+		[Pk,Qk,zk] = GetLocalBasis(EFq,t1,ab,l,v,D);
+		[Pk,Qk] = apply(R->LiftTorsPt(R,ab,D,e),[Pk,Qk]);
+		zk = ffLiftRoot('x^lv-1,zk^(N/lv),e);
+		P = elladd(EQ,P,Pk);
+		Q = elladd(EQ,Q,Qk);
+		z *= zk
 	);
-	[P,Q,z];
+	[EQ,P,Q,z];
 }
