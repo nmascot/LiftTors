@@ -5,29 +5,14 @@ GetCoef(A,a)=my(i,j,N=#A);[i,j]=liftall(Mod(a,N));if(i==0,i=N);if(j==0,j=N);A[i,
 ZNnorm(x,N)=my(y=x%N);if(y==0,N,y);
 ZNneg(x,N)=my(y=lift(Mod(-x,N)));if(y==0,N,y);
 
-SL2list(N)=\\ Find all of SL2(Z/NZ), TODO that's 12x too many pts, restrict.
-{
-	my(SL2=List());
-	for(a=0,N-1,
-  	for(b=0,N-1,
-    	for(c=0,N-1,
-      	for(d=0,N-1,
-        	if(a*d-b*c==Mod(1,N),listput(SL2,[a,b;c,d]))
-      	)
-    	)
-  	)
-	);
-	SL2=Vec(SL2);
-}
-
-SL2lift(M)=
+SL2lift(M)= \\ Finds M' in SL2(Z), M=M' mod (|M|-1)
 {
   my(U,V,D,a,b);
-  [U,V,D]=matsnf(M,1);
+  [U,V,D]=matsnf(M,1); \\ U*M*V = D = diag(a,b), so |M|=ab
   a=D[1,1];
   b=D[2,2];
   U^-1*[1,-1;1-b,b]*[1,0;1-a,1]*[1,b;0,1]*V^-1;
-}
+} \\ [1,-1;1-b,b]*[1,0;1-a,1]*[1,b;0,1] = [a, ab-1; 1-ab, b+(1-ab)b]
 
 XNCusps(N)= \\ List of cusps of X(N)
 {	\\ Find all (u,v) s.t. gcd(u,v,N)=1 / +-1
@@ -119,25 +104,26 @@ ModJacInit(N,H,p,a,e)=
 	\\ TODO add variables to my()
 	\\ TODO GammaH(N)
 	d=DimMk(2,1,N); \\ dim M2(Gamma1(N))
-	Cusps = XNCusps(N); \\ All cusps of X(N)
-	d1=min(floor(1.2*d),#Cusps); \\ TODO # pts at which we observe lin indep
+	Pts = XNCusps(N); \\ List of vectors (c,d) mod N,+-1
+	\\ P_g = P_g' on X_1(N) <=> g,g' have same bottom row
+	d1=min(floor(1.2*d),#Pts); \\ TODO # pts at which we observe lin indep
 	d2=d1; \\ # gens
-	M21=matrix(#Cusps,d2);
+	M21=matrix(#Pts,d2);
 	M21gens=vector(d2);
 	while(1,
 		print("Attempt");
 		\\ Take d2 forms in M2(Gamma(N)
   	for(j=1,d2, \\ of the form E_1^v * E_1^w : j = index of gen
 			print("Prod");
-			v=Cusps[1+random(#Cusps)];
-    	w=Cusps[1+random(#Cusps)];
+			v=Pts[1+random(#Pts)];
+    	w=Pts[1+random(#Pts)];
     	M21gens[j]=[v,w];
 			\\ symmetrise them by sum slashing [1,x;0,1]
-    	for(P=1,#Cusps, \\ P = index of cusp
-      	MP=Cusp2X1(Cusps[P],N); \\ matrix taking oo to cusp #P
+    	for(P=1,#Pts,
+      	MP=Cusp2X1(Pts[P],N); \\ matrix in SL2(Z) having bottow row P
+				\\ sum_x f_v f_w | [1,x;0,1] at P
       	M21[P,j]=sum(x=1,N,GetCoef(Ml1,v*[1,x;0,1]*MP)*GetCoef(Ml1,w*[1,x;0,1]*MP))
     	)
-			\\ TODO if c = [1,x;0,1].c', then we get the same thing
  	  );
   	\\ See if we span all of M2(Gamma1) by checking values at d1 cusps TODO
 		print("linalg");
@@ -149,5 +135,5 @@ ModJacInit(N,H,p,a,e)=
 	\\ Extract basis
 	M21 = vecextract(M21,B);
 	M21basis = vecextract(M21gens,B); 
-	[M21,M21basis,Cusps];
+	[M21,M21basis,Pts];
 }
