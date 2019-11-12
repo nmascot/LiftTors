@@ -10,6 +10,7 @@
 \usepackage{array}
 \usepackage{makecell}
 \usepackage{lscape}
+\usepackage{dsfont}
 
 \newcommand{\N}{\mathbb{N}}
 \newcommand{\Z}{\mathbb{Z}}
@@ -46,6 +47,7 @@
 \newcommand{\Tra}{\operatorname{Tra}}
 \newcommand{\Inf}{\operatorname{Inf}}
 \newcommand{\ord}{\operatorname{ord}}
+\newcommand{\Frob}{\operatorname{Frob}}
 
 \newcommand{\TableMinPolyVar}{x}
 
@@ -68,7 +70,10 @@
 
 \begin{document}
 
-Fix $N \in \N$. Want to use Kamal's algos in rep B0. Main idea: fix $E/Q$, and a naive $\Gamma(N)$-struct (in the sens of Katz76) $\alpha: (\Z/N\Z)^2 \simeq E[N]$. Let $\zeta_N = e_N(\alpha(1,0),\alpha(0,1))$, a prim root. The other structs on $E$ are the $\alpha \circ \gamma$, $\gamma \in \Gamma(N)$ (points $P_\gamma$ in fibre of $X(N) \longrightarrow X(1) \ni [E]$ acting on the \emph{right} on row-vectors $v \in (\Z/N/Z)^2$.
+Fix $N \in \N$. Want to use Kamal's algos in rep B0.
+
+
+Main idea: fix $E/\Q$, and a naive $\Gamma(N)$-struct (in the sens of Katz76) $\alpha: (\Z/N\Z)^2 \simeq E[N]$. Let $\zeta_N = e_N(\alpha(1,0),\alpha(0,1))$, a prim root. The other structs on $E$ are the $\alpha \circ \gamma$, $\gamma \in \Gamma(N)$ (points $P_\gamma$ in fibre of $X(N) \longrightarrow X(1) \ni [E]$ acting on the \emph{right} on row-vectors $v \in (\Z/N\Z)^2$.
 
 By Kamal, the $f_v : (E,\beta) \mapsto \lambda_{\beta(v)}$ span $\E_1(\Gamma(N))$. If for $P,Q \in E[N]$ distinct and nonzero, we let $\lambda_{P,Q} = $ slope of line joining $P$ and $Q$, then we have $\lambda_{P,Q} = \lambda_P + \lambda_{Q} + \lambda_{R}$ where $P+Q+R=0$. We can thus recover $\lambda_P = \frac1N \sum_{x \bmod N} \lambda_{P,Q+xP}$, so we can evaluate the $f_v$ at the $P_\gamma$.
 
@@ -76,6 +81,32 @@ Up to a mult constant, the value of $f_v$ at the cusp $(c,d)$ of $X(N)$ is $s(c,
 
 Find list of pairs $(v_i,v'_i)$ such that the $f_{v_i} f_{v'_i}$ form a basis of $\M_2(\Gamma(N))$. Then the $\sum_{x \bmod N} f_{v_i \smat{1}{x}{0}{1}} f_{v_i \smat{1}{x}{0}{1}}$ generate $\M_2(\Gamma_1(N))$.
 
+\section{L factor}
+
 \[ L_p\big(X_H(N)\big) = \hspace{-1cm} \prod_{\substack{\chi \bmod G_\Q \\ \chi : (\Z/N\Z)^\times \rightarrow \Q[t]/\Phi_{\ord \chi}(t) \\ \Ker \chi \geqslant H}} \hspace{-1cm} \Res_t\big( \Phi_{\ord \chi}(t),\Res_y(x^2-yx+p\chi(p), \det(y1-T_p \vert_{S_2(N,\chi)}) \big) \]
+
+\section{Torsion basis}
+
+Let $D_1, D_2 \in J[N]$. Then $e_N(D_1,D_2) = f_1(D_2)/f_2(D_1)$, where $(f_i) = N D_i$. As a result, $e_{ab} = e_a^b$ when this makes sense.
+
+Factor $N = \prod_k l_k^{v_k}$, and for each $k$, let $M_k = N/l_k^{v_k}$, $i_k \in \Z/N\Z$ such that $i_k \bmod l_j^{v_j} = \mathds{1}_{j=k}$, $P_k, Q_k \in E[l_k^{v_k}]$, and $z_k = e_{l_k^{v_k}}(P_k,Q_k)$. Set $P = \sum_k P_k$, $Q = \sum_k Q_k$, which are thus $N$-torsion, and $z=e_N(P,Q)$. Then the $i_k$ are idempotent, $\sum_k i_k = 1$, and
+\[ z_k^{M_k} = e_{l_k^{v_k}}(P_k,Q_k)^{M_k} = e_N(P_k,Q_k) = e_N(i_k P, i_k Q) = z ^{i_k^2} = z^{i_k} \]
+so that
+\[ z = \prod_k z_k^{M_k}. \]
+In particular, if $z_k$ is a primitive $l_k^{v_k}$-th root of 1 for each $k$, then $z$ is a primitive $N$-th root of 1, and $(P,Q)$ is a basis of $E[N]$.
+
+\section{Finding a suitable curve}
+
+Let $E/\Q$, $q=p^a$, $N$, $a_p=a_p(E)$. Want $\Frob_q = \Frob_p^a$ trivial on $E[N]$. We can suppose $q \equiv 1 \bmod N$.
+
+Factor $N = \prod l_i^{v_i}$, let $\Delta = \disc(x^2-a_p x+p)=(x-\alpha)(x-\beta)$, $M = \prod_{l_i \nmid \Delta} l_i^{v_i}$. Then $\Frob_p$ semisimple on $E[M]$. Let $M_1 = \prod_{l_i \nmid \Delta} l_i$ the radical of $M$, then the charpoly of $\Frob_q$ is $(x-\alpha^q)(x-\beta^q) \equiv x^2-\nu_d x + 1 \bmod M_1$, so $\Frob_q$ trivial on $E[M_1]$ iff. $\nu_d \equiv 2 \bmod M_1$.
+
+If now $l_i \mid \Delta$, then $\Frob_p$ not semisimple on $E[l_i^{v_i}]$, unique eigenvalue $c = a_p/2 \bmod l_i^{v_i}$, so unipotent iff. $c^d \equiv 1 \bmod l_i^{v_i}$.
+
+If furthermore $l_i^{v_i} \mid d$, then this implies $\Frob_p$ trivial on $E[l_i]^{v_i}$.
+
+Let now $l_i^{v_i}$ such that $l_i \mid \Delta$ or $v_i$; we know $\Frob_p$ unipotent on $E[l_i^{v_i}]$, $D=\psi_{l_i^{v_i}}$. If $D$ not tot split over $\F_q$, then $\Frob_q$ nontrivial on $E[l_i^{v_i}]/\pm1$. Else, if $l_i > 2$, check that $x^3+ax+b$ square in $\F_q$ for each root $x$ of $D$ (for $l_i=2$, this is automatic). 
+
+
 
 \end{document}
