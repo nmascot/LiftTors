@@ -24,7 +24,7 @@ l1(EN,P,Q,T,pe,p,e)=Mod(Mod(sum(n=0,#EN-1,l2(EN,P,Q+n*P,T,pe,p,e)),T),pe); \\ su
 
 ModJacInit(N,H,p,a,e)=
 { \\ J_H(N) over Zq/p^e, q=p^a
-	my(Hlist,Hlist1,Lp,g,Cusps,nCusps,E,P0,Q0,zN,T,pe=p^e,d,d1,Pts,M2,M2gens,v,w,MP,B);
+	my(Hlist,Hlist1,Lp,g,Cusps,nCusps,E,P0,Q0,zN,MFrobE,T,pe=p^e,d,d1,Pts,M2,M2gens,v,w,MP,B);
 	\\ Get H and H/+-1
   [Hlist,Hlist1] = GetHlist(N,H);
 	if(Mod(6*N*#Hlist,p)==0,error("Bad p"));
@@ -32,7 +32,7 @@ ModJacInit(N,H,p,a,e)=
 	g = poldegree(Lp)/2;
 	print("Genus ",g);
 	\\ Get a curve E and a basis of E[N] \\ TODO Frob Mat
-	[E,P0,Q0,zN] = EBasis(N,p,a,e);
+	[E,P0,Q0,zN,MFrobE] = EBasis(N,p,a,e);
 	T = zN.mod;
 	\\ Write down all N-torsion: : this is a naive level structure alpha: (Z/NZ)² ~ E[N]
 	EN=matrix(N,N); \\ [[ m P0 + n Q0 ]]
@@ -59,6 +59,7 @@ ModJacInit(N,H,p,a,e)=
 	print(nCusps," cusps");
 	d = g+nCusps-1; \\ dim M2(GammaH(N))
 	Pts = ANH(N,Hlist); \\ List of vectors (c,d) mod N,H
+	\\ Frob([c,d]) = [c,d]*(t^MFrobE)
 	MPts = apply(s->BotToSL2(s,N),Pts); \\ Matrices having these bottom rows
 	\\ P_g = P_g' on X_H(N) <=> g,g' have same bottom row mod H
 	d1=min(ceil(1.2*d),#Pts); \\ # gens

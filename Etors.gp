@@ -92,9 +92,19 @@ GetzOrder(z,l)= \\ Same as above for roots of 1
   n;
 }
 
-ELocalBasis(E,t1,ab,l,v,D)= \\ l,v -> Basis [P,Q] of E[l^v], plus its Weil pairing and the l^v-division polynomial 
+zlog(x,z)=
 {
-	my(X,x,y,P,Q,z);
+	my(n=0,zn=1);
+	while(x!=zn,
+		zn *= z;
+		n++
+	);
+	n;
+}
+
+ELocalBasis(E,t1,ab,l,v,D)= \\ l,v -> Basis [P,Q] of E[l^v], plus its Weil pairing, mat of Frob, and the l^v-division polynomial 
+{
+	my(p=t1.p,lv=l^v,X,x,y,P,Q,z,FP,FQ,MFrob);
 	print("---- Getting basis of E[",l,"^",v,"] ----");
 	X = polrootsmod(D,t1);
 	while(1,
@@ -106,10 +116,17 @@ ELocalBasis(E,t1,ab,l,v,D)= \\ l,v -> Basis [P,Q] of E[l^v], plus its Weil pairi
     Q = [x,y];
 		print("P has order ",l,"^",GetOrder(E,P,l));
 		print("Q has order ",l,"^",GetOrder(E,P,l));
-		z = ellweilpairing(E,P,Q,l^v);
+		z = ellweilpairing(E,P,Q,lv);
 		print("z has order ",l,"^",GetzOrder(z,l));
 		if(z^(l^(v-1))!=1,
-			return([P,Q,z,D])
+			FP = [P[1]^p,P[2]^p];
+			FQ = [Q[1]^p,Q[2]^p];
+			MFrob = matrix(2,2);
+			MFrob[1,1] = zlog(ellweilpairing(E,FP,Q,lv),z);
+			MFrob[2,1] = -zlog(ellweilpairing(E,FP,P,lv),z);
+			MFrob[1,2] = zlog(ellweilpairing(E,FQ,Q,lv),z);
+			MFrob[2,2] = -zlog(ellweilpairing(E,FQ,P,lv),z);
+			return([P,Q,z,Mod(MFrob,lv)])
 		)
 	);
 }
@@ -134,7 +151,7 @@ LiftTorsPt(P,ab,D,e)=
 
 EBasis(N,p,a,e)=
 {
-	my(T,t1,pe=p^e,ab,f,EQ,EFq,faN,Pk,Qk,zk,P,Q,z,l,v,lv,D);
+	my(T,t1,pe=p^e,ab,f,EQ,EFq,faN,Pk,Qk,zk,P,Q,z,l,v,lv,D,MFrob,MFroblv);
 	T=ffinit(p,a,'t);
 	t1=ffgen(T,'t);
 	T = lift(T);
@@ -145,16 +162,19 @@ EBasis(N,p,a,e)=
 	P = [0];
 	Q = [0];
 	z = 1;
+	MFrob = vector(#faN~);
 	for(k=1,#faN~,
 		[l,v] = faN[k,];
 		lv = l^v;
 		D = elldivpol(EQ,lv);
-		[Pk,Qk,zk] = ELocalBasis(EFq,t1,ab,l,v,D);
+		[Pk,Qk,zk,MFroblv] = ELocalBasis(EFq,t1,ab,l,v,D);
 		[Pk,Qk] = apply(R->LiftTorsPt(R,ab,D,e),[Pk,Qk]);
 		zk = ffLiftRoot('x^lv-1,zk^(N/lv),e);
 		P = elladd_padic(ab[1],P,Pk,T,pe,p,e);
 		Q = elladd_padic(ab[1],Q,Qk,T,pe,p,e);
-		z *= zk
+		z *= zk;
+		print(MFroblv);
+		MFrob[k] = MFroblv;
 	);
-	[EQ,P,Q,z];
+	[EQ,P,Q,z,chinese(MFrob)];
 }
