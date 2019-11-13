@@ -11,38 +11,40 @@ SL2lift(M)= \\ Finds M' in SL2(Z), M=M' mod (|M|-1)
 
 ANH(N,Hlist)=
 { \\ Find all (u,v) s.t. gcd(u,v,N)=1 / H
-	my(A=List(),done=matrix(N,N),nH=#Hlist);
+	my(A=List(),tag=matrix(N,N),nH=#Hlist,n=0);
   for(u=0,N-1,
     for(v=0,N-1,
-      if(GetCoef(done,[u,v]),next);
+      if(GetCoef(tag,[u,v]),next);
       if(gcd([u,v,N])==1,
+				n+=1;
         listput(A,[u,v]);
-				for(h=1,nH,done[ZNnorm(Hlist[h]*u,N),ZNnorm(Hlist[h]*v,N)]=1);
+				for(h=1,nH,tag[ZNnorm(Hlist[h]*u,N),ZNnorm(Hlist[h]*v,N)]=n);
       )
     )
   );
-  Vec(A);
+  [Vec(A),tag];
 }
 
-GammaHCusps(N,Hlist)= \\ Reps of all cusps of GammaH
+GammaHCusps(N,Hlist)= \\ Reps of all cusps of GammaH, plus data to find rep in equiv class
 {
-	my(Cusps=List(),done=matrix(N,N),nH=#Hlist);
+	my(Cusps=List(),tag=matrix(N,N),nH=#Hlist,n=0);
 	  for(u=0,N-1,
     for(v=0,N-1,
-      if(GetCoef(done,[u,v]),next);
+      if(GetCoef(tag,[u,v]),next);
       if(gcd([u,v,N])==1,
         listput(Cusps,[u,v]);
+				n++;
 				for(i=1,nH,
 					h = Mod(Hlist[i],N);
 					h1 = 1/h;
 					for(x=1,N,
-						done[ZNnorm(h1*(u+x*v),N),ZNnorm(h*v,N)]=1
+						tag[ZNnorm(h1*(u+x*v),N),ZNnorm(h*v,N)]=n
 					)
 				)
       )
     )
   );
-	Vec(Cusps);
+	[Vec(Cusps),tag];
 }
 
 GammaHmodN(N,Hlist)= \\ reps of Gamma_H(N) / Gamma(N) in SL2(Z)
