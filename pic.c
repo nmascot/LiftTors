@@ -490,38 +490,21 @@ GEN Frob(GEN x, GEN FrobMat, GEN T, GEN pe)
 GEN PicFrob(GEN J, GEN W)
 {
 	GEN W2,T,pe,FrobMat,FrobCyc;
-	ulong o,i,j,k,c,nW,nZ,nCyc;
+	ulong nW,nZ,i,j;
 
 	T = JgetT(J);
 	pe = Jgetpe(J);
 	FrobMat = JgetFrobMat(J);
 	FrobCyc = JgetFrobCyc(J);
 	nW = lg(W);
-	nZ = lg(JgetZ(J));
-	nCyc = lg(FrobCyc);
+	nZ = lg(FrobCyc);
 
 	W2 = cgetg(nW,t_MAT);
 	for(j=1;j<nW;j++)
 	{
 		gel(W2,j) = cgetg(nZ,t_COL);
-	}
-
-	i = 0;
-	for(o=1;o<nCyc;o++)
-	{
-		c = FrobCyc[o];
-		for(k=1;k<c;k++)
-		{
-			for(j=1;j<nW;j++)
-			{
-				gcoeff(W2,i+k+1,j) = Frob(gcoeff(W,i+k,j),FrobMat,T,pe);
-			}
-		}
-		for(j=1;j<nW;j++)
-		{
-			gcoeff(W2,i+1,j) = Frob(gcoeff(W,i+c,j),FrobMat,T,pe);
-		}
-		i += c;
+		for(i=1;i<nZ;i++)
+			gcoeff(W2,FrobCyc[i],j) = Frob(gcoeff(W,i,j),FrobMat,T,pe);
 	}
 	return W2;
 }

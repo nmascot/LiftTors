@@ -358,7 +358,7 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
 {
 	pari_sp avP,av = avma;
   int newpt;
-  ulong nZ,n,ncyc,i;
+  ulong nZ,n,cyc_top,i;
   GEN vars,pe,t,T,FrobMat,Z,Zp,P,Pp,Q,FrobCyc,x,y,V1,V2,V3,W0,V,KV,KV3,U,J;
 
 	vars = variables_vecsmall(f);
@@ -370,11 +370,11 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
   FrobMat = ZpXQ_FrobMat(T,p,e,pe);
 
 	if(DEBUGLEVEL) printf("PicInit: Finding points\n");
-  n = ncyc = 0;
+  n = 0;
   Z = cgetg(nZ+a,t_VEC);
   Zp = cgetg(nZ+a,t_VEC);
   /* TODO sort Zp -> quasilin complexity */
-  FrobCyc = cgetg(nZ+1,t_VECSMALL);
+  FrobCyc = cgetg(nZ+a,t_VECSMALL);
   while(n<nZ)
   {
     avP = avma;
@@ -392,23 +392,22 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
       }
     }
     if(newpt == 0) continue;
-    ncyc++;
     Q = P;
-    i = 0;
+    cyc_top = n+1;
     do
     {
-      i++;
-      n++;
+			n++;
+			FrobCyc[n] = n+1;
       gel(Z,n) = Q;
       gel(Zp,n) = FpXV_red(Q,p);
       x = Frob(gel(Q,1),FrobMat,T,pe);
       y = Frob(gel(Q,2),FrobMat,T,pe);
       Q = mkvec2(x,y);
     } while(!gequal(Q,P));
-  FrobCyc[ncyc] = i;
+		FrobCyc[n] = cyc_top;
   }
   setlg(Z,n+1);
-  setlg(FrobCyc,ncyc+1);
+  setlg(FrobCyc,n+1);
 
 	if(DEBUGLEVEL) printf("PicInit: Evaluating rational functions\n");
 	V1 = FnsEvalAt_Rescale(gel(L,1),Z,vars,T,p,e,pe);
