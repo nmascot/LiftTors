@@ -23,9 +23,30 @@ l2(EN,P,Q,T,pe,p,e)=  \\ Slope of line (PQ)
 \\ TODO methode Kamal addchain
 l1(EN,P,Q,T,pe,p,e)=Mod(Mod(sum(n=0,#EN-1,l2(EN,P,Q+n*P,T,pe,p,e)),T),pe); \\ sum_n l2(P,Q+nP) ~ sum_n l(P) +l(Q+nP)-l(Q+nP) ~ l*l(P)
 
+DivAdd1(A,B,dimres,p,excess)=
+{
+	my(m,n,C,a,b,r);
+	m = #A[,1];
+	n = dimres+excess;
+	C = matrix(m,n);
+	while(1,
+		for(j=1,n,
+			a = A[,1+random(#A)];
+			b = B[,1+random(#B)];
+			for(i=1,m,
+				C[i,j] = a[i]*b[i]
+			)
+		);
+		r = matindexrank(Mod(C,p))[2];
+		if(#r == dimres,return(vecextract(C,r)));
+		print1("@",#r,"/",dimres);
+	);
+}
+		
+
 ModJacInit(N,H,p,a,e)=
 { \\ J_H(N) over Zq/p^e, q=p^a
-	my(Hlist,Hlist1,Lp,g,Cusps,nCusps,CuspTags,E,P0,Q0,zN,MFrobE,tMFrobE,T,pe=p^e,d,d1,Pts,nPts,PtTags,MPts,M2,M2gens,v,w,B);
+	my(Hlist,Hlist1,Lp,g,Cusps,nCusps,CuspTags,E,P0,Q0,zN,MFrobE,tMFrobE,T,pe=p^e,d,d1,Pts,nPts,PtTags,MPts,M2,M2gens,v,w,B,d0,M4,M6,KV,KV3);
 	\\ Get H and H/+-1
   [Hlist,Hlist1] = GetHlist(N,H);
 	if(Mod(6*N*#Hlist,p)==0,error("Bad p"));
@@ -54,7 +75,7 @@ ModJacInit(N,H,p,a,e)=
 	Ml1=matrix(N,N);
 	for(x=1,N-1,Ml1[x,N]=l1(EN,[x,0],[0,1],T,pe,p,e)); \\ P=alpha(x,0) -> Q=alpha(0,1)
 	for(x=1,N,for(y=1,N-1,Ml1[x,y]=l1(EN,[x,y],[1,0],T,pe,p,e))); \\ P=alpha(x,y), y!=0 -> Q=alpha(1,0)
-	print("GammaH");
+	print("M2(GammaH)");
 	\\ Find a basis for M2(GammaH(N))
 	[Cusps,CuspTags] = GammaHCusps(N,Hlist);
 	nCusps = #Cusps;
@@ -96,6 +117,33 @@ ModJacInit(N,H,p,a,e)=
 	);
 	\\ Extract basis
 	M2 = vecextract(M2,B);
-	M2basis = vecextract(M2gens,B); 
-	[M2,Pts,M2basis];
+	M2basis = vecextract(M2gens,B);
+	\\ Pull down to merom fns by div, TODO dangerous
+	f2 = M2[,1]; \\ TODO ensure def/Q TODO necessary?
+  for(i=1,#f2,
+		u = liftall(f2[i]);
+		u = ZpXQ_inv(u,T,p,e);
+    M2[i,] *= u;
+  );
+	\\[M2,Pts,M2basis];
+	print("M4(GammaH)");
+	d0 = d+g-1;
+	M4 = DivAdd1(M2,M2,2*d0+1-g,p,d);
+	print("M6(GammaH)");
+	M6 = DivAdd1(M4,M2,3*d0+1-g,p,d);
+	print("Eqn mats");
+	/*f2 = M2[,1]; \\ TODO ensure def/Q TODO necessary?
+	for(i=1,#f2, \\ Push to weight 6
+		M2[i,] *= f2[i]^2;
+		M4[i,] *= f2[i]
+	);*/
+	M2 = liftall(M2);
+	M4 = liftall(M4);
+	M6 = liftall(M6);
+	KV = matkerzq(M4~,T,p,e)~;
+	KV3 = matkerzq(M6~,T,p,e)~;
+	\\J = [f,g,d0,L,T,p,e,pe,Frob,V,KV,W0,Z,FrobCyc,V3,KV3,EvData];
+	FrobMat = ZpXQ_FrobMat(T,p,e,pe);
+	[0,g,d0,[],T,p,e,pe,FrobMat,M4,KV,M2,[],PtsFrob,M6,KV3,[]];
+	\\ TODO: EvData
 }

@@ -77,7 +77,7 @@ BotToSL2(s,N)= \\ Finds [*,*;c';d'] in SL2(Z) with c~c', d~d' mod N
   [c,d]=s;
   [u,v,g]=gcdext(c,d);
   h=lift(1/Mod(g,N));
-  SL2lift([c,-v*h;d,u*h]);
+  SL2lift([v*h,-u*h;c,d]);
 }
 
 /*ActOnCuspi(g,i)=\\ g in SL2 -> the j s.t. g*cusp#i = cusp#j
