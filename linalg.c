@@ -234,7 +234,7 @@ GEN matkerpadic_safe(GEN A, GEN T, GEN p, long e)
 }
 
 GEN matkerpadic(GEN A, GEN T, GEN p, long e)
-{
+{ /* Same as above, but we only take a sample of equations by looking at the mod p span (faster) */
 	pari_sp av = avma;
 	GEN B,K;
 	if(e==1) return FqM_ker(A,T,p);

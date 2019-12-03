@@ -58,18 +58,15 @@ GEN PicRed(GEN J, ulong e)
 GEN DivMul(GEN f, GEN W, GEN T, GEN pe)
 {
 	ulong nW,nZ,i,j;
-	GEN fW,col;
+	GEN fW;
 	nW = lg(W);
 	nZ = lg(f);
 	fW = cgetg(nW,t_MAT);
 	for(j=1;j<nW;j++)
 	{
-		col = cgetg(nZ,t_COL);
+		gel(fW,j) = cgetg(nZ,t_COL);
 		for(i=1;i<nZ;i++)
-		{
-			gel(col,i) = Fq_mul(gel(f,i),gcoeff(W,i,j),T,pe);
-		}
-		gel(fW,j) = col;
+			gcoeff(fW,i,j) = Fq_mul(gel(f,i),gcoeff(W,i,j),T,pe);
 	}
 	return fW;
 }
@@ -187,7 +184,7 @@ GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong 
 {
 	pari_sp av1,av = avma;
 	unsigned long nZ,P,nE,E,nV,nB,n,r;
-	GEN KB,K,col,s,res;
+	GEN KB,K,s,res;
 	nZ = lg(KV);
 	nV = lg(gel(KV,1))-1;
 	KB = mateqnpadic(WB,T,p,e);
@@ -198,12 +195,9 @@ GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong 
 	K = cgetg(nZ,t_MAT);
 	for(P=1;P<nZ;P++)
 	{
-		col = cgetg(nE+1,t_COL);
+		gel(K,P) = cgetg(nE+1,t_COL);
 		for(E=1;E<=nV;E++)
-		{
-			gel(col,E) = gcoeff(KV,E,P);
-		}
-		gel(K,P) = col;
+			gcoeff(K,E,P) = gcoeff(KV,E,P);
 	}
 	av1 = avma;
 	while(1)
@@ -215,9 +209,7 @@ GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong 
 			for(E=1;E<=nB;E++)
 			{
 				for(P=1;P<nZ;P++)
-				{
 					gcoeff(K,nV+(n-1)*nB+E,P) = Fq_mul(gel(s,P),gcoeff(KB,E,P),T,pe);
-				}
 			}
 		}
 		res = matkerpadic(K,T,p,e);
@@ -228,41 +220,37 @@ GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong 
 	}
 }
 
-GEN DivSub_IGS(GEN GA, GEN WB, GEN KV, GEN T, GEN p, long e, GEN pe)
+GEN DivSub_safe(GEN WA, GEN WB, GEN KV, GEN T, GEN p, long e, GEN pe)
 {
-  pari_sp av = avma;
-  ulong nIGS,nZ,P,nE,E,nV,nB,n;
-  GEN KB,K,col,res;
-	nIGS = lg(GA)-1;
+	pari_sp av = avma;
+  unsigned long nZ,P,nE,E,nV,nA,nB,n;
+  GEN KB,K,res;
   nZ = lg(KV);
   nV = lg(gel(KV,1))-1;
   KB = mateqnpadic(WB,T,p,e);
   nB = lg(gel(KB,1))-1;
-  /* Prepare a mat K of size a v stack of KV + nIGS copies of KB */
+	nA = lg(WA)-1;
+
+	/* Prepare a mat K of size a v stack of KV + nA copies of KB */
   /* and copy KV at the top */
-  nE = nV + nIGS*nB;
+  nE = nV + nA*nB;
   K = cgetg(nZ,t_MAT);
   for(P=1;P<nZ;P++)
   {
-    col = cgetg(nE+1,t_COL);
+    gel(K,P) = cgetg(nE+1,t_COL);
     for(E=1;E<=nV;E++)
-    {
-      gel(col,E) = gcoeff(KV,E,P);
-    }
-    gel(K,P) = col;
+      gcoeff(K,E,P) = gcoeff(KV,E,P);
   }
-  /* nIGS times, take rand s in WA, and stack s.KB down K */
-  for(n=1;n<=nIGS;n++)
+  /* Stack a.KB down K for a in basis of WA */
+  for(n=1;n<=nA;n++)
   {
     for(E=1;E<=nB;E++)
     {
       for(P=1;P<nZ;P++)
-      {
-        gcoeff(K,nV+(n-1)*nB+E,P) = Fq_mul(gcoeff(GA,P,n),gcoeff(KB,E,P),T,pe);
-      }
+        gcoeff(K,nV+(n-1)*nB+E,P) = Fq_mul(gcoeff(WA,P,n),gcoeff(KB,E,P),T,pe);
     }
   }
-  res = matkerpadic(K,T,p,e);
+  res = matkerpadic_safe(K,T,p,e);
   return gerepileupto(av,res);
 }
 
@@ -301,41 +289,22 @@ GEN PicNeg(GEN J, GEN W, long flag)
 long PicMember(GEN J, GEN W)
 {
 	pari_sp av = avma;
-	GEN T,pe,p,w,V,wV,KV,KwV,K,W2;
+	GEN T,pe,p,w,V,wV,KV,W2;
 	long e;
-	ulong nW,nZ,nKV,nE;
-	ulong P,E,n;
+	ulong nW;
 	long res;
 
 	JgetTpe(J,&T,&pe,&p,&e);
 	V = JgetV(J);
 	KV = JgetKV(J);
-	nZ = lg(KV)-1;
-	nKV = lg(gel(KV,1))-1;
 	nW = lg(W)-1;
 
 	do
 		w = RandVec_1(W,pe);
 	while(gequal0(w));
 	wV = DivMul(w,V,T,pe);
-	KwV = mateqnpadic(wV,T,p,e);
-  /* Prepare a mat K of size a v stack of KV + nW copies of KW */
-  /* and copy KV at the top */
-  nE = nKV*(nW+1);
-  K = cgetg(nZ+1,t_MAT);
-  for(P=1;P<=nZ;P++)
-  {
-    gel(K,P) = cgetg(nE+1,t_COL);
-    for(E=1;E<=nKV;E++)
-    {
-      gcoeff(K,E,P) = gcoeff(KV,E,P);
-			for(n=1;n<=nW;n++)
-			{
-				gcoeff(K,n*nKV+E,P) = Fq_mul(gcoeff(W,P,n),gcoeff(KwV,E,P),T,pe);
-			}
-		}
-  }
-  W2 = matkerpadic_safe(K,T,p,e);
+
+	W2 = DivSub_safe(W,wV,KV,T,p,e,pe);
 	res = (lg(W2)-1==nW?1:0);
 	avma = av;
 	return res;
@@ -524,63 +493,19 @@ long PicEq(GEN J, GEN WA, GEN WB)
 {
 	pari_sp av = avma;
 	long e,r;
-	GEN s,sWB,KsWB,K,KV,col,T,p,pe;
-	ulong P,i,j,nZ,nW,nKV,nKsB,nK;
+	GEN s,sWB,K,KV,T,p,pe;
 
 	JgetTpe(J,&T,&pe,&p,&e);
 	KV = JgetKV(J);
 
 	/* Take s in WA */
 	s = gel(WA,1);
-	nZ = lg(s)-1;
-	nW = lg(WA)-1;
-	nKV = lg(gel(KV,1))-1;
-	nKsB = nZ-nW;
-	nK = nKV+nW*nKsB;
-
 	/* Compute s*WB */
-	sWB = cgetg(nW+1,t_MAT);
-	for(j=1;j<=nW;j++)
-	{
-		col = cgetg(nZ+1,t_COL);
-		for(i=1;i<=nZ;i++)
-		{
-			gel(col,i) = Fq_mul(gel(s,i),gcoeff(WB,i,j),T,pe);
-		}
-		gel(sWB,j) = col;
-	}
-
-	/* Equations for s*WB */
-	KsWB = mateqnpadic(sWB,T,p,e);
-
-	K = cgetg(nZ+1,t_MAT);
-	for(j=1;j<=nZ;j++)
-	{
-		gel(K,j) = cgetg(nK+1,t_COL);
-	}
-
+	sWB = DivMul(s,WB,T,pe);
 	/* Find { v in V | v*WA c s*WB } */
 	/* This space is nontrivial iff. A~B */
-	for(j=1;j<=nW;j++)
-	{
-		for(i=1;i<=nKsB;i++)
-		{
-			for(P=1;P<=nZ;P++)
-			{
-				gcoeff(K,(j-1)*nKsB+i,P) = Fq_mul(gcoeff(WA,P,j),gcoeff(KsWB,i,P),T,pe);
-			}
-		}
-	}
-	for(i=1;i<=nKV;i++)
-	{
-		for(P=1;P<=nZ;P++)
-		{
-			gcoeff(K,nW*nKsB+i,P) = gcoeff(KV,i,P);
-		}
-	}
-
-	r = lg(matkerpadic_safe(K,T,p,e))-1;
-
+	K = DivSub_safe(WA,sWB,KV,T,p,e,pe);
+	r = lg(K)-1;
 	avma = av;
 	return r;
 }
