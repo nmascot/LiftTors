@@ -48,6 +48,7 @@
 \newcommand{\Inf}{\operatorname{Inf}}
 \newcommand{\ord}{\operatorname{ord}}
 \newcommand{\Frob}{\operatorname{Frob}}
+\newcommand{\sgn}{\operatorname{sgn}}
 
 \newcommand{\TableMinPolyVar}{x}
 
@@ -75,11 +76,19 @@ Fix $N \in \N$. Want to use Kamal's algos in rep B0.
 
 Main idea: fix $E/\Q$, and a naive $\Gamma(N)$-struct (in the sens of Katz76) $\alpha: (\Z/N\Z)^2 \simeq E[N]$. Let $\zeta_N = e_N(\alpha(1,0),\alpha(0,1))$, a prim root. The other structs on $E$ are the $\alpha \circ \gamma$, $\gamma \in \Gamma(N)$ (points $P_\gamma$ in fibre of $X(N) \longrightarrow X(1) \ni [E]$ acting on the \emph{right} on row-vectors $v \in (\Z/N\Z)^2$.
 
-By Kamal, the $f_v : (E,\beta) \mapsto \lambda_{\beta(v)}$ span $\E_1(\Gamma(N))$. If for $P,Q \in E[N]$ distinct and nonzero, we let $\lambda_{P,Q} = $ slope of line joining $P$ and $Q$, then we have $\lambda_{P,Q} = \lambda_P + \lambda_{Q} + \lambda_{R}$ where $P+Q+R=0$. We can thus recover $\lambda_P = \frac1N \sum_{x \bmod N} \lambda_{P,Q+xP}$, so we can evaluate the $f_v$ at the $P_\gamma$.
+By Kamal, the $f_v : (E,\beta) \mapsto \lambda_{\beta(v)}$ span $\E_1(\Gamma(N))$. If for $P,Q \in E[N]$ distinct and nonzero, we let $\lambda_{P,Q} = $ slope of line joining $P$ and $Q$, then we have $\lambda_{P,Q} = \lambda_P + \lambda_{Q} + \lambda_{R}$ where $P+Q+R=0$. We can thus recover $\lambda_P = \frac1N \sum_{x \bmod N} \lambda_{P,Q+xP}$, so we can evaluate the $f_v$ at the $P_\gamma$. TODO since $\lambda_{P,Q} = -Z_E(P)-Z_E(Q)-Z_E(-P-Q)$, this implies that $\lambda_P$ is proportional to $Z_E(P)$, which in turns implies by DS that up to a mult constant,
+\[ f_v = g_1^v = \left. \begin{array}{cc} \frac12 \frac{\zeta^d+1}{\zeta^d-1}, & c =0 \\ \frac12 - \frac{c}N, & c \neq 0 \end{array} \right\} + \sum_{n \geqslant 1} \left( \sum_{\substack{n=ab \\ a,b \in \Z \\ a \equiv c \bmod N}} \sgn(b) \zeta^{bd} \right) q_N^n \]
+where $v=(c,d)$. TODO tester
 
 Up to a mult constant, the value of $f_v$ at the cusp $(c,d)$ of $X(N)$ is $s(c,d) = 1/2 - \{c/N\}$ if $c \not \equiv 0$, and $\frac12 \frac{\zeta_N^d+1}{\zeta_N^d-1}$ if $c \equiv 0$.
 
-Find list of pairs $(v_i,v'_i)$ such that the $f_{v_i} f_{v'_i}$ form a basis of $\M_2(\Gamma(N))$. Then the $\sum_{x \bmod N} f_{v_i \smat{1}{x}{0}{1}} f_{v_i \smat{1}{x}{0}{1}}$ generate $\M_2(\Gamma_1(N))$.
+The $f_{v} f_{v'}$ span $\M_2(\Gamma(N))$, so for any $\Gamma \supset \Gamma(N)$, the $\sum_{t \in \Gamma / \Gamma(N)} f_{v t } f_{v' t}$ span $\M_2(\Gamma)$, provided that $p \nmid \# \Gamma/\Gamma(N)$ (this will always be the case if $p \nmid \#\SL_2(\Z/N\Z) = \prod_{l^e \Vert N} l^{4e-3} (l-1)(l+1)$).
+
+Note: This is very general and allows one to work with \emph{any} congruence subgroup.
+
+Special case $\Gamma = \Gamma_H(N)$: Can take
+\[ t = \smat{1}{x}{0}{1} \smat{h^{-1}}{*}{N*}{h} \quad (x \bmod N, h \in H) \]
+and it is safe if $p \mid N \#H$, so in particular if $p \nmid N \phi(N)$.
 
 \section{L factor}
 
@@ -94,6 +103,9 @@ Factor $N = \prod_k l_k^{v_k}$, and for each $k$, let $M_k = N/l_k^{v_k}$, $i_k 
 so that
 \[ z = \prod_k z_k^{M_k}. \]
 In particular, if $z_k$ is a primitive $l_k^{v_k}$-th root of 1 for each $k$, then $z$ is a primitive $N$-th root of 1, and $(P,Q)$ is a basis of $E[N]$.
+
+We also need the matrix of $\Frob_p$ on $E[N]$. We get it by CRT. Idea: if $R = x P_k + y Q_k \in E[l_k^{v_k}]$, then $e_{l_k^{v_k}}(P_k,R) = z_k^y$ and $e_{l_k^{v_k}}(Q_k,R) = z_k^{-x}$, so the matrix of $\Frob_p$ on $E[l_k^{v_k}]$ is
+\[ \left[ \begin{matrix} \log_{z_k} e_{l_k^{v_k}}(Q_k,P_k^{\Frob_p}) & \log_{z_k} e_{l_k^{v_k}}(Q_k,Q_k^{\Frob_p}) \\ -\log_{z_k} e_{l_k^{v_k}}(P_k,P_k^{\Frob_p}) & -\log_{z_k} e_{l_k^{v_k}}(P_k,Q_k^{\Frob_p}) \end{matrix} \right] \]
 
 \section{Finding a suitable curve}
 
