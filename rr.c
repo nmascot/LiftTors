@@ -419,7 +419,7 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
   KV3 = mateqnpadic(V3,T,p,e);
 	if(DEBUGLEVEL) printf("PicInit: Constructing evaluation maps\n");
 	U = RREvalInit(L,vars,Z,T,p,e,pe);
-  J = mkvecn(lgJ,f,stoi(g),stoi(d0),L,T,p,stoi(e),pe,FrobMat,V,KV,W0,Z,FrobCyc,V3,KV3,U);
+  J = mkvecn(lgJ,f,stoi(g),stoi(d0),L,T,p,stoi(e),pe,FrobMat,V1,V,V3,KV,KV3,W0,U,Z,FrobCyc);
 	return gerepilecopy(av,J);
 }
 
@@ -429,20 +429,26 @@ GEN Jlift(GEN J, ulong e2)
 	GEN J2,T,p,pe2,f,vars,L,FrobCyc,FrobMat2;
 	long g,d0;
 	GEN Z,Z2,V1,V2,V3,W0,V,KV,KV3,P,x,y,fx,U;
-	ulong nZ,nCyc,i,k,o,c;
+	ulong nZ,i,j;
   if(Jgete(J)>=e2)
 	{
 		pari_warn(warner,"Current accuracy already higher than required in Jlift, not changing anything");
 		return gcopy(J);
 	}
-
+	f = Jgetf(J);
+	if(gequal0(f))
+		pari_err(e_MISC,"Cannot increase accuracy for this curve (missing equation)");
+	L = JgetL(J);
+	if(lg(L)!=5)
+    pari_err(e_MISC,"Cannot increase accuracy for this curve (missing RR spaces)");
+	Z = JgetZ(J);
+	if(lg(Z)==1)
+    pari_err(e_MISC,"Cannot increase accuracy for this curve (missing points)");
 	T = JgetT(J);
 	p = Jgetp(J);
-	f = Jgetf(J);
 	vars = variables_vecsmall(f);
 	g = Jgetg(J);
 	d0 = Jgetd0(J);
-	L = JgetL(J);
 
   J2 = cgetg(lgJ+1,t_VEC);
   gel(J2,1) = f;
@@ -455,50 +461,51 @@ GEN Jlift(GEN J, ulong e2)
   gel(J2,8) = pe2 = powiu(p,e2);
   gel(J2,9) = FrobMat2 = ZpXQ_FrobMat(T,p,e2,pe2);
 	
-	Z = JgetZ(J);
 	nZ = lg(Z);
 	FrobCyc = JgetFrobCyc(J);
-	nCyc = lg(FrobCyc);
 	avZ = avma;
 	Z2 = cgetg(nZ,t_VEC);
-	i=1;
-	for(o=1;o<nCyc;o++)
+	/* Need to lift while respecting Frob orbits */
+	for(i=1;i<nZ;i++) /* Mark points as not done */
+		gel(Z2,i) = NULL;
+	for(i=1;i<nZ;i++)
 	{
-		P = gel(Z,i);
+		if(gel(Z2,i)) continue; /* This point is part of a Frob orbit we have already treated */
+		j = i; /* Start of a new orbit */
+		P = gel(Z,i); /* Arbitrarily lift this point only */
     x = gel(P,1);
     y = gel(P,2);
     fx = poleval(f,x);
     y = CurveLiftPty(fx,y,T,p,e2);
-		c = FrobCyc[o];
-		for(k=0;k<c;k++)
+		while(1)
 		{
-			gel(Z2,i+k) = mkvec2(x,y);
+			gel(Z2,j) = mkvec2(x,y);
+			j = FrobCyc[j];
+			if(j==i) break; /* End of orbit */
 			x = Frob(x,FrobMat2,T,pe2);
-			y = Frob(y,FrobMat2,T,pe2);
+      y = Frob(y,FrobMat2,T,pe2);
 		}
-		i += c;
 	}
 	Z2 = gerepilecopy(avZ,Z2);
 	V1 = FnsEvalAt_Rescale(gel(L,1),Z2,vars,T,p,e2,pe2);
   V2 = FnsEvalAt_Rescale(gel(L,2),Z2,vars,T,p,e2,pe2);
   V3 = DivAdd(V1,V2,3*d0+1-g,T,p,e2,pe2,0);
-  W0 = V1;
+  W0 = V1; /* TODO can it happen that W0 != V1 even though all data is present? */
   V = V2;
   KV = mateqnpadic(V,T,p,e2);
   KV3 = mateqnpadic(V3,T,p,e2);
-  gel(J2,10) = V;
-  gel(J2,11) = KV;
-  gel(J2,12) = W0;
-  gel(J2,13) = Z2;
-  gel(J2,14) = JgetFrobCyc(J);
-  gel(J2,15) = V3;
-  gel(J2,16) = KV3;
 	U = cgetg(3,t_VEC);
   for(i=1;i<=2;i++)
-  {
     gel(U,i) = RRspaceEval(gel(L,i+2),vars,Z2,T,p,e2,pe2);
-  }
-	gel(J2,17) = U;
+  gel(J2,10) = V1;
+  gel(J2,11) = V;
+  gel(J2,12) = V3;
+  gel(J2,13) = KV;
+  gel(J2,14) = KV3;
+  gel(J2,15) = W0;
+	gel(J2,16) = U;
+  gel(J2,17) = Z2;
+  gel(J2,18) = JgetFrobCyc(J);
   return gerepilecopy(av,J2);
 }
 

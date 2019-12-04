@@ -2,6 +2,31 @@
 #include "exp.h"
 #include "pic.h"
 
+/*
+Structure of a Jacobian:
+1: f, equation of curve (0 if not available)
+2: g, genus
+3: d0, degree of line bundle B
+4: If B=O_X(D0), basis of RR spaces L(D0), L(2D0), L(2D0-E1), L(2D0-E2) in terms of x and y (the latter 2 used for EvalData); else []
+5: T poly in Z[t] such that Qq = Qp[t]/T
+6: p
+7: e, such that we work in J(Zq/p^e)
+8: p^e
+9: FrobMat, gives matrix of Frob on the power basis 1,t,t²,... of Qq
+10: V1 = H0(B)
+11: V = H0(B²) (having a nice basis improves the evaluation map)
+12: V3 = H0(B³) (used only for PicNorm, in part. for Frey-Rueck pairing)
+13: KV, equation matrix for V
+14: KV3, equation matrix for V3
+15: W0 = f*V1 for some f n V1, subspace of V representing the origin
+16: EvalData, pair of subspaces of the form V(-E) with E effective of degree d0-g, used for construction of eval map
+17: If B=O_X(D0), vector Z of points at which the sections are evaluated; else []
+18: FrobCyc, permutation describing the action of Frob on Z
+
+Note: usually, B=O_X(D0), in which case W0=V1=L(D0).
+Note: if f, one of the RR spaces L(...), or Z are not available, the p-adic accuracy cannot be increased.
+*/
+
 GEN Jgetf(GEN J) {return gel(J,1);}
 long Jgetg(GEN J) {return itos(gel(J,2));}
 long Jgetd0(GEN J) {return itos(gel(J,3));}
@@ -11,14 +36,15 @@ GEN Jgetp(GEN J) {return gel(J,6);}
 long Jgete(GEN J) {return itos(gel(J,7));}
 GEN Jgetpe(GEN J) {return gel(J,8);}
 GEN JgetFrobMat(GEN J) {return gel(J,9);}
-GEN JgetV(GEN J) {return gel(J,10);}
-GEN JgetKV(GEN J) {return gel(J,11);}
-GEN JgetW0(GEN J) {return gel(J,12);}
-GEN JgetZ(GEN J) {return gel(J,13);}
-GEN JgetFrobCyc(GEN J) {return gel(J,14);}
-GEN JgetV3(GEN J) {return gel(J,15);}
-GEN JgetKV3(GEN J) {return gel(J,16);}
-GEN JgetEvalData(GEN J) {return gel(J,17);}
+GEN JgetV1(GEN J) {return gel(J,10);}
+GEN JgetV(GEN J) {return gel(J,11);}
+GEN JgetV3(GEN J) {return gel(J,12);}
+GEN JgetKV(GEN J) {return gel(J,13);}
+GEN JgetKV3(GEN J) {return gel(J,14);}
+GEN JgetW0(GEN J) {return gel(J,15);}
+GEN JgetEvalData(GEN J) {return gel(J,16);}
+GEN JgetZ(GEN J) {return gel(J,17);}
+GEN JgetFrobCyc(GEN J) {return gel(J,18);}
 
 void JgetTpe(GEN J, GEN* T, GEN* pe, GEN* p, long* e)
 {
@@ -44,14 +70,15 @@ GEN PicRed(GEN J, ulong e)
 	gel(Je,7) = utoi(e);
 	gel(Je,8) = pe = powiu(p,e);
 	gel(Je,9) = FpM_red(JgetFrobMat(J),pe);
-	gel(Je,10) = FpXM_red(JgetV(J),pe);
-	gel(Je,11) = FpXM_red(JgetKV(J),pe);
-	gel(Je,12) = FpXM_red(JgetW0(J),pe);
-	gel(Je,13) = FpXT_red(JgetZ(J),pe);
-	gel(Je,14) = gcopy(JgetFrobCyc(J));
-	gel(Je,15) = FpXM_red(JgetV3(J),pe);
-	gel(Je,16) = FpXM_red(JgetKV3(J),pe);
-	gel(Je,17) = FpXT_red(JgetEvalData(J),pe);
+	gel(Je,10) = FpXM_red(JgetV1(J),pe);
+	gel(Je,11) = FpXM_red(JgetV(J),pe);
+	gel(Je,12) = FpXM_red(JgetV3(J),pe);
+	gel(Je,13) = FpXM_red(JgetKV(J),pe);
+	gel(Je,14) = FpXM_red(JgetKV3(J),pe);
+	gel(Je,15) = FpXM_red(JgetW0(J),pe);
+	gel(Je,16) = FpXT_red(JgetEvalData(J),pe);
+	gel(Je,17) = FpXT_red(JgetZ(J),pe);
+	gel(Je,18) = gcopy(JgetFrobCyc(J));
 	return gerepileupto(av,Je);
 }
 
@@ -315,13 +342,13 @@ GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
 { /* flag: 1: choose s randomly, 2: also return s */
 	pari_sp av = avma;
 	GEN WAWB,WAB,s,sV,WC,res;
-	GEN V,KV,KV3,W0,T,p,pe;
+	GEN V,KV,KV3,V1,T,p,pe;
 	long g,d0,e;
 
 	V = JgetV(J);
 	KV = JgetKV(J);
 	KV3 = JgetKV3(J);
-	W0 = JgetW0(J);
+	V1 = JgetV1(J);
 	JgetTpe(J,&T,&pe,&p,&e);
 	g = Jgetg(J);
 	d0 = Jgetd0(J);
@@ -329,7 +356,7 @@ GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
 	/* L(4D0-A-B) */
 	WAWB = DivAdd(WA,WB,2*d0+1-g,T,p,e,pe,0);
 	/* L(3D0-A-B) */
-	WAB = DivSub(W0,WAWB,KV3,d0+1-g,T,p,e,pe,2);
+	WAB = DivSub(V1,WAWB,KV3,d0+1-g,T,p,e,pe,2);
 	/* TODO can free some memory here */
 	if(flag & 1) s = RandVec_padic(WAB,T,p,pe);
 	else s = gel(WAB,1);
@@ -411,7 +438,7 @@ GEN PicMul(GEN J, GEN W, GEN n, long flag)
 }
 
 GEN ZpXQ_FrobMat(GEN T, GEN p, long e, GEN pe)
-{
+{ /* Matrix of Frob on basis 1,t,t²,... of Z[t]/(T,p^e) */
 	pari_sp av = avma;
 	GEN F,M,col,Fj;
 	long v = gvar(T),d = degpol(T),i,j;

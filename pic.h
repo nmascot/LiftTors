@@ -1,6 +1,7 @@
 #include<pari/pari.h>
 
-#define lgJ 17
+#define lgJ 18
+/* See pic.c for contents of a Jacobian */
 
 GEN Jgetf(GEN J);
 long Jgetg(GEN J);
@@ -11,14 +12,15 @@ GEN Jgetp(GEN J);
 long Jgete(GEN J);
 GEN Jgetpe(GEN J);
 GEN JgetFrob(GEN J);
+GEN JgetV1(GEN J);
 GEN JgetV(GEN J);
+GEN JgetV3(GEN J);
 GEN JgetKV(GEN J);
+GEN JgetKV3(GEN J);
 GEN JgetW0(GEN J);
+GEN JgetEvalData(GEN J);
 GEN JgetZ(GEN J);
 GEN JgetFrobCyc(GEN J);
-GEN JgetV3(GEN J);
-GEN JgetKV3(GEN J);
-GEN JgetEvalData(GEN J);
 void JgetTpe(GEN J, GEN* T, GEN* pe, GEN* p, long* e);
 
 GEN PicRed(GEN J, ulong e);

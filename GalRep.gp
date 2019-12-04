@@ -168,7 +168,7 @@ TorsBasis(J,l,chi,C)=
 				print("KR=");
 				printp(KR)
 			);
-			if(#KR>1,error("Bug in TorsSpace, please report")); \\ Not suppoe to happen by (H)
+			if(#KR>1,error("Bug in TorsSpace, please report")); \\ Not supposed to happen by (H)
 			if(#KR==0,
 				print(" Good, no relation");
 				next(2)
