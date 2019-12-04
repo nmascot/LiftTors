@@ -46,7 +46,7 @@ DivAdd1(A,B,dimres,p,excess)=
 
 ModJacInit(N,H,p,a,e)=
 { \\ J_H(N) over Zq/p^e, q=p^a
-	my(Hlist,Hlist1,Lp,g,Cusps,nCusps,CuspTags,E,P0,Q0,zN,MFrobE,tMFrobE,T,pe=p^e,d,d1,Pts,nPts,PtTags,MPts,M2,M2gens,v,w,B,d0,M4,M6,KV,KV3);
+	my(Hlist,Hlist1,Lp,g,Cusps,nCusps,CuspTags,E,P0,Q0,zN,MFrobE,tMFrobE,T,pe=p^e,d,d1,Pts,nPts,PtTags,MPts,M2,M2gens,v,w,B,d0,M4,M6,KV,KV3,f2,W0);
 	\\ Get H and H/+-1
   [Hlist,Hlist1] = GetHlist(N,H);
 	if(Mod(6*N*#Hlist,p)==0,error("Bad p"));
@@ -118,13 +118,13 @@ ModJacInit(N,H,p,a,e)=
 	\\ Extract basis
 	M2 = vecextract(M2,B);
 	M2basis = vecextract(M2gens,B);
-	\\ Pull down to merom fns by div, TODO dangerous
+	/*\\ Pull down to merom fns by div, TODO dangerous
 	f2 = M2[,1]; \\ TODO ensure def/Q TODO necessary?
   for(i=1,#f2,
 		u = liftall(f2[i]);
 		u = ZpXQ_inv(u,T,p,e);
     M2[i,] *= u;
-  );
+  );*/
 	\\[M2,Pts,M2basis];
 	print("M4(GammaH)");
 	d0 = d+g-1;
@@ -137,13 +137,19 @@ ModJacInit(N,H,p,a,e)=
 		M2[i,] *= f2[i]^2;
 		M4[i,] *= f2[i]
 	);*/
-	M2 = liftall(M2);
 	M4 = liftall(M4);
 	M6 = liftall(M6);
 	KV = matkerzq(M4~,T,p,e)~;
 	KV3 = matkerzq(M6~,T,p,e)~;
-	\\J = [f,g,d0,L,T,p,e,pe,Frob,V,KV,W0,Z,FrobCyc,V3,KV3,EvData];
+	\\ W0 = f*M2 c M4, f in M2
+	\\ TODO need f def / Q ?
+	f2 = M2[,1];
+	W0 = M2;
+	for(i=1,#f2,W0[i,] *= f2[i]);
+	M2 = liftall(M2);
+	W0 = liftall(W0);
+	\\J = [f,g,d0,L,T,p,e,pe,FrobMat,V1,V,V3,KV,KV3,W0,EvData,Z,FrobCyc];
 	FrobMat = ZpXQ_FrobMat(T,p,e,pe);
-	[0,g,d0,[],T,p,e,pe,FrobMat,M4,KV,M2,[],PtsFrob,M6,KV3,[]];
+	[0,g,d0,[],T,p,e,pe,FrobMat,M2,M4,M6,KV,KV3,W0,[],[],PtsFrob];
 	\\ TODO: EvData
 }

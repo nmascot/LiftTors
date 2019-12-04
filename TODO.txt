@@ -1,5 +1,3 @@
-* Distinction KV / KV3 dans qMak pour ne pas avoir à diviser par f2
-* Implem DivubSafe dans qMak, utile pour PicMember et pour Debug
 * Tester formule q-exp
 * Utiliser q-exps pour réduire d0
 * Utiliser q-exps pour construite eval data

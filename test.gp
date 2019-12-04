@@ -6,3 +6,6 @@ Lp = LMod(N,1,p);
 J1 = PicRed(J,1);
 NJ1 = polresultant(Lp,'x^a-1);
 W0 = JgetW0(J1);
+W = PicRand(J1);
+W0 = PicChord(J1,W0,W0,0);
+print(PicIsZero(J1,W0));
