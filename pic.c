@@ -326,12 +326,17 @@ GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
 	g = Jgetg(J);
 	d0 = Jgetd0(J);
 
+	/* L(4D0-A-B) */
 	WAWB = DivAdd(WA,WB,2*d0+1-g,T,p,e,pe,0);
+	/* L(3D0-A-B) */
 	WAB = DivSub(W0,WAWB,KV3,d0+1-g,T,p,e,pe,2);
 	/* TODO can free some memory here */
 	if(flag & 1) s = RandVec_padic(WAB,T,p,pe);
 	else s = gel(WAB,1);
+	/* s in WB: (s) = -3D0+A+B+C */
+	/* L(5D0-A-B-C) */
 	sV = DivMul(s,V,T,pe);
+	/* L(2D0-C) */
 	WC = DivSub(WAB,sV,KV,d0+1-g,T,p,e,pe,2);
 
 	if(flag & 2)
@@ -498,11 +503,11 @@ long PicEq(GEN J, GEN WA, GEN WB)
 	JgetTpe(J,&T,&pe,&p,&e);
 	KV = JgetKV(J);
 
-	/* Take s in WA */
+	/* Take s in WA: (s) = -2D0+A+A1 */
 	s = gel(WA,1);
-	/* Compute s*WB */
+	/* Compute s*WB = L(4D0-A-B-A1) */
 	sWB = DivMul(s,WB,T,pe);
-	/* Find { v in V | v*WA c s*WB } */
+	/* Find { v in V | v*WA c s*WB } = L(2D0-B-A1) */
 	/* This space is nontrivial iff. A~B */
 	K = DivSub_safe(WA,sWB,KV,T,p,e,pe);
 	r = lg(K)-1;
