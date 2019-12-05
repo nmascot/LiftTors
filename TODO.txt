@@ -1,4 +1,6 @@
-* Tester formule q-exp
+* Bug in Etors? N=12,p=29,a=2
+* Bug in ModJac (DivAdd1 pour M4 ne trouve pas assez)? N=14,p=29,a=4 (force large d1)
+* Idem N=18,p=7,a=3
 * Utiliser q-exps pour réduire d0
 * Utiliser q-exps pour construite eval data
 * Tester Galrep X1(13) (avec p=29, l=2,3,ou 19 facile) 

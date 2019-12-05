@@ -2,26 +2,16 @@ read("LMod.gp");
 read("Etors.gp");
 \\read("Dimensions.gp");
 read("GammaH.gp");
-read("Perms.gp");
+\\read("Perms.gp");
+read("qexp.gp");
 
-E1atCusp(s,N,z)= \\ Constant coef of Eis series E_1^s of level N
-{ \\ epxressed in terms of prim root z
-  my([c,d]=s);
-  c=c%N;
-  d=d%N;
-  if(c==0,
-    1/2*(z^d+1)/(z^d-1),
-    1/2-c/N
-  );
-}
-
-l2(EN,P,Q,T,pe,p,e)=  \\ Slope of line (PQ)
+l2(EN,P,Q,Tpe)=  \\ Slope of line (PQ)
 {
-	my([xP,yP]=GetCoef(EN,P),[xQ,yQ]=GetCoef(EN,Q));
+	my([xP,yP]=GetCoef(EN,P),[xQ,yQ]=GetCoef(EN,Q),[T,pe,p,e]=Tpe);
 	ZpXQ_div(liftall(yQ-yP),liftall(xQ-xP),T,pe,p,e);
 }
 \\ TODO methode Kamal addchain
-l1(EN,P,Q,T,pe,p,e)=Mod(Mod(sum(n=0,#EN-1,l2(EN,P,Q+n*P,T,pe,p,e)),T),pe); \\ sum_n l2(P,Q+nP) ~ sum_n l(P) +l(Q+nP)-l(Q+nP) ~ l*l(P)
+l1(EN,P,Q,Tpe)=my([T,pe,p,e]=Tpe);Mod(Mod(sum(n=0,#EN-1,l2(EN,P,Q+n*P,Tpe)),T),pe); \\ sum_n l2(P,Q+nP) ~ sum_n l(P) +l(Q+nP)-l(Q+nP) ~ l*l(P)
 
 DivAdd1(A,B,dimres,p,excess)=
 {
@@ -46,7 +36,7 @@ DivAdd1(A,B,dimres,p,excess)=
 
 ModJacInit(N,H,p,a,e)=
 { \\ J_H(N) over Zq/p^e, q=p^a
-	my(Hlist,Hlist1,Lp,g,Cusps,nCusps,CuspTags,E,P0,Q0,zN,MFrobE,tMFrobE,T,pe=p^e,d,d1,Pts,nPts,PtTags,MPts,M2,M2gens,v,w,B,d0,M4,M6,KV,KV3,f2,W0);
+	my(Hlist,Hlist1,Lp,g,Cusps,nCusps,CuspTags,E,P0,Q0,zN,MFrobE,tMFrobE,T,pe=p^e,Tpe,d,d1,Pts,nPts,PtTags,MPts,M2,M2gens,v,w,B,d0,M4,M6,KV,KV3,f2,W0);
 	\\ Get H and H/+-1
   [Hlist,Hlist1] = GetHlist(N,H);
 	if(Mod(6*N*#Hlist,p)==0,error("Bad p"));
@@ -57,24 +47,25 @@ ModJacInit(N,H,p,a,e)=
 	[E,P0,Q0,zN,MFrobE] = EBasis(N,p,a,e);
 	tMFrobE = mattranspose(MFrobE);
 	T = zN.mod;
+	Tpe = [T,pe,p,e];
 	\\ Write down all N-torsion: : this is a naive level structure alpha: (Z/NZ)² ~ E[N]
 	EN=matrix(N,N); \\ [[ m P0 + n Q0 ]]
   EN[1,N]=P0;
   EN[N,1]=Q0;
   for(x=2,N-1,
-    EN[x,N]=elladd_padic(E.a4,EN[x-1,N],P0,T,pe,p,e);
-    EN[N,x]=elladd_padic(E.a4,EN[N,x-1],Q0,T,pe,p,e);
+    EN[x,N]=elladd_padic(E.a4,EN[x-1,N],P0,Tpe);
+    EN[N,x]=elladd_padic(E.a4,EN[N,x-1],Q0,Tpe);
   );
   for(x=1,N-1,
     for(y=1,N-1,
-      EN[x,y]=elladd_padic(E.a4,EN[x,N],EN[N,y],T,pe,p,e)
+      EN[x,y]=elladd_padic(E.a4,EN[x,N],EN[N,y],Tpe)
     )
   );
 	\\ Matrix of l(P) for P in E[N]
 	print("Ml1");
 	Ml1=matrix(N,N);
-	for(x=1,N-1,Ml1[x,N]=l1(EN,[x,0],[0,1],T,pe,p,e)); \\ P=alpha(x,0) -> Q=alpha(0,1)
-	for(x=1,N,for(y=1,N-1,Ml1[x,y]=l1(EN,[x,y],[1,0],T,pe,p,e))); \\ P=alpha(x,y), y!=0 -> Q=alpha(1,0)
+	for(x=1,N-1,Ml1[x,N]=l1(EN,[x,0],[0,1],Tpe)); \\ P=alpha(x,0) -> Q=alpha(0,1)
+	for(x=1,N,for(y=1,N-1,Ml1[x,y]=l1(EN,[x,y],[1,0],Tpe))); \\ P=alpha(x,y), y!=0 -> Q=alpha(1,0)
 	print("M2(GammaH)");
 	\\ Find a basis for M2(GammaH(N))
 	[Cusps,CuspTags] = GammaHCusps(N,Hlist);
@@ -96,7 +87,8 @@ ModJacInit(N,H,p,a,e)=
 	TH = GammaHmodN(N,Hlist1); \\ elts of SL2(Z) representing GammaH mod N,+-1
 	while(1,
 		print("Attempt");
-		\\ Take d1 forms in M2(Gamma(N)
+		M2q = matrix(100,d1); \\ DEBUG
+		\\ Take d1 forms in M2(Gamma(N))
   	for(j=1,d1, \\ of the form E_1^v * E_1^w : j = index of gen
 			print("Prod");
 			v=Pts[1+random(#Pts)];
@@ -106,8 +98,13 @@ ModJacInit(N,H,p,a,e)=
     	for(P=1,nPts,
 				\\ sum_x f_v f_w | T at P for T in TH
       	M2[P,j]=sum(i=1,#TH,GetCoef(Ml1,v*TH[i]*MPts[P])*GetCoef(Ml1,w*TH[i]*MPts[P]))
-    	)
+    	);
+			/* DEBUG */
+			fvw = sum(i=1,#TH,E1qexp(v*TH[i],N,zN,100,Tpe,'x)*E1qexp(w*TH[i],N,zN,100,Tpe,'x));
+			for(i=1,100,M2q[i,j]=polcoef(fvw,i-1));
  	  );
+    KM2 = Mod(Mod(matkerpadic(liftall(M2),T,p,e),T),pe);
+    if(M2q*KM2!=0,error("qexp BAD!!!!"));
   	\\ See if we span all of M2(GammaH) by checking full rank
 		print("linalg");
   	B=matindexrank(Mod(M2,p))[2]; \\ working mod p for efficiency

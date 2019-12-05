@@ -1,4 +1,5 @@
 install("ZpXQ_inv","GGGL");
+install("ZpXQ_div","GGGGGL");
 
 WeiRed(f,h)=
 {

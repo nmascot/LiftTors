@@ -1,10 +1,8 @@
-install("ZpXQ_div","GGGGGL");
-
-elladd_padic(a4,P,Q,T,pe,p,e)=
+elladd_padic(a4,P,Q,Tpe)=
 {
 	if(P==[0],return(Q));
 	if(Q==[0],return(P));
-	my([xP,yP]=P,[xQ,yQ]=Q,dx,dy,l,m,xR,yR);
+	my([xP,yP]=P,[xQ,yQ]=Q,[T,pe,p,e]=Tpe,dx,dy,l,m,xR,yR);
 	if(Mod(xP,p)==Mod(xQ,p),
 		print("elladd_padic dangerous");
 		if(xP!=xQ,error("elladd_padic bad red"));
@@ -26,9 +24,9 @@ elladd_padic(a4,P,Q,T,pe,p,e)=
 }
 
 
-ellmul_padic(a4,P,n,T,pe,p,e)=
+ellmul_padic(a4,P,n,Tpe)=
 {
-	my(Q,m);
+	my([T,pe,p,e]=Tpe,Q,m);
 	if(P==[0],return([0]));
 	if(n==0,return([0]));
 	if(n==1,return(P));

@@ -126,7 +126,7 @@ ELocalBasis(E,t1,ab,l,v,D)= \\ l,v -> Basis [P,Q] of E[l^v], plus its Weil pairi
 			MFrob[2,1] = -zlog(ellweilpairing(E,FP,P,lv),z);
 			MFrob[1,2] = zlog(ellweilpairing(E,FQ,Q,lv),z);
 			MFrob[2,2] = -zlog(ellweilpairing(E,FQ,P,lv),z);
-			return([P,Q,z,Mod(MFrob,lv)])
+			return([P,Q,1/z,Mod(MFrob,lv)]) \\ 1/z because of bug #2187.
 		)
 	);
 }
@@ -151,10 +151,11 @@ LiftTorsPt(P,ab,D,e)=
 
 EBasis(N,p,a,e)=
 {
-	my(T,t1,pe=p^e,ab,f,EQ,EFq,faN,Pk,Qk,zk,P,Q,z,l,v,lv,D,MFrob,MFroblv);
+	my(T,t1,pe=p^e,Tpe,ab,f,EQ,EFq,faN,Pk,Qk,zk,P,Q,z,l,v,lv,D,MFrob,MFroblv);
 	T=ffinit(p,a,'t);
 	t1=ffgen(T,'t);
 	T = lift(T);
+	Tpe=[T,pe,p,e];
 	ab = liftint(Esplit(p,N,a));
 	EQ=ellinit(ab);
 	EFq=ellinit(ab,t1);
@@ -170,8 +171,8 @@ EBasis(N,p,a,e)=
 		[Pk,Qk,zk,MFroblv] = ELocalBasis(EFq,t1,ab,l,v,D);
 		[Pk,Qk] = apply(R->LiftTorsPt(R,ab,D,e),[Pk,Qk]);
 		zk = ffLiftRoot('x^lv-1,zk^(N/lv),e);
-		P = elladd_padic(ab[1],P,Pk,T,pe,p,e);
-		Q = elladd_padic(ab[1],Q,Qk,T,pe,p,e);
+		P = elladd_padic(ab[1],P,Pk,Tpe);
+		Q = elladd_padic(ab[1],Q,Qk,Tpe);
 		z *= zk;
 		print(MFroblv);
 		MFrob[k] = MFroblv;
