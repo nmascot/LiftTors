@@ -50,14 +50,15 @@ Esplit(p,N,d)= \\ Look for an ell. curve / Fp such tht E[N] splits over Fq, q=p^
 		L = matconcat([L,faM]~);
 		for(i=1,#L~,
 			print("Checking Frob^",d," trivial on E[",L[i,1],"^",L[i,2],"]");
-			lv = L[i,1]^L[i,2];
-			D = elldivpol(E,lv); \\ Check manually that E[l^v] def over Fq
+			[l,v] = L[i,];
+			lv = l^v;
+			D = elldivpol(E,lv)/elldivpol(E,l^(v-1)); \\ Check manually that E[l^v] def over Fq
 			X=polrootsmod(D,[T,p]);
 			if(#X<poldegree(D),
 				print("E[",l,"^",v,"]/+-1 not split: ",#X," roots out of ",poldegree(D));
 				next(2)
 			);
-			if(l!=2,
+			if(lv!=2,
 				for(j=1,#X,
 					if((X[i]^3+a*X[i]+b)^q2!=1,
 						print("E[",l,"^",v,"] not split");
@@ -114,8 +115,8 @@ ELocalBasis(E,t1,ab,l,v,D)= \\ l,v -> Basis [P,Q] of E[l^v], plus its Weil pairi
 		x = X[random(#X)+1];
     y = sqrt(x^3+ab[1]*x+ab[2]);
     Q = [x,y];
-		print("P has order ",l,"^",GetOrder(E,P,l));
-		print("Q has order ",l,"^",GetOrder(E,P,l));
+		\\print("P has order ",l,"^",GetOrder(E,P,l));
+		\\print("Q has order ",l,"^",GetOrder(E,P,l));
 		z = ellweilpairing(E,P,Q,lv);
 		print("z has order ",l,"^",GetzOrder(z,l));
 		if(z^(l^(v-1))!=1,
@@ -167,7 +168,7 @@ EBasis(N,p,a,e)=
 	for(k=1,#faN~,
 		[l,v] = faN[k,];
 		lv = l^v;
-		D = elldivpol(EQ,lv);
+		D = elldivpol(EQ,lv)/elldivpol(EQ,lv/l);
 		[Pk,Qk,zk,MFroblv] = ELocalBasis(EFq,t1,ab,l,v,D);
 		[Pk,Qk] = apply(R->LiftTorsPt(R,ab,D,e),[Pk,Qk]);
 		zk = ffLiftRoot('x^lv-1,zk^(N/lv),e);
