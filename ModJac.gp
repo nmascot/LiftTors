@@ -29,10 +29,24 @@ DivAdd1(A,B,dimres,p,excess)=
 		);
 		r = matindexrank(Mod(C,p))[2];
 		if(#r == dimres,return(vecextract(C,r)));
-		print1("@",#r,"/",dimres);
+		print1("@",#r,"/",dimres," ");
 	);
 }
-		
+
+BalancedDiv(d,degs)=
+{
+	my(n=#degs,s=vecsum(degs),D,q);
+	q = d\s;
+	d -= q*s;
+	D = vector(n,i,q);
+	for(i=1,n,
+		if(d>=degs[i],
+			d -= degs[i];
+			D[i] +=1
+		)
+	);
+	D;
+}
 
 ModJacInit(N,H,p,a,e)=
 { \\ J_H(N) over Zq/p^e, q=p^a
@@ -87,7 +101,8 @@ ModJacInit(N,H,p,a,e)=
 	TH = GammaHmodN(N,Hlist1); \\ elts of SL2(Z) representing GammaH mod N,+-1
 	while(1,
 		print("Attempt");
-		M2q = matrix(100,d1); \\ DEBUG
+		qprec = 100*N;
+		M2q = matrix(qprec,d1); \\ DEBUG
 		\\ Take d1 forms in M2(Gamma(N))
   	for(j=1,d1, \\ of the form E_1^v * E_1^w : j = index of gen
 			print("Prod");
@@ -100,11 +115,12 @@ ModJacInit(N,H,p,a,e)=
       	M2[P,j]=sum(i=1,#TH,GetCoef(Ml1,v*TH[i]*MPts[P])*GetCoef(Ml1,w*TH[i]*MPts[P]))
     	);
 			/* DEBUG */
-			fvw = sum(i=1,#TH,E1qexp(v*TH[i],N,zN,100,Tpe,'x)*E1qexp(w*TH[i],N,zN,100,Tpe,'x));
-			for(i=1,100,M2q[i,j]=polcoef(fvw,i-1));
+			fvw = sum(i=1,#TH,E1qexp(v*TH[i],N,zN,qprec,Tpe,'x)*E1qexp(w*TH[i],N,zN,qprec,Tpe,'x));
+			for(i=1,qprec,M2q[i,j]=polcoef(fvw,i-1));
  	  );
     KM2 = Mod(Mod(matkerpadic(liftall(M2),T,p,e),T),pe);
     if(M2q*KM2!=0,error("qexp BAD!!!!"));
+		1/0;
   	\\ See if we span all of M2(GammaH) by checking full rank
 		print("linalg");
   	B=matindexrank(Mod(M2,p))[2]; \\ working mod p for efficiency

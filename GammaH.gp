@@ -25,7 +25,7 @@ ANH(N,Hlist)=
   [Vec(A),tag];
 }
 
-GammaHCusps(N,Hlist)= \\ Reps of all cusps of GammaH, plus data to find rep in equiv class
+/*GammaHCusps(N,Hlist)= \\ Reps of all cusps of GammaH, plus data to find rep in equiv class
 {
 	my(Cusps=List(),tag=matrix(N,N),nH=#Hlist,n=0);
 	  for(u=0,N-1,
@@ -45,6 +45,31 @@ GammaHCusps(N,Hlist)= \\ Reps of all cusps of GammaH, plus data to find rep in e
     )
   );
 	[Vec(Cusps),tag];
+}*/
+
+GammaHCusps(N,Hlist)= \\ Reps (c,d) of all cusps of GammaH, plus data to find rep in equiv class
+{
+  my(Cusps=List(),CuspsGal=List(),GalOrb,tag=matrix(N,N),nH=#Hlist,n=0,g,h);
+	for(c=0,N-1, \\ c in Z/NZ
+		g = gcd(c,N);
+		GalOrb = List();
+    for(d=0,g-1, \\ d in (Z/gZ)*
+      if(GetCoef(tag,[c,d]),next);
+      if(gcd(g,d)==1,
+				listput(Cusps,[c,d]);
+				listput(GalOrb,[c,d]);
+				n++;
+				for(x=0,N/g-1,
+					for(i=1,nH,
+						h = Hlist[i];
+						tag[ZNnorm(h*c,N),ZNnorm(h*d+x*g,N)]=n \\ up to H
+					)
+				)
+			)
+		);
+		if(#GalOrb,listput(CuspsGal,Vec(GalOrb)));
+	);
+	[Vec(Cusps),vecsort(Vec(CuspsGal),x->#x,4),tag];
 }
 
 GammaHmodN(N,Hlist)= \\ reps of Gamma_H(N) / Gamma(N) in SL2(Z)
@@ -87,3 +112,13 @@ c=c*g;
 c=liftint(Mod(c,N));
 select(x->x==c,Cusps,1)[1];
 }*/
+
+GammaHCuspWidth(s,N,Hlist)=
+{
+	my(c=s[1],a,g,x=1);
+	g = gcd(c^2,N);
+	g = N/g;
+	a = BotToSL2(s,N)[1,1];
+	while(#select(y->Mod(y,N)==Mod(1+a*c*g*x,N),Hlist,1)==0,x++);
+	g*x;
+}
