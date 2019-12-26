@@ -10,6 +10,7 @@ Esplit(p,N,d)= \\ Look for an ell. curve / Fp such tht E[N] splits over Fq, q=p^
     print("---- New curve ----");
     a=random(Mod(1,p));
     b=random(Mod(1,p));
+		if(a==0||b==0,next); \\ Avoid ramification X(N)->X(1)
     if(4*a^3+27*b^2==0,
 			print("Singular");
 			next

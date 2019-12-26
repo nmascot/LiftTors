@@ -62,6 +62,7 @@ ModJacInit(N,H,p,a,e)=
 	tMFrobE = mattranspose(MFrobE);
 	T = zN.mod;
 	Tpe = [T,pe,p,e];
+	print("E:y²=x³+",E.a4,"x+",E.a6," ",p,"-adically");
 	\\ Write down all N-torsion: : this is a naive level structure alpha: (Z/NZ)² ~ E[N]
 	EN=matrix(N,N); \\ [[ m P0 + n Q0 ]]
   EN[1,N]=P0;
@@ -120,7 +121,6 @@ ModJacInit(N,H,p,a,e)=
  	  );
     KM2 = Mod(Mod(matkerpadic(liftall(M2),T,p,e),T),pe);
     if(M2q*KM2!=0,error("qexp BAD!!!!"));
-		1/0;
   	\\ See if we span all of M2(GammaH) by checking full rank
 		print("linalg");
   	B=matindexrank(Mod(M2,p))[2]; \\ working mod p for efficiency
