@@ -8,7 +8,7 @@ Structure of a Jacobian:
 2: g, genus
 3: d0, degree of line bundle B
 4: If B=O_X(D0), basis of RR spaces L(D0), L(2D0), L(2D0-E1), L(2D0-E2) in terms of x and y (the latter 2 used for EvalData); else []
-5: T poly in Z[t] such that Qq = Qp[t]/T
+5: T, poly in Z[t] such that Qq = Qp[t]/T
 6: p
 7: e, such that we work in J(Zq/p^e)
 8: p^e
@@ -18,7 +18,7 @@ Structure of a Jacobian:
 12: V3 = H0(B³) (used only for PicNorm, in part. for Frey-Rueck pairing)
 13: KV, equation matrix for V
 14: KV3, equation matrix for V3
-15: W0 = f*V1 for some f n V1, subspace of V representing the origin
+15: W0 = f*V1 for some f in V1, subspace of V representing the origin
 16: EvalData, pair of subspaces of the form V(-E) with E effective of degree d0-g, used for construction of eval map
 17: If B=O_X(D0), vector Z of points at which the sections are evaluated; else []
 18: FrobCyc, permutation describing the action of Frob on Z

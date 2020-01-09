@@ -38,7 +38,7 @@ GEN FindSuppl(GEN W, ulong nS, GEN V, GEN Vbis, GEN T, GEN p, GEN pe)
 }
 
 GEN detratio(GEN K, GEN T, GEN p, long e, GEN pe)
-{
+{ /* K=(K1|K2) -> det(K2)/det(K1) */
 	pari_sp av = avma;
 	GEN K1,K2,col1,col2;
 	ulong d0,i,j;
@@ -63,7 +63,7 @@ GEN detratio(GEN K, GEN T, GEN p, long e, GEN pe)
 }
 
 GEN PicNorm(GEN J, GEN F, GEN WE)
-{
+{ /* F in V3, WE = V(-E) -> F(E) */
 	pari_sp av = avma;
 	ulong g,d0,nS,nV5,nZ;
 	ulong i,j;
@@ -82,10 +82,10 @@ GEN PicNorm(GEN J, GEN F, GEN WE)
 	nV5 = 5*d0+1-g;
 	nZ = lg(gel(V,1))-1;
 
-	WEV3 = DivAdd(V3,WE,nV5-nS,T,p,e,pe,0);
+	WEV3 = DivAdd(V3,WE,nV5-nS,T,p,e,pe,0); /* V3*WE = V5(-E) */
 
-	V1 = FindSuppl(WE,nS,V,NULL,T,p,pe);
-	V2 = FindSuppl(WEV3,nS,V,V3,T,p,pe);
+	V1 = FindSuppl(WE,nS,V,NULL,T,p,pe); /* V = V(-E) + V1 */
+	V2 = FindSuppl(WEV3,nS,V,V3,T,p,pe); /* V5 = V5(-E) + V2 */
 
 	M = cgetg(nS+nV5+1,t_MAT);
 	for(j=1;j<=nS;j++) gel(M,j) = gel(V1,j);
