@@ -62,8 +62,8 @@ GEN detratio(GEN K, GEN T, GEN p, long e, GEN pe)
 	return gerepileupto(av,Fq_mul(ZpXQM_det(K2,T,p,e),ZpXQ_inv(ZpXQM_det(K1,T,p,e),T,p,e),T,pe));
 }
 
-GEN PicNorm(GEN J, GEN F, GEN WE)
-{ /* F in V3, WE = V(-E) -> F(E) */
+GEN PicNorm(GEN J, GEN F, GEN F1, GEN WE)
+{ /* F,F1 in V3, WE = V(-E) -> F/F1(E) */
 	pari_sp av = avma;
 	ulong g,d0,nS,nV5,nZ;
 	ulong i,j;
@@ -71,6 +71,7 @@ GEN PicNorm(GEN J, GEN F, GEN WE)
 	GEN V,V3,T,p,pe;
 	GEN WEV3,V1,V2,M1,M2,M;
 
+	printf("u");
 	g = Jgetg(J);
 	d0 = Jgetd0(J);
 	V = JgetV(J,2);
@@ -88,12 +89,17 @@ GEN PicNorm(GEN J, GEN F, GEN WE)
 	V2 = FindSuppl(WEV3,nS,V,V3,T,p,pe); /* V5 = V5(-E) + V2 */
 
 	M = cgetg(nS+nV5+1,t_MAT);
-	for(j=1;j<=nS;j++) gel(M,j) = gel(V1,j);
+	for(j=1;j<=nS;j++)
+	{
+		gel(M,j) = cgetg(nZ+1,t_COL);
+		for(i=1;i<=nZ;i++)
+			gcoeff(M,i,j) = Fq_mul(gcoeff(V1,i,j),gel(F1,i),T,pe);
+	}
 	for(j=1;j<=nV5;j++) gel(M,nS+j) = gel(V2,j);
 	M1 = detratio(matkerpadic(M,T,p,e),T,p,e,pe);
 	if(ZX_is0mod(M1,p))
 	{
-		if(DEBUGLEVEL) err_printf("PicNorm: D and D0 intersect, giving up\n");
+		if(DEBUGLEVEL) err_printf("PicNorm: D and D0 intersect, giving up\n"); /* TODO */
 		avma = av;
 		return NULL;
 	}
@@ -102,7 +108,7 @@ GEN PicNorm(GEN J, GEN F, GEN WE)
 	{
 		for(i=1;i<=nZ;i++)
 		{
-			gcoeff(M,i,j) = Fq_mul(gcoeff(M,i,j),gel(F,i),T,pe);
+			gcoeff(M,i,j) = Fq_mul(gcoeff(V1,i,j),gel(F,i),T,pe);
 		}
 	}
 	M2 = detratio(matkerpadic(M,T,p,e),T,p,e,pe);
@@ -113,10 +119,14 @@ GEN PicNorm(GEN J, GEN F, GEN WE)
 		return NULL;
 	}
 	
+	pari_printf("M1=%Ps  ",M1);
+	pari_printf("M2=%Ps  ",M2);
+	printf("typ2:%ld  ",typ(M2));
+	printf("v");
 	return gerepileupto(av,ZpXQ_div(M2,M1,T,pe,p,e));
 }
 
-GEN PicFreyRuckMulti1(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C)
+GEN PicFreyRuckMulti1(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN F1, GEN F3, GEN C)
 /* Pair the l-tors pt Wtors against the pts in Wtest */
 {
 	pari_sp av = avma;
@@ -126,6 +136,7 @@ GEN PicFreyRuckMulti1(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C)
 	ulong nC,ntest;
 	ulong c,d,i,j;
 	
+	printf("a");
 	JgetTpe(J,&T,&pe,&p,&e);
 	Fq1 = GetFq1(T);
 	KV = JgetKV(J,2);
@@ -138,6 +149,7 @@ GEN PicFreyRuckMulti1(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C)
 	for(d=1;d<ntest;d++) gcoeff(H,d,1) = Fq1;
 	for(c=2;c<nC;c++)
 	{
+		printf("b");
 		i = gmael(C,c,2)[1];
 		j = gmael(C,c,2)[2];
 		if(i)
@@ -161,17 +173,24 @@ GEN PicFreyRuckMulti1(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C)
 		col = cgetg(ntest,t_COL);
 		for(d=1;d<ntest;d++)
 		{
-			N = PicNorm(J,s,gel(Wtest,d));
+			printf("c");
+			N = PicNorm(J,s,F3,gel(Wtest,d));
+			printf("0");
 			if(N==NULL)
 			{
 				av = avma;
 				return NULL;
 			}
+			printf("1");
 			gel(col,d) = Fq_mul(N,gcoeff(H,d,i),T,pe);
+			printf("2");
 			if(j) gel(col,d) = Fq_mul(gel(col,d),gcoeff(H,d,j),T,pe);
+			printf("3");
 			gel(col,d) = ZpXQ_inv(gel(col,d),T,p,e);
+			printf("4");
 		}
-		N = PicNorm(J,s,W0);
+		printf("d");
+		N = PicNorm(J,s,F3,W0);
 		if(N==NULL)
     {
       av = avma;
@@ -179,12 +198,14 @@ GEN PicFreyRuckMulti1(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C)
     }
 		gel(H,c) = FqC_Fq_mul(col,N,T,pe);
 	}
-	s = DivSub(JgetW0(J),gel(WtorsM,nC-1),KV,1,T,p,e,pe,2);
+	printf("e");
+	s = DivSub(DivMul(F1,JgetV1(J),T,pe),gel(WtorsM,nC-1),KV,1,T,p,e,pe,2);
 	s = gel(s,1);
 	col = gel(H,nC-1);
 	for(d=1;d<ntest;d++)
 	{
-		N = PicNorm(J,s,gel(Wtest,d));
+		printf("f");
+		N = PicNorm(J,s,F3,gel(Wtest,d));
 		if(N==NULL)
     {
       av = avma;
@@ -192,12 +213,14 @@ GEN PicFreyRuckMulti1(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C)
     }
 		gel(col,d) = Fq_mul(gel(col,d),N,T,pe);
 	}
-	N = PicNorm(J,s,W0);
+	printf("g");
+	N = PicNorm(J,s,F3,W0);
 	if(N==NULL)
   {
     av = avma;
     return NULL;
   }
+	printf("h");
 	col = FqC_Fq_mul(col,ZpXQ_inv(N,T,p,e),T,pe);
 	return gerepileupto(av,col);
 }
@@ -206,17 +229,25 @@ GEN PicFreyRuckMulti(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C)
 /* Pair the l-tors pt Wtors against the pts in Wtest */
 {
 	pari_sp av = avma,av1;
-	GEN res=NULL,Wtors1=Wtors,Wtest1,W01=W0;
-	ulong ntest,i;
+	GEN res=NULL,Wtors1=Wtors,Wtest1,W01=W0,V1,T,pe,F1,F3;
+	ulong ntest,i,nZ;
 	ntest = lg(Wtest);
+	T = JgetT(J);
+	pe = Jgetpe(J);
+	V1 = JgetV1(J);
 	Wtest1 = cgetg(ntest,t_VEC);
+	F1 = gel(V1,1);
+	nZ = lg(F1);
+	F3 = cgetg(nZ,t_COL);
 	av1 = avma;
 	for(i=1;i<ntest;i++)
 		gel(Wtest1,i) = gel(Wtest,i);
+	for(i=1;i<nZ;i++)
+		gel(F3,i) = Fq_powu(gel(F1,i),3,T,pe);
 
 	for(;;)
 	{
-		res = PicFreyRuckMulti1(J,Wtors1,l,Wtest1,W01,C);
+		res = PicFreyRuckMulti1(J,Wtors1,l,Wtest1,W01,F1,F3,C);
 		if(res) return gerepileupto(av,res);
 		if(DEBUGLEVEL) err_printf("Error in Frey-Ruck, retrying\n");
 		avma = av1;
@@ -224,6 +255,9 @@ GEN PicFreyRuckMulti(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C)
 		W01 = PicNeg(J,W0,1);
 		for(i=1;i<ntest;i++)
 			gel(Wtest1,i) = PicNeg(J,gel(Wtest,i),1);
+		F1 = RandVec_1(V1,pe);
+		for(i=1;i<nZ;i++)
+	    gel(F3,i) = Fq_powu(gel(F1,i),3,T,pe);
 	}
 }
 
