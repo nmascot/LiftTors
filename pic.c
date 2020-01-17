@@ -201,7 +201,7 @@ GEN DivAdd(GEN WA, GEN WB, ulong d, GEN T, GEN p, long e, GEN pe, ulong excess)
 }*/
 
 GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong nIGS)
-{
+{ /* { v in Ker KV | v*WA c WB } */
 	pari_sp av1,av = avma;
 	unsigned long nZ,P,nE,E,nV,nB,n,r;
 	GEN KB,K,s,res;
