@@ -73,8 +73,8 @@ GEN PicNorm(GEN J, GEN F, GEN WE)
 
 	g = Jgetg(J);
 	d0 = Jgetd0(J);
-	V = JgetV(J);
-	V3 = JgetV3(J);
+	V = JgetV(J,2);
+	V3 = JgetV(J,3);
 	JgetTpe(J,&T,&pe,&p,&e);
 	d0 = Jgetd0(J);
 	g = Jgetg(J);
@@ -128,7 +128,7 @@ GEN PicFreyRuckMulti1(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C)
 	
 	JgetTpe(J,&T,&pe,&p,&e);
 	Fq1 = GetFq1(T);
-	KV = JgetKV(J);
+	KV = JgetKV(J,2);
 	nC = lg(C);
 	ntest = lg(Wtest);
 	WtorsM = cgetg(nC,t_VEC);

@@ -8,7 +8,7 @@ GEN PicDeflate(GEN J, GEN W, ulong nIGS)
 	ulong g,nV,nW,r,i,j,k;
 	long e;
 
-	V = JgetV(J);
+	V = JgetV(J,2);
 	JgetTpe(J,&T,&pe,&p,&e);
 	g = Jgetg(J);
 	nV = lg(V)-1;
@@ -51,7 +51,7 @@ GEN PicDeflate_U(GEN J, GEN W, ulong nIGS)
 	GEN GW,K,U;
 	ulong j;
 
-	V = JgetV(J);
+	V = JgetV(J,2);
 	T = JgetT(J);
 	p = Jgetp(J);
 	e = Jgete(J);
@@ -77,8 +77,8 @@ GEN PicInflate_U(GEN J, GEN U, GEN I) /* Takes IGS given by coords // V */
 	ulong i,j,k;
 
 	JgetTpe(J,&T,&pe,&p,&e);
-	V = JgetV(J);
-	KV = JgetKV(J);
+	V = JgetV(J,2);
+	KV = JgetKV(J,2);
 	nU = lg(U)-1;
 	nV = lg(V)-1;
 	d0 = Jgetd0(J);
@@ -200,7 +200,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 	JgetTpe(J,&T,&pefin,&p,&efin);
 	g = Jgetg(J);
   d0 = Jgetd0(J);
-  V = JgetV(J);
+  V = JgetV(J,2);
   /*GV = JgetGV(J2);*/
   nV = lg(V)-1;
   nZ = lg(gel(V,1))-1;

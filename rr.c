@@ -359,7 +359,7 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
 	pari_sp avP,av = avma;
   int newpt;
   ulong nZ,n,cyc_top,i;
-  GEN vars,pe,t,T,FrobMat,Z,Zp,P,Pp,Q,FrobCyc,x,y,V1,V2,V3,W0,V,KV,KV3,U,J;
+  GEN vars,pe,t,T,FrobMat,Z,Zp,P,Pp,Q,FrobCyc,x,y,V1,V2,V3,W0,V,KV,U,J;
 
 	vars = variables_vecsmall(f);
 	nZ = 5*d0+1;
@@ -414,12 +414,13 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
 	V2 = FnsEvalAt_Rescale(gel(L,2),Z,vars,T,p,e,pe);
 	V3 = DivAdd(V1,V2,3*d0+1-g,T,p,e,pe,0);
 	W0 = V1;
-	V = V2;
-  KV = mateqnpadic(V,T,p,e);
-  KV3 = mateqnpadic(V3,T,p,e);
+	V = mkvecn(3,V1,V2,V3);
+	if(DEBUGLEVEL) printf("PicInit: Computing equation matrices\n");
+	KV = cgetg(4,t_VEC);
+	for(i=1;i<=3;i++) gel(KV,i) = mateqnpadic(gel(V,i),T,p,e);
 	if(DEBUGLEVEL) printf("PicInit: Constructing evaluation maps\n");
 	U = RREvalInit(L,vars,Z,T,p,e,pe);
-  J = mkvecn(lgJ,f,stoi(g),stoi(d0),L,T,p,stoi(e),pe,FrobMat,V1,V,V3,KV,KV3,W0,U,Z,FrobCyc);
+  J = mkvecn(lgJ,f,stoi(g),stoi(d0),L,T,p,stoi(e),pe,FrobMat,V,KV,W0,U,Z,FrobCyc);
 	return gerepilecopy(av,J);
 }
 
@@ -521,9 +522,9 @@ GEN RREval(GEN J, GEN W)
 	JgetTpe(J,&T,&pe,&p,&e);
 	d0 = Jgetd0(J);
 	g = Jgetg(J);
-	V = JgetV(J);
+	V = JgetV(J,2);
 	nV = lg(V);
-	KV = JgetKV(J);
+	KV = JgetKV(J,2);
 	U = JgetEvalData(J); /* L(2D0-Ei), deg Ei = d0-g (i=1,2), repeated for each embedding into Qq */
 	n1 = lg(gel(U,1)); /* Deg of E1 / Q */
 	n2 = lg(gel(U,2)); /* Deg of E2 / Q */

@@ -13,18 +13,15 @@ Structure of a Jacobian:
 7: e, such that we work in J(Zq/p^e)
 8: p^e
 9: FrobMat, gives matrix of Frob on the power basis 1,t,t²,... of Qq
-10: V1 = H0(B)
-11: V = H0(B²) (having a nice basis improves the evaluation map)
-12: V3 = H0(B³) (used only for PicNorm, in part. for Frey-Rueck pairing)
-13: KV, equation matrix for V
-14: KV3, equation matrix for V3
-15: W0 = f*V1 for some f in V1, subspace of V representing the origin
-16: EvalData, pair of subspaces of the form V(-E) with E effective of degree d0-g, used for construction of eval map
-17: If B=O_X(D0), vector Z of points at which the sections are evaluated; else []
-18: FrobCyc, permutation describing the action of Frob on Z
+10: V = [V1,V2,V3] where Vn = H0(n*B). (Having a nice basis of V2 improves the evaluaton map.)
+11: KV = [KV1,KV2,KV3], where KVn = equation matrix for Vn
+12: W0 = f*V1 for some f in V1, subspace of V2 representing the origin
+13: EvalData, pair of subspaces of the form V2(-E) with E effective of degree d0-g, used for construction of eval map
+14: If B=O_X(D0), vector Z of points at which the sections are evaluated; else []
+15: FrobCyc, permutation describing the action of Frob on Z
 
 Note: usually, B=O_X(D0), in which case W0=V1=L(D0).
-Note: if f, one of the RR spaces L(...), or Z are not available, the p-adic accuracy cannot be increased.
+Note: if either of f, one of the RR spaces L(...), or Z are not available, then the p-adic accuracy cannot be increased.
 */
 
 GEN Jgetf(GEN J) {return gel(J,1);}
@@ -36,15 +33,14 @@ GEN Jgetp(GEN J) {return gel(J,6);}
 long Jgete(GEN J) {return itos(gel(J,7));}
 GEN Jgetpe(GEN J) {return gel(J,8);}
 GEN JgetFrobMat(GEN J) {return gel(J,9);}
-GEN JgetV1(GEN J) {return gel(J,10);}
-GEN JgetV(GEN J) {return gel(J,11);}
-GEN JgetV3(GEN J) {return gel(J,12);}
-GEN JgetKV(GEN J) {return gel(J,13);}
-GEN JgetKV3(GEN J) {return gel(J,14);}
-GEN JgetW0(GEN J) {return gel(J,15);}
-GEN JgetEvalData(GEN J) {return gel(J,16);}
-GEN JgetZ(GEN J) {return gel(J,17);}
-GEN JgetFrobCyc(GEN J) {return gel(J,18);}
+GEN JgetV(GEN J, ulong n) {return gmael(J,10,n);}
+GEN JgetV_all(GEN J) {return gel(J,10);}
+GEN JgetKV(GEN J, ulong n) {return gmael(J,11,n);}
+GEN JgetKV_all(GEN J) {return gel(J,11);}
+GEN JgetW0(GEN J) {return gel(J,12);}
+GEN JgetEvalData(GEN J) {return gel(J,13);}
+GEN JgetZ(GEN J) {return gel(J,14);}
+GEN JgetFrobCyc(GEN J) {return gel(J,15);}
 
 void JgetTpe(GEN J, GEN* T, GEN* pe, GEN* p, long* e)
 {
@@ -70,15 +66,12 @@ GEN PicRed(GEN J, ulong e)
 	gel(Je,7) = utoi(e);
 	gel(Je,8) = pe = powiu(p,e);
 	gel(Je,9) = FpM_red(JgetFrobMat(J),pe);
-	gel(Je,10) = FpXM_red(JgetV1(J),pe);
-	gel(Je,11) = FpXM_red(JgetV(J),pe);
-	gel(Je,12) = FpXM_red(JgetV3(J),pe);
-	gel(Je,13) = FpXM_red(JgetKV(J),pe);
-	gel(Je,14) = FpXM_red(JgetKV3(J),pe);
-	gel(Je,15) = FpXM_red(JgetW0(J),pe);
-	gel(Je,16) = FpXT_red(JgetEvalData(J),pe);
-	gel(Je,17) = FpXT_red(JgetZ(J),pe);
-	gel(Je,18) = gcopy(JgetFrobCyc(J));
+	gel(Je,10) = FpXT_red(JgetV_all(J),pe);
+	gel(Je,11) = FpXT_red(JgetKV_all(J),pe);
+	gel(Je,12) = FpXM_red(JgetW0(J),pe);
+	gel(Je,13) = FpXT_red(JgetEvalData(J),pe);
+	gel(Je,14) = FpXT_red(JgetZ(J),pe);
+	gel(Je,15) = gcopy(JgetFrobCyc(J));
 	return gerepileupto(av,Je);
 }
 
@@ -288,8 +281,8 @@ GEN PicNeg(GEN J, GEN W, long flag)
   GEN V,KV,T,p,pe;
   long g,d0,e;
 
-  V = JgetV(J);
-  KV = JgetKV(J);
+  V = JgetV(J,2);
+  KV = JgetKV(J,2);
   JgetTpe(J,&T,&pe,&p,&e);
   g = Jgetg(J);
   d0 = Jgetd0(J);
@@ -322,8 +315,8 @@ long PicMember(GEN J, GEN W)
 	long res;
 
 	JgetTpe(J,&T,&pe,&p,&e);
-	V = JgetV(J);
-	KV = JgetKV(J);
+	V = JgetV(J,2);
+	KV = JgetKV(J,2);
 	nW = lg(W)-1;
 
 	do
@@ -345,10 +338,10 @@ GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
 	GEN V,KV,KV3,V1,T,p,pe;
 	long g,d0,e;
 
-	V = JgetV(J);
-	KV = JgetKV(J);
-	KV3 = JgetKV3(J);
-	V1 = JgetV1(J);
+	V = JgetV(J,2);
+	KV = JgetKV(J,2);
+	KV3 = JgetKV(J,3);
+	V1 = JgetV(J,1);
 	JgetTpe(J,&T,&pe,&p,&e);
 	g = Jgetg(J);
 	d0 = Jgetd0(J);
@@ -528,7 +521,7 @@ long PicEq(GEN J, GEN WA, GEN WB)
 	GEN s,sWB,K,KV,T,p,pe;
 
 	JgetTpe(J,&T,&pe,&p,&e);
-	KV = JgetKV(J);
+	KV = JgetKV(J,2);
 
 	/* Take s in WA: (s) = -2D0+A+A1 */
 	s = gel(WA,1);
@@ -544,7 +537,18 @@ long PicEq(GEN J, GEN WA, GEN WB)
 
 long PicIsZero(GEN J, GEN W)
 {
-	return PicEq(J,W,JgetW0(J));
+	pari_sp av = avma;
+	long r,e;
+	GEN K,V1,KV1,T,p,pe;
+
+	JgetTpe(J,&T,&pe,&p,&e);
+	V1 = JgetV(J,1);
+	KV1 = JgetKV(J,1);
+
+	K = DivSub_safe(V1,W,KV1,T,p,e,pe);
+	r = lg(K)-1;
+	avma = av;
+	return r;
 }
 
 GEN PicChart(GEN J, GEN W, ulong P0, GEN P1) /* /!\ Not Galois-equivariant ! */
@@ -559,8 +563,8 @@ GEN PicChart(GEN J, GEN W, ulong P0, GEN P1) /* /!\ Not Galois-equivariant ! */
 	g = Jgetg(J);
 	d0 = Jgetd0(J);
 	n1 = d0-g;
-	V = JgetV(J);
-	KV = JgetKV(J);
+	V = JgetV(J,2);
+	KV = JgetKV(J,2);
 	nZ = lg(gel(V,1))-1;
 	nW = lg(W)-1;
 	JgetTpe(J,&T,&pe,&p,&e);
@@ -628,7 +632,7 @@ GEN PicRand0(GEN J)
 
 	d0 = Jgetd0(J);
 	JgetTpe(J,&T,&pe,&p,&e);
-	V = JgetV(J);
+	V = JgetV(J,2);
 	nV = lg(V);
 	nZ = lg(gel(V,1));
 
