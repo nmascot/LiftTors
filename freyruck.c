@@ -63,7 +63,7 @@ GEN detratio(GEN K, GEN T, GEN p, long e, GEN pe)
 }
 
 GEN PicNorm(GEN J, GEN F1, GEN F2, GEN WE, ulong n)
-{ /* F,F1 in V_n, WE = V(-E) -> F1/F2(E) */
+{ /* F1,F2 in V_n, WE = V(-E) -> F1/F2(E) */
 	pari_sp av = avma;
 	ulong g,d0,nS,nZ,nVn2;
 	ulong i,j;
@@ -71,42 +71,21 @@ GEN PicNorm(GEN J, GEN F1, GEN F2, GEN WE, ulong n)
 	GEN V,Vn,T,p,pe;
 	GEN WEVn,S,SS,M1,M2,M;
 
-	printf("u");
 	g = Jgetg(J);
 	d0 = Jgetd0(J);
-	V = JgetV(J);
+	V = JgetV(J,2);
 	JgetTpe(J,&T,&pe,&p,&e);
 	d0 = Jgetd0(J);
 	g = Jgetg(J);
 	nVn2 = (n+2)*d0+1-g; /* dim V_{n+2} = L((n+2)*D0) */
 	nS = lg(V)-lg(WE); /* codim WE in V = deg E */
 	nZ = lg(gel(V,1))-1;
-	printf("\nPicNorm %lu\n",n);
-	Vn = NULL;
-	switch(n)
-	{
-		case 1:
-			Vn = JgetV1(J);
-			break;
-		case 2:
-			Vn = JgetV(J);
-			break;
-		case 3:
-			Vn = JgetV3(J);
-			break;
-		default:
-			pari_err(e_MISC,"In PicNorm, n must be 1,2, or 3");
-	}
-
-	M = cgetg(lg(Vn)+1,t_MAT);
-	for(j=1;j<lg(Vn);j++) gel(M,j) = gel(Vn,j);
-	gel(M,lg(Vn)) = F1;
-	printf("Test F1 in V%lu:%ld\n",n,lg(matkerpadic(M,T,p,e))-1);
-	gel(M,lg(V)) = F2;
-	printf("Test F2 in V%lu:%ld\n",n,lg(matkerpadic(M,T,p,e))-1);
+	/*printf("PicNorm %lu\n",n);
+	printf("Test F1 in V%lu:%d\n",n,gequal0(FqM_FqC_mul(JgetKV(J,n),F1,T,pe)));
+	printf("Test F2 in V%lu:%d\n",n,gequal0(FqM_FqC_mul(JgetKV(J,n),F2,T,pe)));*/
+	Vn = JgetV(J,n);
 
 	WEVn = DivAdd(Vn,WE,nVn2-nS,T,p,e,pe,0); /* Vn*WE = V_{n+2}(-E) */
-
 	S = FindSuppl(WE,nS,V,NULL,T,p,pe); /* V = V(-E) + S, dim S = nS */
 	SS = FindSuppl(WEVn,nS,V,Vn,T,p,pe); /* V_{n+2} = V_{n+2}(-E) + S, dim SS = nS */
 
@@ -121,7 +100,7 @@ GEN PicNorm(GEN J, GEN F1, GEN F2, GEN WE, ulong n)
 	M1 = detratio(matkerpadic(M,T,p,e),T,p,e,pe);
 	if(ZX_is0mod(M1,p))
 	{
-		if(DEBUGLEVEL) err_printf("PicNorm: F1 has zeros on D, giving up\n"); /* TODO */
+		if(DEBUGLEVEL) err_printf("PicNorm: F1 has zeros on D, giving up\n");
 		avma = av;
 		return NULL;
 	}
@@ -129,22 +108,8 @@ GEN PicNorm(GEN J, GEN F1, GEN F2, GEN WE, ulong n)
 	for(j=1;j<=nS;j++)
 	{
 		for(i=1;i<=nZ;i++)
-		{
 			gcoeff(M,i,j) = Fq_mul(gcoeff(S,i,j),gel(F2,i),T,pe);
-		}
 	}
-	/* TODO should be useless, use above */
-	/*M = cgetg(nS+nV5+1,t_MAT);
-  for(j=1;j<=nS;j++)
-  {
-    gel(M,j) = cgetg(nZ+1,t_COL);
-    for(i=1;i<=nZ;i++)
-      gcoeff(M,i,j) = Fq_mul(gcoeff(V1,i,j),gel(F,i),T,pe);
-  }
-  for(j=1;j<=nV5;j++) gel(M,nS+j) = gel(V2,j);*/
-
-	/*pari_printf("M=\n%Ps\n",M);*/
-	/*pari_printf("detratio of\n%Ps\n",matkerpadic(M,T,p,e));*/
 	M2 = detratio(matkerpadic(M,T,p,e),T,p,e,pe);
 	if(ZX_is0mod(M2,p))
 	{
@@ -153,9 +118,6 @@ GEN PicNorm(GEN J, GEN F1, GEN F2, GEN WE, ulong n)
 		return NULL;
 	}
 	
-	pari_printf("M2=%Ps  ",M2);
-	printf("typ2:%ld  ",typ(M2));
-	printf("v");
 	return gerepileupto(av,ZpXQ_div(M1,M2,T,pe,p,e)); /* TODO can save divisions by taking detratios together */
 }
 
@@ -164,17 +126,18 @@ GEN PicFreyRuckMulti1(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN F1, GEN F2
 {
 	pari_sp av = avma;
 	GEN WtorsM,Fq1,H,col,WA,WB,res,s,N;
-	GEN T,p,pe,KV;
+	GEN T,p,pe,V1,KV1;
 	long e;
 	ulong nC,ntest;
 	ulong c,d,i,j;
 	ulong n=0;
 	GEN Fn=NULL;
 	
-	printf("a");
+	/*printf("FR1\n");*/
 	JgetTpe(J,&T,&pe,&p,&e);
 	Fq1 = GetFq1(T);
-	KV = JgetKV(J,2);
+	V1 = JgetV(J,1);
+	KV1 = JgetKV(J,1);
 	nC = lg(C);
 	ntest = lg(Wtest);
 	WtorsM = cgetg(nC,t_VEC);
@@ -184,7 +147,7 @@ GEN PicFreyRuckMulti1(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN F1, GEN F2
 	for(d=1;d<ntest;d++) gcoeff(H,d,1) = Fq1;
 	for(c=2;c<nC;c++)
 	{
-		printf("b");
+		/*printf("c\n");*/
 		i = gmael(C,c,2)[1];
 		j = gmael(C,c,2)[2];
 		if(i)
@@ -217,23 +180,16 @@ GEN PicFreyRuckMulti1(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN F1, GEN F2
 		col = cgetg(ntest,t_COL);
 		for(d=1;d<ntest;d++)
 		{
-			printf("c");
 			N = PicNorm(J,s,Fn,gel(Wtest,d),n);
-			printf("0");
 			if(N==NULL)
 			{
 				av = avma;
 				return NULL;
 			}
-			printf("1");
 			gel(col,d) = Fq_mul(N,gcoeff(H,d,i),T,pe);
-			printf("2");
 			if(j) gel(col,d) = Fq_mul(gel(col,d),gcoeff(H,d,j),T,pe);
-			printf("3");
 			gel(col,d) = ZpXQ_inv(gel(col,d),T,p,e);
-			printf("4");
 		}
-		printf("d");
 		N = PicNorm(J,s,Fn,W0,n);
 		if(N==NULL)
     {
@@ -242,15 +198,14 @@ GEN PicFreyRuckMulti1(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN F1, GEN F2
     }
 		gel(H,c) = FqC_Fq_mul(col,N,T,pe);
 	}
-	printf("e");
+	/*printf("FR1 out of main loop\n");*/
 	/* WtorsM[nC-1] ~ 0, find section that makes this lin equiv happen */
-	s = DivSub(DivMul(F1,JgetV1(J),T,pe),gel(WtorsM,nC-1),KV1,1,T,p,e,pe,2); /* TODO get KV1 */
+	s = DivSub(V1,gel(WtorsM,nC-1),KV1,1,T,p,e,pe,2);
 	s = gel(s,1);
 	col = gel(H,nC-1);
 	for(d=1;d<ntest;d++)
 	{
-		printf("f");
-		N = PicNorm(J,s,Fn,gel(Wtest,d),n);
+		N = PicNorm(J,s,F1,gel(Wtest,d),1);
 		if(N==NULL)
     {
       av = avma;
@@ -258,14 +213,12 @@ GEN PicFreyRuckMulti1(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN F1, GEN F2
     }
 		gel(col,d) = Fq_mul(gel(col,d),N,T,pe);
 	}
-	printf("g");
-	N = PicNorm(J,s,Fn,W0,n);
+	N = PicNorm(J,s,F1,W0,1);
 	if(N==NULL)
   {
     av = avma;
     return NULL;
   }
-	printf("h");
 	col = FqC_Fq_mul(col,ZpXQ_inv(N,T,p,e),T,pe);
 	return gerepileupto(av,col);
 }
@@ -279,7 +232,7 @@ GEN PicFreyRuckMulti(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN C)
 	ntest = lg(Wtest);
 	T = JgetT(J);
 	pe = Jgetpe(J);
-	V1 = JgetV1(J);
+	V1 = JgetV(J,1);
 	Wtest1 = cgetg(ntest,t_VEC);
 	F1 = gel(V1,1);
 	nZ = lg(F1);
