@@ -1,4 +1,4 @@
-GetCoef(A,a)=my(i,j,N=#A);[i,j]=liftall(Mod(a,N));if(i==0,i=N);if(j==0,j=N);A[i,j];
+\\GetCoef(A,a)=my(i,j,N=#A);[i,j]=liftall(Mod(a,N));if(i==0,i=N);if(j==0,j=N);A[i,j];
 ZNnorm(x,N)=my(y=liftint(x)%N);if(y==0,N,y);
 ZNneg(x,N)=my(y=lift(Mod(-x,N)));if(y==0,N,y);
 
