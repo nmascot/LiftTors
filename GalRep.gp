@@ -92,6 +92,8 @@ RandTorsPt(J,l,M,chiC,seed)=
   );
 }
 
+PicIsTorsion(J,W,N)=PicIsZero(J,PicFrobPoly(J,W,N)); \\ For debugging purposes. N can be an integer or a polynomial.
+
 TorsBasis(J,l,chi,C)=
 \\ Computes a basis B of the subspace T of J[l] on which Fron acts with charpoly C
 \\ Assumes chi = charpoly(Frob|J), so C | chi
