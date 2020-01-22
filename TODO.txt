@@ -1,6 +1,8 @@
-* Bug in Etors? N=12,p=29,a=2
-* Bug in ModJac (DivAdd1 pour M4 ne trouve pas assez)? N=14,p=29,a=4 (force large d1)
-* Idem N=18,p=7,a=3
+* PicLiftTors works on J1(13)
+* PicRand, PicRandTors only give pts def over small fields, and Frey-Rueck trivial!
+* E[N] must not be defined over a subfield, else PicRand bad
+
 * Utiliser q-exps pour réduire d0
 * Utiliser q-exps pour construite eval data
-* Tester Galrep X1(13) (avec p=29, l=2,3,ou 19 facile) 
+* Tester Galrep X1(16), p=43 (test16.gp)
+* Tester Galrep X1(13) (avec p=29, l=2,3,ou 19 facile) (ou p=17, l=7, a=6).

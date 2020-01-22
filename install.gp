@@ -57,7 +57,7 @@ install("PicLift_worker","GUGGGGG",,"./liblift.so");
 install("PicLiftTors_Chart_worker","GGGGGGGGLGUGG",,"./liblift.so");
 install("PicLiftTors","GGLG",,"./liblift.so");
 
-install("PicNorm","GGG","PicNorm","./libfreyruck.so");
+install("PicNorm","GGGGU","PicNorm","./libfreyruck.so");
 install("PicFreyRuckMulti","GGGGGG","PicFreyRuckMulti","./libfreyruck.so");
 install("PicTorsRels","GGGU","PicTorsRels","./libfreyruck.so");
 install("Fq_zeta_l","GGG","Fq_zeta_l","./libfreyruck.so");

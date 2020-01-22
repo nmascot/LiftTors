@@ -113,12 +113,13 @@ c=liftint(Mod(c,N));
 select(x->x==c,Cusps,1)[1];
 }*/
 
-GammaHCuspWidth(s,N,Hlist)=
+GammaHCuspData(s,N,Hlist)= \\ (c,d) -> [a,b;c,d],width
 {
-	my(c=s[1],a,g,x=1);
+	my(c=s[1],M,a,g,x=1);
 	g = gcd(c^2,N);
 	g = N/g;
-	a = BotToSL2(s,N)[1,1];
+	M = BotToSL2(s,N);
+	a = M[1,1];
 	while(#select(y->Mod(y,N)==Mod(1+a*c*g*x,N),Hlist,1)==0,x++);
-	g*x;
+	[M,g*x];
 }
