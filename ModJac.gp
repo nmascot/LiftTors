@@ -102,7 +102,7 @@ ModJacInit(N,H,p,a,e)=
 	[Pts,PtTags] = ANH(N,Hlist); \\ List of vectors (c,d) mod N,H
 	nPts = #Pts;
 	print(nPts," points in the fibre of X_H(N) -> X(1)");
-  PtsFrob = Vecsmall(apply(P->GetCoef(PtTags,P*tMFrobE),Pts)); \\ Frob([c,d]) = [c,d]*(t^MFrobE)
+  PtsFrob = Vecsmall(apply(P->GetCoef(PtTags,liftint(P*tMFrobE)),Pts)); \\ Frob([c,d]) = [c,d]*(t^MFrobE)
   print("Action of Frob on fibre:");
 	print(PtsFrob); \\ TODO use this
 	MPts = apply(s->BotToSL2(s,N),Pts); \\ Matrices having these bottom rows
