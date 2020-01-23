@@ -64,5 +64,6 @@ install("Fq_zeta_l","GGG","Fq_zeta_l","./libfreyruck.so");
 install("Fq_mu_l_log","GGGGG","Fq_mu_l_log","./libfreyruck.so");
 
 install("GetCoef","GG","GetCoef","./libzn.so");
+install("l1","GGGGGGL","l1","./libmodjac.so");
 
 read("ModJac.gp");

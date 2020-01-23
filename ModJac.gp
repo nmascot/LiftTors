@@ -5,14 +5,14 @@ read("GammaH.gp");
 \\read("Perms.gp");
 read("qexp.gp");
 
-l2(EN,P,Q,Tpe)=  \\ Slope of line (PQ)
+/*l2(EN,P,Q,Tpe)=  \\ Slope of line (PQ)
 {
 	my([xP,yP]=GetCoef(EN,P),[xQ,yQ]=GetCoef(EN,Q),[T,pe,p,e]=Tpe);
 	ZpXQ_div(liftall(yQ-yP),liftall(xQ-xP),T,pe,p,e);
 }
 \\ TODO methode Kamal addchain
 l1(EN,P,Q,Tpe)=my([T,pe,p,e]=Tpe);Mod(Mod(sum(n=0,#EN-1,l2(EN,P,Q+n*P,Tpe)),T),pe); \\ sum_n l2(P,Q+nP) ~ sum_n l(P) +l(Q+nP)-l(Q+nP) ~ l*l(P)
-
+*/
 DivAdd1(A,B,dimres,p,excess,flag)=
 { \\ Mult RR spaces A and B.
 	\\ Takes dimres + excess products A[u]*B[v] with random u,v
@@ -87,11 +87,13 @@ ModJacInit(N,H,p,a,e)=
       EN[x,y]=elladd_padic(E.a4,EN[x,N],EN[N,y],Tpe)
     )
   );
+	EN = liftall(EN);
 	\\ Matrix of l(P) for P in E[N]
 	print("Ml1");
 	Ml1=matrix(N,N);
-	for(x=1,N-1,Ml1[x,N]=l1(EN,[x,0],[0,1],Tpe)); \\ P=alpha(x,0) -> Q=alpha(0,1)
-	for(x=1,N,for(y=1,N-1,Ml1[x,y]=l1(EN,[x,y],[1,0],Tpe))); \\ P=alpha(x,y), y!=0 -> Q=alpha(1,0)
+	for(x=1,N-1,Ml1[x,N]=l1(EN,[x,0],[0,1],T,pe,p,e)); \\ P=alpha(x,0) -> Q=alpha(0,1)
+	for(x=1,N,for(y=1,N-1,Ml1[x,y]=l1(EN,[x,y],[1,0],T,pe,p,e))); \\ P=alpha(x,y), y!=0 -> Q=alpha(1,0)
+	Ml1 = Mod(Mod(Ml1,T),pe);
 	print("M2(GammaH)");
 	\\ Find a basis for M2(GammaH(N))
 	[Cusps,CuspTags] = GammaHCusps(N,Hlist);

@@ -47,7 +47,7 @@ LIBS       = -lm -L/home/nicolas/pari/GP/lib -lpari
 
 RM = rm -f
 
-all: libzn.so
+all: libzn.so libmodjac.so
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $(EXTRACFLAGS) $(CPPFLAGS) $(DLCFLAGS) $<
@@ -58,3 +58,5 @@ clean:
 libzn.so: zn.o
 	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) zn.o $(EXTRAMODLDFLAGS)
 
+libmodjac.so: modjac.o
+	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) modjac.o $(EXTRAMODLDFLAGS)
