@@ -79,15 +79,15 @@ ModJacInit(N,H,p,a,e)=
   EN[1,N]=P0;
   EN[N,1]=Q0;
   for(x=2,N-1,
-    EN[x,N]=elladd_padic(E.a4,EN[x-1,N],P0,Tpe);
-    EN[N,x]=elladd_padic(E.a4,EN[N,x-1],Q0,Tpe);
+    EN[x,N]=elladd_padic(E.a4,EN[x-1,N],P0,T,pe,p,e);
+    EN[N,x]=elladd_padic(E.a4,EN[N,x-1],Q0,T,pe,p,e);
   );
   for(x=1,N-1,
     for(y=1,N-1,
-      EN[x,y]=elladd_padic(E.a4,EN[x,N],EN[N,y],Tpe)
+      EN[x,y]=elladd_padic(E.a4,EN[x,N],EN[N,y],T,pe,p,e)
     )
   );
-	EN = liftall(EN);
+	\\EN = liftall(EN);
 	\\ Matrix of l(P) for P in E[N]
 	print("Ml1");
 	Ml1=matrix(N,N);

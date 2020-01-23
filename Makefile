@@ -47,7 +47,7 @@ LIBS       = -lm -L/home/nicolas/pari/GP/lib -lpari
 
 RM = rm -f
 
-all: libzn.so libmodjac.so
+all: libzn.so libelladd_padic.so libmodjac.so
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $(EXTRACFLAGS) $(CPPFLAGS) $(DLCFLAGS) $<
@@ -57,6 +57,9 @@ clean:
 
 libzn.so: zn.o
 	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) zn.o $(EXTRAMODLDFLAGS)
+
+libelladd_padic.so: elladd_padic.o
+	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) elladd_padic.o $(EXTRAMODLDFLAGS)
 
 libmodjac.so: modjac.o
 	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) modjac.o $(EXTRAMODLDFLAGS)

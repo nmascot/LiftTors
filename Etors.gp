@@ -1,4 +1,4 @@
-read("elladd_padic.gp");
+\\read("elladd_padic.gp");
 
 Esplit(p,N,d)= \\ Look for an ell. curve / Fp such tht E[N] splits over Fq, q=p^d.
 {
@@ -171,10 +171,10 @@ EBasis(N,p,a,e)=
 		lv = l^v;
 		D = elldivpol(EQ,lv)/elldivpol(EQ,lv/l);
 		[Pk,Qk,zk,MFroblv] = ELocalBasis(EFq,t1,ab,l,v,D);
-		[Pk,Qk] = apply(R->LiftTorsPt(R,ab,D,e),[Pk,Qk]);
+		[Pk,Qk] = apply(R->liftall(LiftTorsPt(R,ab,D,e)),[Pk,Qk]);
 		zk = ffLiftRoot('x^lv-1,zk^(N/lv),e);
-		P = elladd_padic(ab[1],P,Pk,Tpe);
-		Q = elladd_padic(ab[1],Q,Qk,Tpe);
+		P = elladd_padic(ab[1],P,Pk,T,pe,p,e);
+		Q = elladd_padic(ab[1],Q,Qk,T,pe,p,e);
 		z *= zk;
 		print(MFroblv);
 		MFrob[k] = MFroblv;

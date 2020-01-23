@@ -65,5 +65,6 @@ install("Fq_mu_l_log","GGGGG","Fq_mu_l_log","./libfreyruck.so");
 
 install("GetCoef","GG","GetCoef","./libzn.so");
 install("l1","GGGGGGL","l1","./libmodjac.so");
+install("elladd_padic","GGGGGGL","elladd_padic","./libelladd_padic.so");
 
 read("ModJac.gp");

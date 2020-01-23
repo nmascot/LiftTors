@@ -1,3 +1,5 @@
+/* Useless : superseded by C implementation */
+
 elladd_padic(a4,P,Q,Tpe)=
 {
 	if(P==[0],return(Q));
@@ -24,7 +26,7 @@ elladd_padic(a4,P,Q,Tpe)=
 }
 
 
-ellmul_padic(a4,P,n,Tpe)=
+/*ellmul_padic(a4,P,n,Tpe)=
 {
 	my([T,pe,p,e]=Tpe,Q,m);
 	if(P==[0],return([0]));
@@ -45,4 +47,4 @@ ellmul_padic(a4,P,n,Tpe)=
 		Q = ellmul_padic(a4,P,m,T,pe,p,e);
     elladd_padic(a4,Q,Q,T,pe,p,e)
 	);
-}
+}*/
