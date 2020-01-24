@@ -1,34 +1,34 @@
 #include<pari/pari.h>
 
+ulong ZNnorm(long x, ulong N)
+{
+  if(x>0) x -= ((x-1)/N)*N;
+  else x += N*(1+(-x)/N);
+	return x;
+}
+
 GEN GetCoef(GEN A, GEN v)
 {
-	ulong N;
-	long i,j;
+	ulong N,i,j;
 
 	N = lg(A)-1;
 	//printf("N=%ld\n",N);
 	i = itos(gel(v,1));
-	j = itos(gel(v,2));
-	//printf("i=%ld, j=%ld\n",i,j);
 	if(i>0) i -= ((i-1)/N)*N;
-	else i += N*(1+(-i)/N);
+  else i += N*(1+(-i)/N);
+	j = itos(gel(v,2));
 	if(j>0) j -= ((j-1)/N)*N;
-	else j += N*(1+(-j)/N);
-	//printf("i=%ld, j=%ld\n",i,j);
+  else j += N*(1+(-j)/N);
 	return gcoeff(A,i,j);
 }
 
-long ZNnorm(long x, ulong N)
+ulong ZNneg(long x, ulong N)
 {
-	long y;
-	y = x % N;
-	if(y==0) { y = N; }
-	return y;
-}
-
-long ZNneg(long x, ulong N)
-{
-	long y;
-	y = N - (x%N);
-	return y;
+	if(x<0)
+	{
+		x = -x;
+		x -= N*((x-1)/N);
+	}
+	else x = N*(1+(x/N))-x;
+	return x;
 }
