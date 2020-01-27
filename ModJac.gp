@@ -3,7 +3,7 @@ read("Etors.gp");
 \\read("Dimensions.gp");
 read("GammaH.gp");
 \\read("Perms.gp");
-read("qexp.gp");
+\\read("qexp.gp");
 
 /*l2(EN,P,Q,Tpe)=  \\ Slope of line (PQ)
 {
@@ -60,7 +60,7 @@ BalancedDiv(d,degs)=
 
 ModJacInit(N,H,p,a,e)=
 { \\ J_H(N) over Zq/p^e, q=p^a
-	my(Hlist,Hlist1,Lp,g,Cusps,nCusps,CuspTags,E,P0,Q0,zN,MFrobE,tMFrobE,T,pe=p^e,Tpe,d,d1,Pts,nPts,PtTags,MPts,M2,M2gens,v,w,B,d0,M4,M4gens,M6,KV,f2,W0);
+	my(Hlist,Hlist1,Lp,g,Cusps,nCusps,CuspTags,E,P0,Q0,zN,zNpows,MFrobE,tMFrobE,T,pe=p^e,Tpe,d,d1,Pts,nPts,PtTags,MPts,M2,M2gens,v,w,M,qprec,M2qexps,B,d0,M4,M4gens,M4qexps,M6,KV,f2,W0);
 	\\ Get H and H/+-1
   [Hlist,Hlist1] = GetHlist(N,H);
 	if(Mod(6*N*#Hlist,p)==0,error("Bad p"));
@@ -69,6 +69,11 @@ ModJacInit(N,H,p,a,e)=
 	print("Genus ",g);
 	\\ Get a curve E and a basis of E[N]
 	[E,P0,Q0,zN,MFrobE] = EBasis(N,p,a,e);
+	zNpows = vector(N);
+	zNpows[1] = liftall(zN);
+	for(i=2,N,
+		zNpows[i] = liftall(zNpows[i-1]*zN)
+	);
 	tMFrobE = mattranspose(MFrobE);
 	T = zN.mod;
 	Tpe = [T,pe,p,e];
@@ -145,6 +150,17 @@ ModJacInit(N,H,p,a,e)=
 	\\ Extract basis
 	M2 = vecextract(M2,B);
 	M2gens = vecextract(M2gens,B);
+	print("M2 qexps");
+	qprec = 10; \\ TODO adjust
+	M2qexps = vector(nCusps);
+	for(s=1,nCusps,
+		print(s);
+		M2qexps[s] = matrix(qprec,d);
+		[M,w] = GammaHCuspData(Cusps[s],N,Hlist);
+		for(j=1,d,
+			M2qexps[s][,j] = Mod(Mod(TrE2qexp(M2gens[j],N,TH,M,w,zNpows,qprec,T,pe,p,e)~,T),pe)
+		)
+	);
 	/*\\ Pull down to merom fns by div, TODO dangerous
 	f2 = M2[,1]; \\ TODO ensure def/Q TODO necessary?
   for(i=1,#f2,
@@ -155,8 +171,19 @@ ModJacInit(N,H,p,a,e)=
 	\\[M2,Pts,M2basis];
 	print("M4(GammaH)");
 	d0 = d+g-1;
+	d = 2*d0+1-g;
 	[M4,M4gens] = DivAdd1(M2,M2,2*d0+1-g,p,d,1);
-	M4gens = apply(uv->concat(M2gens[uv[1]],M2gens[uv[2]]),M4gens);
+	print("M4 qexps");
+	M4qexps = vector(nCusps);
+	for(s=1,nCusps,
+		M4qexps[s] = matrix(qprec,d);
+		for(j=1,d,
+			for(n=0,qprec-1,
+				M4qexps[s][n+1,j] = sum(k=0,n,M2qexps[s][k+1,M4gens[j][1]]*M2qexps[s][n-k+1,M4gens[j][2]])
+			)
+		)
+	);
+	\\M4gens = apply(uv->concat(M2gens[uv[1]],M2gens[uv[2]]),M4gens);
 	print("M6(GammaH)");
 	M6 = DivAdd1(M4,M2,3*d0+1-g,p,d,0);
 	print("Eqn mats");
