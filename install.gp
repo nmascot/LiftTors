@@ -15,6 +15,7 @@ install("PicMember","lGG",,"./libpic.so");
 
 
 install("matkerpadic","GGGL",,"./liblinalg.so");
+install("matkerpadic_safe","GGGL",,"./liblinalg.so");
 install("mateqnpadic","GGGL",,"./liblinalg.so");
 install("VecSmallCompl","GU","VecSmallCompl","./liblinalg.so");
 install("matF","GGGU","matF","./liblinalg.so");

@@ -58,9 +58,53 @@ BalancedDiv(d,degs)=
 	D;
 }
 
+DivPerturb(D,degs)=
+{
+	my(n=#degs,D2,i);
+	d = sum(j=1,n,D[j]*degs[j]);
+	D2 = BalancedDiv(d-1,degs);
+	i=n;
+	while(degs[i]==1,
+		if(D2[i]+1!=D[i],
+			D2[i]+=1;
+			return(D2)
+		);
+		i-=1;
+	);
+	error("I don't know how to perturb this divisor");
+}
+
+Divo2Div(Do,Orbs,tags,n)=
+{
+	my(D,nO,o,no);
+	nO = #Orbs;
+	D = vector(n);
+	for(i=1,nO,
+		o = Orbs[i];
+		no = #o;
+		for(j=1,no,
+			D[GetCoef(tags,o[j])] = Do[i];
+		)
+	);
+	D;
+}
+
+MRRsubspace(M4qexps,D,T,p,e)=
+{
+	my(K,i=1,nD=vecsum(D),ncusps=#D);
+	K = matrix(nD,#M4qexps[1]);
+	for(s=1,ncusps,
+		for(j=1,D[s],
+			K[i,]=liftall(M4qexps[s][j,]);
+			i++;
+		)
+	);
+	matkerpadic_safe(K,T,p,e);
+}
+
 ModJacInit(N,H,p,a,e)=
 { \\ J_H(N) over Zq/p^e, q=p^a
-	my(Hlist,Hlist1,Lp,g,Cusps,nCusps,CuspTags,E,P0,Q0,zN,zNpows,MFrobE,tMFrobE,T,pe=p^e,Tpe,d,d1,Pts,nPts,PtTags,MPts,M2,M2gens,v,w,M,qprec,M2qexps,B,d0,M4,M4gens,M4qexps,M6,KV,f2,W0);
+	my(Hlist,Hlist1,Lp,g,Cusps,nCusps,CuspsGl,CuspsGalDegs,CuspTags,E,P0,Q0,zN,zNpows,MFrobE,tMFrobE,T,pe=p^e,Tpe,d,d1,Pts,nPts,PtTags,MPts,M2,M2gens,v,w,M,qprec,M2qexps,B,d0,M4,M4gens,M4qexps,E1,E2,U1,U2,M6,KV,f2,W0);
 	\\ Get H and H/+-1
   [Hlist,Hlist1] = GetHlist(N,H);
 	if(Mod(6*N*#Hlist,p)==0,error("Bad p"));
@@ -101,9 +145,11 @@ ModJacInit(N,H,p,a,e)=
 	Ml1 = Mod(Mod(Ml1,T),pe);
 	print("M2(GammaH)");
 	\\ Find a basis for M2(GammaH(N))
-	[Cusps,CuspTags] = GammaHCusps(N,Hlist);
+	[Cusps,CuspsGal,CuspTags] = GammaHCusps(N,Hlist);
 	nCusps = #Cusps;
 	print(nCusps," cusps");
+	CuspsGalDegs = apply(o->#o,CuspsGal);
+	print("Degrees of Galois orbits: ",CuspsGalDegs);
 	print("Action of Frob on Cusps:");
 	d = g+nCusps-1; \\ dim M2(GammaH(N))
 	[Pts,PtTags] = ANH(N,Hlist); \\ List of vectors (c,d) mod N,H
@@ -124,7 +170,7 @@ ModJacInit(N,H,p,a,e)=
 		M2q = matrix(qprec,d1); DEBUG */
 		\\ Take d1 forms in M2(Gamma(N))
   	for(j=1,d1, \\ of the form E_1^v * E_1^w : j = index of gen
-			print("Prod");
+			print1("Prod ");
 			v=Pts[1+random(#Pts)];
     	w=Pts[1+random(#Pts)];
     	M2gens[j]=[v,w];
@@ -154,7 +200,7 @@ ModJacInit(N,H,p,a,e)=
 	qprec = 10; \\ TODO adjust
 	M2qexps = vector(nCusps);
 	for(s=1,nCusps,
-		print(s);
+		print1(s," ");
 		M2qexps[s] = matrix(qprec,d);
 		[M,w] = GammaHCuspData(Cusps[s],N,Hlist);
 		for(j=1,d,
@@ -183,7 +229,16 @@ ModJacInit(N,H,p,a,e)=
 			)
 		)
 	);
-	\\M4gens = apply(uv->concat(M2gens[uv[1]],M2gens[uv[2]]),M4gens);
+	print("Eval data");
+	E1 = BalancedDiv(d0-g,CuspsGalDegs);
+	E1 = Divo2Div(E1,CuspsGal,CuspTags,nCusps);
+	E2 = DivPerturb(E1,CuspsGalDegs);
+	E2 = Divo2Div(E2,CuspsGal,CuspTags,nCusps);
+	U1 = MRRsubspace(M4qexps,E1,T,p,e);
+	U1 = liftall(M4*U1);
+	U2 = MRRsubspace(M4qexps,E2,T,p,e);
+	breakpoint();
+	U2 = liftall(M4*U2);
 	print("M6(GammaH)");
 	M6 = DivAdd1(M4,M2,3*d0+1-g,p,d,0);
 	print("Eqn mats");
@@ -202,6 +257,7 @@ ModJacInit(N,H,p,a,e)=
 	W0 = liftall(W0);
 	\\J = [f,g,d0,L,T,p,e,pe,FrobMat,[V],[KV],W0,EvData,Z,FrobCyc];
 	FrobMat = ZpXQ_FrobMat(T,p,e,pe);
-	[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[],[],PtsFrob];
+	breakpoint();
+	[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[U1,U2],[],PtsFrob];
 	\\ TODO: EvData
 }
