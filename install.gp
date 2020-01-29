@@ -27,7 +27,7 @@ install("PlaneZeta","GU","PlaneZeta","./libzeta.so");
 install("SuperZeta","GUU","SuperZeta","./libzeta.so");
 
 install("RRInit","GUUGGGUL","PicInit","./librr.so");
-install("RREval","GG","PicEval","./librr.so");
+install("RREval","GG","PicEval0","./librr.so");
 install("OnePol","GGGG","OnePol","./librr.so");
 install("AllPols","GGGLG","AllPols","./librr.so");
 install("Jlift","GU","Jlift","./librr.so");
@@ -69,7 +69,7 @@ install("ZNneg","uLU","ZNneg","./libzn.so");
 install("GetCoef","GG","GetCoef","./libzn.so");
 install("l1","GGGGGGL","l1","./libmodjac.so");
 install("elladd_padic","GGGGGGL","elladd_padic","./libelladd_padic.so");
-\\install("E1qexp","GUGUGGGL","CE1qexp","./libqexp.so");
+install("E1qexp","GUGUGGGL","CE1qexp","./libqexp.so");
 install("TrE2qexp","GUGGUGUGGGL","TrE2qexp","./libqexp.so");
 
 read("ModJac.gp");

@@ -104,7 +104,7 @@ MRRsubspace(M4qexps,D,T,p,e)=
 
 ModJacInit(N,H,p,a,e)=
 { \\ J_H(N) over Zq/p^e, q=p^a
-	my(Hlist,Hlist1,Lp,g,Cusps,nCusps,CuspsGl,CuspsGalDegs,CuspTags,E,P0,Q0,zN,zNpows,MFrobE,tMFrobE,T,pe=p^e,Tpe,d,d1,Pts,nPts,PtTags,MPts,M2,M2gens,v,w,M,qprec,M2qexps,B,d0,M4,M4gens,M4qexps,E1,E2,U1,U2,M6,KV,f2,W0);
+	my(Hlist,Hlist1,Lp,g,Cusps,nCusps,CuspsGl,CuspsGalDegs,CuspTags,E,P0,Q0,zN,zNpows,MFrobE,tMFrobE,T,pe=p^e,Tpe,d,d1,Pts,nPts,PtTags,MPts,M2,M2gens,v,w,M,qprec,M2qexps,B,d0,M4,M4gens,M4qexps,E1,E2,U1,U2,M6,KV,f2,W0,J,CuspsQ);
 	\\ Get H and H/+-1
   [Hlist,Hlist1] = GetHlist(N,H);
 	if(Mod(6*N*#Hlist,p)==0,error("Bad p"));
@@ -156,8 +156,7 @@ ModJacInit(N,H,p,a,e)=
 	nPts = #Pts;
 	print(nPts," points in the fibre of X_H(N) -> X(1)");
   PtsFrob = Vecsmall(apply(P->GetCoef(PtTags,liftint(P*tMFrobE)),Pts)); \\ Frob([c,d]) = [c,d]*(t^MFrobE)
-  print("Action of Frob on fibre:");
-	print(PtsFrob); \\ TODO use this
+  print("Action of Frob on fibre: ",PtsFrob);
 	MPts = apply(s->BotToSL2(s,N),Pts); \\ Matrices having these bottom rows
 	\\ P_g = P_g' on X_H(N) <=> g,g' have same bottom row mod H
 	d1=min(ceil(1.2*d),#Pts); \\ # gens
@@ -237,7 +236,6 @@ ModJacInit(N,H,p,a,e)=
 	U1 = MRRsubspace(M4qexps,E1,T,p,e);
 	U1 = liftall(M4*U1);
 	U2 = MRRsubspace(M4qexps,E2,T,p,e);
-	breakpoint();
 	U2 = liftall(M4*U2);
 	print("M6(GammaH)");
 	M6 = DivAdd1(M4,M2,3*d0+1-g,p,d,0);
@@ -257,7 +255,15 @@ ModJacInit(N,H,p,a,e)=
 	W0 = liftall(W0);
 	\\J = [f,g,d0,L,T,p,e,pe,FrobMat,[V],[KV],W0,EvData,Z,FrobCyc];
 	FrobMat = ZpXQ_FrobMat(T,p,e,pe);
+	J=[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[[U1],[U2]],[],PtsFrob];
+	CuspsQ = [GetCoef(CuspTags,o[1]) | o<-CuspsGal,#o==1]; \\ Cusps def / Q
 	breakpoint();
-	[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[U1,U2],[],PtsFrob];
-	\\ TODO: EvData
+	[J,vecextract(M4qexps,CuspsQ)];
+}
+
+PicEval(J,W)=
+{
+	my(Z);
+	Z = PicEval0(J,W)[1,1];
+	concat(apply(M->liftall(M*Z),M4Q)); \\ TODO pass M4Q
 }
