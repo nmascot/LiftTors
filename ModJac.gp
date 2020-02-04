@@ -182,9 +182,18 @@ ModJacInit(N,H,p,a,e)=
 			fvw = sum(i=1,#TH,E1qexp(v*TH[i],N,zN,qprec,Tpe,'x)*E1qexp(w*TH[i],N,zN,qprec,Tpe,'x));
 			for(i=1,qprec,M2q[i,j]=polcoef(fvw,i-1)); */
  	  );
-    /* DEBUG
+    /* DEBUG */
+		printf("Checking M2 qexps");
 		KM2 = Mod(Mod(matkerpadic(liftall(M2),T,p,e),T),pe);
-    if(M2q*KM2!=0,error("qexp BAD!!!!")); */
+		qprec = 20; \\ TODO adjust
+		for(s=1,nCusps,
+    	M2qexps = matrix(qprec,d1);
+    	[M,w] = GammaHCuspData(Cusps[s],N,Hlist);
+    	for(j=1,d1,
+      	M2qexps[,j] = Mod(Mod(TrE2qexp(M2gens[j],N,TH,M,w,zNpows,qprec,T,pe,p,e)~,T),pe)
+    	);
+    	if(M2qexps*KM2!=0,error("qexp BAD!!!!"),print("Cusp ",s," OK"))
+		);
   	\\ See if we span all of M2(GammaH) by checking full rank
 		print("linalg");
   	B=matindexrank(Mod(M2,p))[2]; \\ working mod p for efficiency
@@ -229,14 +238,15 @@ ModJacInit(N,H,p,a,e)=
 		)
 	);
 	print("Eval data");
-	E1 = BalancedDiv(d0-g,CuspsGalDegs);
-	E1 = Divo2Div(E1,CuspsGal,CuspTags,nCusps);
-	E2 = DivPerturb(E1,CuspsGalDegs);
-	E2 = Divo2Div(E2,CuspsGal,CuspTags,nCusps);
+	E1o = BalancedDiv(d0-g,CuspsGalDegs);
+	E2o = DivPerturb(E1o,CuspsGalDegs);
+	E1 = Divo2Div(E1o,CuspsGal,CuspTags,nCusps);
+	E2 = Divo2Div(E2o,CuspsGal,CuspTags,nCusps);
 	U1 = MRRsubspace(M4qexps,E1,T,p,e);
 	U1 = liftall(M4*U1);
 	U2 = MRRsubspace(M4qexps,E2,T,p,e);
 	U2 = liftall(M4*U2);
+	breakpoint();
 	print("M6(GammaH)");
 	M6 = DivAdd1(M4,M2,3*d0+1-g,p,d,0);
 	print("Eqn mats");
@@ -257,8 +267,8 @@ ModJacInit(N,H,p,a,e)=
 	FrobMat = ZpXQ_FrobMat(T,p,e,pe);
 	J=[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[[U1],[U2]],[],PtsFrob];
 	CuspsQ = [GetCoef(CuspTags,o[1]) | o<-CuspsGal,#o==1]; \\ Cusps def / Q
-	breakpoint();
-	[J,vecextract(M4qexps,CuspsQ)];
+	[J,vecextract(M4qexps,CuspsQ),vecextract(Cusps,CuspsQ)];
+	[J,M4qexps,Cusps]; \\ DEBUG
 }
 
 PicEval(J,W)=
@@ -266,4 +276,20 @@ PicEval(J,W)=
 	my(Z);
 	Z = PicEval0(J,W)[1,1];
 	concat(apply(M->liftall(M*Z),M4Q)); \\ TODO pass M4Q
+}
+
+PicEvalDbg(J,W)=
+{
+	my(p=Jgetp(J),T=JgetT(J),Wp);
+	\\J = PicRed(J,1);
+	Wp = PicFrob(J,W);
+	Z = PicEval0(J,W)[1,1];
+	Zp = PicEval0(J,Wp)[1,1];
+	for(s=1,#M4Q,
+		Y = M4Q[s]*Z;
+		Yp = M4Q[s]*Zp;
+		Y /= Y[#Y];
+		Yp /= Yp[#Yp];
+		if(apply(y->y^p,Y)!=Yp,print("Cusp ",s," BAD!!!"),print("Cusp ",s," OK"))
+	);
 }

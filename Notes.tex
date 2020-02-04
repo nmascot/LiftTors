@@ -52,6 +52,7 @@
 \newcommand{\Frob}{\operatorname{Frob}}
 \newcommand{\sgn}{\operatorname{sgn}}
 \newcommand{\matabcd}{\left( \begin{smallmatrix} a & b \\ c & d \end{smallmatrix} \right)}
+\newcommand{\mact}{\big\vert}
 
 \newcommand{\TableMinPolyVar}{x}
 
@@ -95,50 +96,80 @@ and it is safe if $p \mid N \#H$, so in particular if $p \nmid N \phi(N)$.
 
 \section{Galois action}
 
-\subsection{Cusps}
+Let $C$ be a curve over $\Q$, $f \in \Q(C)$, and $P \in C(\overline \Q)$; then
+\[ f(P^\sigma) = f(P)^\sigma \]
+for all $\sigma \in \Gal(\overline \Q / \Q)$.
 
-Let $C_n = (\P^1 \times \Z/n\Z) / (\infty,i) \sim (0, i+1)$ be Neron $n$-gon. We have $C_n \supset C_n^{\text{reg}} = \G_m \times \Z/n\Z$, which has
-\[ \End = \left( \begin{matrix} \End \G_m & \Hom(\Z/n\Z,\G_m) \\ \Hom(\G_m, \Z/n\Z) & \End(\Z/n\Z) \end{matrix} \right) =  \left( \begin{matrix} \Z & \mu_n \\ 0 & \Z/n\Z \end{matrix} \right) \]
-acting by 
-\[ \left( \begin{matrix} m & \zeta \\ 0 & j \end{matrix} \right) \left( \begin{matrix} x \\ i \end{matrix} \right)= \left( \begin{matrix} \zeta^i y^m \\ ji \end{matrix} \right),  \]
-whence
-\[ \Aut =  \left( \begin{matrix} \pm1 & \mu_n \\ 0 &( \Z/n\Z )^\times \end{matrix} \right). \]
-The condition $(\infty,i) \sim (0, i+1)$ forces $j=m$, so finally
-\[ \Aut C_n = \pm \left( \begin{matrix} 1 & \mu_n \\ 0 &1 \end{matrix} \right). \]
+For $v \in (\Z/N\Z)^2$, $v \neq 0$, let $f_v = E_4/E_6*P(v/N)$ as in Shimura71. Then
+\[ F_N = \Q(j,f_v) = \Q(\mu_N)(X(N)). \]
+This comes with an action of $\GL_2(\Z/N\Z)/\pm1$. Let $\tau_x : \zeta_N \mapsto \zeta_N^x \in \Gal(\Q(\mu_N)/\Q)$; then for all $f \in F_N$ and $n \in \N$, we have $a_n(f) \in \Q(\mu_N)$, and in fact
+\[ a_n(f)^{\tau_x} = a_n(f \mact \tau(x)) \]
+where
+\[ \tau(x) = \smat{1}{}{}{x} \in \GL_2(\Z/N\Z); \]
+ineed, this holds for $f=f_v$ by Shimura71.
 
-We can thus define bijection
-\[ \text{Cusps}(\Gamma_1(N)) \longleftrightarrow \{ (c,d) \in \Z/N\Z \times (\Z/(c,N)\Z)^\times \} / \pm 1 \]
-by taking $a/c$ to $\matabcd \in \SL_2(\Z)$, since the others are the $\pm \left( \begin{smallmatrix} a & b-td \\ c & d+tc \end{smallmatrix} \right)$; then $(c,d)$ corresponds to
-\[ \big( C_{N/(c,N)}, (\zeta_N^d, c/(c,N) ) \big). \]
+Let $\Gamma$ have level $N$, and suppose $M \in \SL_2(\Z)$ is such that the cusp $M \infty$ lies in $X(\Gamma)(\Q)$. Then for all $f \in F_N$, we have
+\[ a_n(f^{\tau_x} \mact M) = a_n(f \mact M)^{\tau_x} = a_n(f \mact M \tau(x) ) \]
+for all $n$, whence
+\[ f^{\tau_x} = f \mact M \tau(x) M^{-1}. \]
 
-We thus get
-\[ \Frob_p (c,d) = \Frob_p \big( C_{N/(c,N)}, (\zeta_N^d, c/(c,N) ) \big) = \big( C_{N/(c,N)}, (\zeta_N^{pd}, c/(c,N) ) \big) = (c,pd) \]
-so two cusps are in the same Galois orbit iff. they have the same $c$.
+Let now $s = a/c$ be another cusp; we have $s = \gamma \infty$ for some $\gamma \equiv \smat{a}{*}{c}{*}$. We want to determine $s^{\tau_x}$.
 
-Go down to $\Gamma_H$: let $M_s$ be such that $M_S \cdot \infty = s$. Then for $\gamma \equiv \smat{h^{-1}}{x}{}{h}$,
-\[ a/c \sim \gamma \cdot a/c = \gamma M_{a/c} \cdot \infty \]
-so
-\[ \smat{*}{*}{c}{d} \sim \gamma \smat{*}{*}{c}{d} = \smat{*}{*}{hc}{hd} \]
-whence
-\[ \text{Cusps}(\Gamma_H(N)) \longleftrightarrow \{ (c,d) \in \Z/N\Z \times (\Z/(c,N)\Z)^\times \} / H. \]
+Let $f \in \Q(X(\Gamma))$, so that
+\[ f = f^{\tau_{x^{-1}}} = f \mact M \tau(x^{-1}) M^{-1}. \]
+We have 
+\[ f(s^{\tau_x}) = f(s)^{\tau_x} = (a_0(f \mact \gamma ))^{\tau_x} = a_0(f \mact \gamma \tau(x)) = a_0(f \mact M \tau(x^{-1}) M^{-1} \gamma \tau(x)). \]
+Since this holds for all $f$, we deduce that
+\[ s^{\tau_x} = M \tau(x^{-1}) M^{-1} \gamma \tau(x) \infty. \]
+Suppose now that $M = S = \smat{0}{-1}{1}{0}$; then since $M \tau(x^{-1}) M^{-1} = \smat{x^{-1}}{}{}{1}$, and as $\gamma \equiv \smat{a}{*}{c}{*}$, we get
+\[ s^{\tau_x} = ax^{-1}/c. \]
 
-TODO width
 
-\subsection{Forms}
 
-On  q-exps:
-\[ \Frob_p g_1^{(c,d)}(q) = g_1^{(c,pd)}(q) \]
-so
-\[ \sigma_x (g_k^v (q) )= g_k^{v B_x} (x) \]
-where $B_x = \smat{1}{0}{0}{x}$.
- 
-Besides $s=(c=1,d=0)$ is def on $\Q$ so $f$ def on $\Q$ iff. $f \vert M (q) \in \Q[[q]]$.
-
-So given $v_1,\cdots,v_k$, we define
-\[ F = \sum_{\substack{x \in (\Z/N\Z)^\times \\ t \in T}} \zeta^x \prod_{j=1}^k g_1^{v_j t \smat{x}{0}{0}{1} } \]
-\[ = \sum_{\substack{x \in (\Z/N\Z)^\times \\ t \in T}} \zeta^x \prod_{j=1}^k g_1^{v_j  \smat{x}{0}{0}{1} t} \]
-where the equality follows from the fact that  $\smat{x}{0}{0}{1}$ normalises $T$, and we have
-\[ F \in M_k(\Gamma;\Q). \]
+%\subsection{Cusps}
+%
+%Let $C_n = (\P^1 \times \Z/n\Z) / (\infty,i) \sim (0, i+1)$ be Neron $n$-gon. We have $C_n \supset C_n^{\text{reg}} = \G_m \times \Z/n\Z$, which has
+%\[ \End = \left( \begin{matrix} \End \G_m & \Hom(\Z/n\Z,\G_m) \\ \Hom(\G_m, \Z/n\Z) & \End(\Z/n\Z) \end{matrix} \right) =  \left( \begin{matrix} \Z & \mu_n \\ 0 & \Z/n\Z \end{matrix} \right) \]
+%acting by 
+%\[ \left( \begin{matrix} m & \zeta \\ 0 & j \end{matrix} \right) \left( \begin{matrix} x \\ i \end{matrix} \right)= \left( \begin{matrix} \zeta^i y^m \\ ji \end{matrix} \right),  \]
+%whence
+%\[ \Aut =  \left( \begin{matrix} \pm1 & \mu_n \\ 0 &( \Z/n\Z )^\times \end{matrix} \right). \]
+%The condition $(\infty,i) \sim (0, i+1)$ forces $j=m$, so finally
+%\[ \Aut C_n = \pm \left( \begin{matrix} 1 & \mu_n \\ 0 &1 \end{matrix} \right). \]
+%
+%We can thus define bijection
+%\[ \text{Cusps}(\Gamma_1(N)) \longleftrightarrow \{ (c,d) \in \Z/N\Z \times (\Z/(c,N)\Z)^\times \} / \pm 1 \]
+%by taking $a/c$ to $\matabcd \in \SL_2(\Z)$, since the others are the $\pm \left( \begin{smallmatrix} a & b-td \\ c & d+tc \end{smallmatrix} \right)$; then $(c,d)$ corresponds to
+%\[ \big( C_{N/(c,N)}, (\zeta_N^d, c/(c,N) ) \big). \]
+%
+%We thus get
+%\[ \Frob_p (c,d) = \Frob_p \big( C_{N/(c,N)}, (\zeta_N^d, c/(c,N) ) \big) = \big( C_{N/(c,N)}, (\zeta_N^{pd}, c/(c,N) ) \big) = (c,pd) \]
+%so two cusps are in the same Galois orbit iff. they have the same $c$.
+%
+%Go down to $\Gamma_H$: let $M_s$ be such that $M_S \cdot \infty = s$. Then for $\gamma \equiv \smat{h^{-1}}{x}{}{h}$,
+%\[ a/c \sim \gamma \cdot a/c = \gamma M_{a/c} \cdot \infty \]
+%so
+%\[ \smat{*}{*}{c}{d} \sim \gamma \smat{*}{*}{c}{d} = \smat{*}{*}{hc}{hd} \]
+%whence
+%\[ \text{Cusps}(\Gamma_H(N)) \longleftrightarrow \{ (c,d) \in \Z/N\Z \times (\Z/(c,N)\Z)^\times \} / H. \]
+%
+%TODO width
+%
+%\subsection{Forms}
+%
+%On  q-exps:
+%\[ \Frob_p g_1^{(c,d)}(q) = g_1^{(c,pd)}(q) \]
+%so
+%\[ \sigma_x (g_k^v (q) )= g_k^{v B_x} (x) \]
+%where $B_x = \smat{1}{0}{0}{x}$.
+% 
+%Besides $s=(c=1,d=0)$ is def on $\Q$ so $f$ def on $\Q$ iff. $f \vert M (q) \in \Q[[q]]$.
+%
+%So given $v_1,\cdots,v_k$, we define
+%\[ F = \sum_{\substack{x \in (\Z/N\Z)^\times \\ t \in T}} \zeta^x \prod_{j=1}^k g_1^{v_j t \smat{x}{0}{0}{1} } \]
+%\[ = \sum_{\substack{x \in (\Z/N\Z)^\times \\ t \in T}} \zeta^x \prod_{j=1}^k g_1^{v_j  \smat{x}{0}{0}{1} t} \]
+%where the equality follows from the fact that  $\smat{x}{0}{0}{1}$ normalises $T$, and we have
+%\[ F \in M_k(\Gamma;\Q). \]
 
 \section{L factor}
 
