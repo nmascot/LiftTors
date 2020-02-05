@@ -198,6 +198,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
   ulong r,i,j,k,n;
 
 	JgetTpe(J,&T,&pefin,&p,&efin);
+	if(eini >= efin) return W;
 	g = Jgetg(J);
   d0 = Jgetd0(J);
   V = JgetV(J,2);
