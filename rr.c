@@ -558,32 +558,14 @@ GEN RREval(GEN J, GEN W)
 	return gerepilecopy(av,res);
 }
 
-GEN PolExp(GEN Z, GEN T, GEN pe) /* /!\ not memory-clean */
-{
-	ulong nZ,i;
-	GEN f;
-	nZ = lg(Z);
-  f = cgetg(nZ,t_VEC);
-  for(i=1;i<nZ;i++) gel(f,i) = mkpoln(2,gen_1,gmodulo(gmodulo(gel(Z,i),pe),T));
-  f = liftpol(factorback(f));
-	return f;
-}
-
 GEN PolExpId(GEN Z, GEN T, GEN pe) /* bestappr of prod(x-z), z in Z */
 {
 	pari_sp av = avma;
-	GEN f,c,a;
-	ulong nZ,i;
-	nZ =lg(Z);
-	f = PolExp(Z,T,pe);
-	for(i=2;i<nZ;i++)
-	{
-		c = gel(f,i);
-		if(degpol(c)>0) pari_err(e_MISC,"Irrational coefficient: %Ps k=%lu",c,i-2);
-		if(degpol(c)==-1) c = gen_0;
-		else c = gel(c,2);
-		gel(f,i) = c;
-	}
+	GEN f,a;
+	f = FqV_roots_to_pol(Z,T,pe,0);
+	if(poldegree(f,varn(T))>0) pari_err(e_MISC,"Irrational coefficient: %Ps",f);
+	f = simplify_shallow(f);
+	f = gmodulo(f,pe);
 	a = bestappr(f,NULL);
 	return gerepilecopy(av,mkvecn(3,Z,f,a));
 }
@@ -610,8 +592,7 @@ GEN OnePol(GEN N, GEN D, GEN T, GEN pe)
 				i++;
 			}
 		}
-		gel(R,k) = PolExp(Z,T,pe);
-		setvarn(gel(R,k),0);
+		gel(R,k) = FqV_roots_to_pol(Z,T,pe,0);
 	}
 	F = cgetg(n12+1,t_VEC);
 	Z = cgetg(n,t_VEC);
