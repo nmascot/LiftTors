@@ -246,7 +246,7 @@ ModJacInit(N,H,p,a,e)=
 	U1 = liftall(M4*U1);
 	U2 = MRRsubspace(M4qexps,E2,T,p,e);
 	U2 = liftall(M4*U2);
-	breakpoint();
+	\\breakpoint();
 	print("M6(GammaH)");
 	M6 = DivAdd1(M4,M2,3*d0+1-g,p,d,0);
 	print("Eqn mats");
@@ -266,30 +266,33 @@ ModJacInit(N,H,p,a,e)=
 	\\J = [f,g,d0,L,T,p,e,pe,FrobMat,[V],[KV],W0,EvData,Z,FrobCyc];
 	FrobMat = ZpXQ_FrobMat(T,p,e,pe);
 	J=[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[[U1],[U2]],[],PtsFrob];
-	CuspsQ = [GetCoef(CuspTags,o[1]) | o<-CuspsGal,#o==1]; \\ Cusps def / Q
+	\\CuspsQ = [GetCoef(CuspTags,o[1]) | o<-CuspsGal,#o==1]; \\ Cusps def / Q
+	CuspsQ = select(s->gcd(s[1],N)==1,Cusps,1); \\ DEBUG test N=16
 	[J,vecextract(M4qexps,CuspsQ),vecextract(Cusps,CuspsQ)];
-	[J,M4qexps,Cusps]; \\ DEBUG
+	\\[J,M4qexps,Cusps]; \\ DEBUG
 }
 
 PicEval(J,W)=
 {
 	my(Z);
 	Z = PicEval0(J,W)[1,1];
-	concat(apply(M->liftall(M*Z),M4Q)); \\ TODO pass M4Q
+	Z = concat(apply(M->liftall(M*Z),M4Q)); \\ TODO pass M4Q
+	matrix(1,1,i,j,Z);
 }
 
 PicEvalDbg(J,W)=
 {
-	my(p=Jgetp(J),T=JgetT(J),Wp);
+	my(p=Jgetp(J),pe=Jgetpe(J),T=JgetT(J),e=Jgete(J),FrobMat=JgetFrobMat(J),Wp,Z,Zp,Y,Yp);
 	\\J = PicRed(J,1);
+	print("Checking PicEval commutes with Frob, precision ",O(p^e));
 	Wp = PicFrob(J,W);
 	Z = PicEval0(J,W)[1,1];
 	Zp = PicEval0(J,Wp)[1,1];
 	for(s=1,#M4Q,
-		Y = M4Q[s]*Z;
-		Yp = M4Q[s]*Zp;
-		Y /= Y[#Y];
-		Yp /= Yp[#Yp];
-		if(apply(y->y^p,Y)!=Yp,print("Cusp ",s," BAD!!!"),print("Cusp ",s," OK"))
+		Y = liftall(M4Q[s]*Z);
+		Yp = liftall(M4Q[s]*Zp);
+		Y = apply(y->ZpXQ_div(y,Y[#Y],T,pe,p,e),Y);
+		Yp = apply(y->ZpXQ_div(y,Yp[#Yp],T,pe,p,e),Yp);
+		if(apply(y->Frob(y,FrobMat,T,pe),Y)!=Yp,print("Cusp ",s," BAD!!!"),print("Cusp ",s," OK"))
 	);
 }
