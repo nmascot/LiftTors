@@ -2,7 +2,7 @@ read("LMod.gp");
 read("Etors.gp");
 \\read("Dimensions.gp");
 read("GammaH.gp");
-\\read("Perms.gp");
+read("Perms.gp");
 \\read("qexp.gp");
 
 /*l2(EN,P,Q,Tpe)=  \\ Slope of line (PQ)
@@ -104,7 +104,7 @@ MRRsubspace(M4qexps,D,T,p,e)=
 
 ModJacInit(N,H,p,a,e)=
 { \\ J_H(N) over Zq/p^e, q=p^a
-	my(Hlist,Hlist1,Lp,g,Cusps,nCusps,CuspsGl,CuspsGalDegs,CuspTags,E,P0,Q0,zN,zNpows,MFrobE,tMFrobE,T,pe=p^e,Tpe,d,d1,Pts,nPts,PtTags,MPts,M2,M2gens,v,w,M,qprec,M2qexps,B,d0,M4,M4gens,M4qexps,E1,E2,U1,U2,M6,KV,f2,W0,J,CuspsQ);
+	my(Hlist,Hlist1,Lp,g,Cusps,nCusps,CuspsGl,CuspsGalDegs,CuspTags,E,P0,Q0,zN,zNpows,MFrobE,tMFrobE,T,pe=p^e,Tpe,d,d1,Pts,nPts,PtTags,MPts,M2,M2gens,v,w,M,qprec,M2qexps,B,d0,C0,U0,V1,V2,V3,V2gens,V1qexps,V2qexps,E1,E2,U1,U2,KV,f2,W0,J,CuspsQ);
 	\\ Get H and H/+-1
   [Hlist,Hlist1] = GetHlist(N,H);
 	if(Mod(6*N*#Hlist,p)==0,error("Bad p"));
@@ -150,7 +150,6 @@ ModJacInit(N,H,p,a,e)=
 	print(nCusps," cusps");
 	CuspsGalDegs = apply(o->#o,CuspsGal);
 	print("Degrees of Galois orbits: ",CuspsGalDegs);
-	print("Action of Frob on Cusps:");
 	d = g+nCusps-1; \\ dim M2(GammaH(N))
 	[Pts,PtTags] = ANH(N,Hlist); \\ List of vectors (c,d) mod N,H
 	nPts = #Pts;
@@ -183,7 +182,7 @@ ModJacInit(N,H,p,a,e)=
 			for(i=1,qprec,M2q[i,j]=polcoef(fvw,i-1)); */
  	  );
     /* DEBUG */
-		printf("Checking M2 qexps");
+		/*printf("Checking M2 qexps");
 		KM2 = Mod(Mod(matkerpadic(liftall(M2),T,p,e),T),pe);
 		qprec = 20; \\ TODO adjust
 		for(s=1,nCusps,
@@ -193,7 +192,7 @@ ModJacInit(N,H,p,a,e)=
       	M2qexps[,j] = Mod(Mod(TrE2qexp(M2gens[j],N,TH,M,w,zNpows,qprec,T,pe,p,e)~,T),pe)
     	);
     	if(M2qexps*KM2!=0,error("qexp BAD!!!!"),print("Cusp ",s," OK"))
-		);
+		);*/
   	\\ See if we span all of M2(GammaH) by checking full rank
 		print("linalg");
   	B=matindexrank(Mod(M2,p))[2]; \\ working mod p for efficiency
@@ -215,60 +214,60 @@ ModJacInit(N,H,p,a,e)=
 			M2qexps[s][,j] = Mod(Mod(TrE2qexp(M2gens[j],N,TH,M,w,zNpows,qprec,T,pe,p,e)~,T),pe)
 		)
 	);
-	/*\\ Pull down to merom fns by div, TODO dangerous
-	f2 = M2[,1]; \\ TODO ensure def/Q TODO necessary?
-  for(i=1,#f2,
-		u = liftall(f2[i]);
-		u = ZpXQ_inv(u,T,p,e);
-    M2[i,] *= u;
-  );*/
-	\\[M2,Pts,M2basis];
+	\\ Prune: M2 -> S2(3 cusps) = M2(-C0)
+	d0 = 2*g+1;
+	C0o = BalancedDiv(nCusps-3,CuspsGalDegs);
+	C0 = Divo2Div(C0o,CuspsGal,CuspTags,nCusps);
+	U0 = MRRsubspace(M2qexps,C0,T,p,e);
+	V1 = M2*U0;
+	V1qexps = apply(page->page*U0,M2qexps);
+	\\ Prune more: no need to evaluate at that many points
+	[PtsFrob,Pts] = SubPerm(PtsFrob,5*d0+1);
+	V1 = vecextract(V1,Pts,vector(#V1,i,i));
 	print("M4(GammaH)");
-	d0 = d+g-1;
 	d = 2*d0+1-g;
-	[M4,M4gens] = DivAdd1(M2,M2,2*d0+1-g,p,d,1);
+	[V2,V2gens] = DivAdd1(V1,V1,2*d0+1-g,p,d0,1);
 	print("M4 qexps");
-	M4qexps = vector(nCusps);
+	V2qexps = vector(nCusps);
 	for(s=1,nCusps,
-		M4qexps[s] = matrix(qprec,d);
+		V2qexps[s] = matrix(qprec,d);
 		for(j=1,d,
 			for(n=0,qprec-1,
-				M4qexps[s][n+1,j] = sum(k=0,n,M2qexps[s][k+1,M4gens[j][1]]*M2qexps[s][n-k+1,M4gens[j][2]])
+				V2qexps[s][n+1,j] = sum(k=0,n,V1qexps[s][k+1,V2gens[j][1]]*V1qexps[s][n-k+1,V2gens[j][2]])
 			)
 		)
 	);
 	print("Eval data");
-	E1o = BalancedDiv(d0-g,CuspsGalDegs);
+	E1o = BalancedDiv(d0-g,CuspsGalDegs); \\ d0-g = g+1
 	E2o = DivPerturb(E1o,CuspsGalDegs);
 	E1 = Divo2Div(E1o,CuspsGal,CuspTags,nCusps);
 	E2 = Divo2Div(E2o,CuspsGal,CuspTags,nCusps);
-	U1 = MRRsubspace(M4qexps,E1,T,p,e);
-	U1 = liftall(M4*U1);
-	U2 = MRRsubspace(M4qexps,E2,T,p,e);
-	U2 = liftall(M4*U2);
-	\\breakpoint();
+	U1 = MRRsubspace(V2qexps,2*C0+E1,T,p,e); \\ TODO: eqns for 2*C0 already satified. Make MRRsubspace more flexible.
+	U1 = liftall(V2*U1);
+	U2 = MRRsubspace(V2qexps,2*C0+E2,T,p,e);
+	U2 = liftall(V2*U2);
 	print("M6(GammaH)");
-	M6 = DivAdd1(M4,M2,3*d0+1-g,p,d,0);
+	V3 = DivAdd1(V2,V1,3*d0+1-g,p,d0,0);
 	print("Eqn mats");
 	/*f2 = M2[,1]; \\ TODO ensure def/Q TODO necessary?
 	for(i=1,#f2, \\ Push to weight 6
 		M2[i,] *= f2[i]^2;
 		M4[i,] *= f2[i]
 	);*/
-	V = apply(liftall,[M2,M4,M6]);
+	V = apply(liftall,[V1,V2,V3]);
 	KV = apply(x->matkerzq(x~,T,p,e)~,V); \\ TODO parallel
 	\\ W0 = f*M2 c M4, f in M2
 	\\ TODO need f def / Q ?
-	f2 = M2[,1];
-	W0 = M2;
+	f2 = V1[,1];
+	W0 = V1;
 	for(i=1,#f2,W0[i,] *= f2[i]);
 	W0 = liftall(W0);
 	\\J = [f,g,d0,L,T,p,e,pe,FrobMat,[V],[KV],W0,EvData,Z,FrobCyc];
 	FrobMat = ZpXQ_FrobMat(T,p,e,pe);
 	J=[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[[U1],[U2]],[],PtsFrob];
 	\\CuspsQ = [GetCoef(CuspTags,o[1]) | o<-CuspsGal,#o==1]; \\ Cusps def / Q
-	CuspsQ = select(s->gcd(s[1],N)==1,Cusps,1); \\ DEBUG test N=16
-	[J,vecextract(M4qexps,CuspsQ),vecextract(Cusps,CuspsQ)];
+	CuspsQ = select(s->gcd(s[1],N)==1,Cusps,1); \\ TODO: DEBUG test N=16
+	[J,vecextract(V2qexps,CuspsQ),vecextract(Cusps,CuspsQ)];
 	\\[J,M4qexps,Cusps]; \\ DEBUG
 }
 

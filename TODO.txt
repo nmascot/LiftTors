@@ -1,3 +1,5 @@
+* Test 16 passes with x^2+1, but eval fail with x^2-1
+
 * PicLiftTors works on J1(13)
 * PicRand, PicRandTors only give pts def over small fields, and Frey-Rueck trivial!
 * E[N] must not be defined over a subfield, else PicRand bad
