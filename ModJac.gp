@@ -4,103 +4,7 @@ read("Etors.gp");
 read("GammaH.gp");
 read("Perms.gp");
 \\read("qexp.gp");
-
-/*l2(EN,P,Q,Tpe)=  \\ Slope of line (PQ)
-{
-	my([xP,yP]=GetCoef(EN,P),[xQ,yQ]=GetCoef(EN,Q),[T,pe,p,e]=Tpe);
-	ZpXQ_div(liftall(yQ-yP),liftall(xQ-xP),T,pe,p,e);
-}
-\\ TODO methode Kamal addchain
-l1(EN,P,Q,Tpe)=my([T,pe,p,e]=Tpe);Mod(Mod(sum(n=0,#EN-1,l2(EN,P,Q+n*P,Tpe)),T),pe); \\ sum_n l2(P,Q+nP) ~ sum_n l(P) +l(Q+nP)-l(Q+nP) ~ l*l(P)
-*/
-DivAdd1(A,B,dimres,p,excess,flag)=
-{ \\ Mult RR spaces A and B.
-	\\ Takes dimres + excess products A[u]*B[v] with random u,v
-	\\ If flag, also return the list of pairs [u,v]
-	my(nA=#A,nB=#B,m,n,C,u,v,uv,a,b,r);
-	m = #A[,1];
-	n = dimres+excess;
-	C = matrix(m,n);
-	uv = vector(n);
-	while(1,
-		for(j=1,n,
-			u = 1+random(nA);
-			v = 1+random(nB);
-			a = A[,u];
-			b = B[,v];
-			uv[j] = [u,v];
-			for(i=1,m,
-				C[i,j] = a[i]*b[i]
-			)
-		);
-		r = matindexrank(Mod(C,p))[2];
-		if(#r == dimres,
-			C = vecextract(C,r);
-			uv = vecextract(uv,r);
-			return(if(flag,[C,uv],C))
-		);
-		print1("@",#r,"/",dimres," ");
-	);
-}
-
-BalancedDiv(d,degs)=
-{
-	my(n=#degs,s=vecsum(degs),D,q);
-	q = d\s;
-	d -= q*s;
-	D = vector(n,i,q);
-	for(i=1,n,
-		if(d>=degs[i],
-			d -= degs[i];
-			D[i] +=1
-		)
-	);
-	D;
-}
-
-DivPerturb(D,degs)=
-{
-	my(n=#degs,D2,i);
-	d = sum(j=1,n,D[j]*degs[j]);
-	D2 = BalancedDiv(d-1,degs);
-	i=n;
-	while(degs[i]==1,
-		if(D2[i]+1!=D[i],
-			D2[i]+=1;
-			return(D2)
-		);
-		i-=1;
-	);
-	error("I don't know how to perturb this divisor");
-}
-
-Divo2Div(Do,Orbs,tags,n)=
-{
-	my(D,nO,o,no);
-	nO = #Orbs;
-	D = vector(n);
-	for(i=1,nO,
-		o = Orbs[i];
-		no = #o;
-		for(j=1,no,
-			D[GetCoef(tags,o[j])] = Do[i];
-		)
-	);
-	D;
-}
-
-MRRsubspace(M4qexps,D,T,p,e)=
-{
-	my(K,i=1,nD=vecsum(D),ncusps=#D);
-	K = matrix(nD,#M4qexps[1]);
-	for(s=1,ncusps,
-		for(j=1,D[s],
-			K[i,]=liftall(M4qexps[s][j,]);
-			i++;
-		)
-	);
-	matkerpadic_safe(K,T,p,e);
-}
+read("Div.gp");
 
 ModJacInit(N,H,p,a,e)=
 { \\ J_H(N) over Zq/p^e, q=p^a
@@ -113,6 +17,12 @@ ModJacInit(N,H,p,a,e)=
 	print("Genus ",g);
 	\\ Get a curve E and a basis of E[N]
 	[E,P0,Q0,zN,MFrobE] = EBasis(N,p,a,e);
+	for(i=1,a,
+		if(MFrobE^i==1,
+			print("MFrobE has order ",i);
+			break
+		)
+	);
 	zNpows = vector(N);
 	zNpows[1] = liftall(zN);
 	for(i=2,N,
@@ -204,7 +114,7 @@ ModJacInit(N,H,p,a,e)=
 	M2 = vecextract(M2,B);
 	M2gens = vecextract(M2gens,B);
 	print("M2 qexps");
-	qprec = 10; \\ TODO adjust
+	qprec = 8; \\ TODO adjust
 	M2qexps = vector(nCusps);
 	for(s=1,nCusps,
 		print1(s," ");
@@ -266,7 +176,7 @@ ModJacInit(N,H,p,a,e)=
 	FrobMat = ZpXQ_FrobMat(T,p,e,pe);
 	J=[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[[U1],[U2]],[],PtsFrob];
 	\\CuspsQ = [GetCoef(CuspTags,o[1]) | o<-CuspsGal,#o==1]; \\ Cusps def / Q
-	CuspsQ = select(s->gcd(s[1],N)==1,Cusps,1); \\ TODO: DEBUG test N=16
+	CuspsQ = select(s->Mod(2*s[2],N)==0,Cusps,1); \\ TODO: verif cirterium
 	[J,vecextract(V2qexps,CuspsQ),vecextract(Cusps,CuspsQ)];
 	\\[J,M4qexps,Cusps]; \\ DEBUG
 }

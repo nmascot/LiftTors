@@ -1,5 +1,3 @@
-default(parisizemax,2G)
-
 read("install.gp");
 read("../qMak/GalRep.gp");
 
@@ -10,30 +8,20 @@ FieldOfDef(J,W)=
 	);
 }
 
+time = getwalltime();
 
-N=16;
-p=43;
-a=4;
-l=5;
-chi=x^2+1;
-\\ x^2-1: Gal rep = Borel with eigneval 1,chi, chi of cond 80: 31->1, 21->3, 17->2, Frob_43 -> [1,0;0,-1]
-\\ Other choice: x^2+1: Galrep = Borel psi chi5, chi5 cyclo mod 5, psi mod 16: -1->1, 5->2, Frob_43 -> [2,0;0,3]
-e=32;
+N=l=19;
+p=107;
+a=6;
+chi=x^2+10*x+8;
+Lp = LMod(N,1,p);
+if(poldegree(gcd(Mod(Lp,l)/Mod(chi,l),Mod(chi,l))),error("Chi not coprime with its cofactor"));
+e=256;
 
 [J,M4Q,CuspsQ]=ModJacInit(N,1,p,a,e);
-Lp = LMod(N,1,p);
 J1 = PicRed(J,1);
-NJ=polresultant(Lp,x^a-1);
 
-/*Cl=AddChain(l,0);
-W2=PicRand(J1);
-W22=PicMul(J1,W2,2,1);
-W23=PicMul(J1,W2,3,1);
-W0=PicMul(J1,W2,NJ,0);
-T=JgetT(J);
-FR=PicFreyRuckMulti(J1,WT,l,[W2,W22,W23],W0,Cl);
-r=(p^a-1)/l;
-apply(z->Mod(Mod(z,T),p)^r,FR)*/
+default(debug,1);
 
 [B,matFrob] = TorsBasis(J1,l,Lp,chi); \\ Basis of the mod p^1 space and matrix of Frob_p
 print("The matrix of Frob is");
@@ -52,4 +40,6 @@ print("\n--> Evaluation of ",#TI[2]," points");
 export(M4Q);
 export(PicEval);
 Z = TorsSpaceFrobEval(J,TI,l,2,matFrob);
+print("\n--> Getting polynomials");
 AF = TorsSpaceGetPols(J,Z);
+print(strtime(getwalltime()-time));
