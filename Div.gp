@@ -2,27 +2,17 @@ DivAdd1(A,B,dimres,p,excess,flag)=
 { \\ Mult RR spaces A and B.
   \\ Takes dimres + excess products A[u]*B[v] with random u,v
   \\ If flag, also return the list of pairs [u,v]
-  my(nA=#A,nB=#B,m,n,C,u,v,uv,a,b,r);
+  my(nA=#A,nB=#B,m,n,C,uv,r);
   m = #A[,1];
   n = dimres+excess;
-  C = matrix(m,n);
-  uv = vector(n);
   while(1,
-    for(j=1,n,
-      u = 1+random(nA);
-      v = 1+random(nB);
-      a = A[,u];
-      b = B[,v];
-      uv[j] = [u,v];
-      for(i=1,m,
-        C[i,j] = a[i]*b[i]
-      )
-    );
+		uv = vector(n,j,[1+random(nA),1+random(nB)]);
+		\\C = matrix(m,n,i,j,A[i,uv[j][1]]*B[i,uv[j][2]]);
+		C = matconcat(parvector(n,j,vector(m,i,A[i,uv[j][1]]*B[i,uv[j][2]])~));
     r = matindexrank(Mod(C,p))[2];
     if(#r == dimres,
       C = vecextract(C,r);
-      uv = vecextract(uv,r);
-      return(if(flag,[C,uv],C))
+      return(if(flag,[C,vecextract(uv,r)],C))
     );
     print1("@",#r,"/",dimres," ");
   );
