@@ -1,5 +1,5 @@
 read("install.gp");
-read("../qMak/GalRep.gp");
+read("GalRep.gp");
 
 FieldOfDef(J,W)=
 {
