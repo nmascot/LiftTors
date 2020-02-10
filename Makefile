@@ -13,6 +13,7 @@
 #
 
 # change this TARGET to compile your own programs
+PARIDIR = /home/nicolas/pari/
 SHELL  = /bin/sh
 
 DBGFLAGS   = -g -Wall
@@ -33,17 +34,17 @@ EXTRACFLAGS=
 #STATIC    = -static
 
 CC         = /usr/bin/gcc
-CPPFLAGS   = -I. -I/home/nicolas/pari/GP/include
+CPPFLAGS   = -I. -I$(PARIDIR)GP/include
 LD         = /usr/bin/gcc
 LDFLAGS    = -O3 -Wall -fno-strict-aliasing -fomit-frame-pointer    -Wl,--export-dynamic 
 MODLD      = /usr/bin/gcc
 MODLDFLAGS = -shared  $(CFLAGS) $(DLCFLAGS) -Wl,-shared 
-EXTRAMODLDFLAGS = -lc -lm -L/home/nicolas/pari/GP/lib -lpari
+EXTRAMODLDFLAGS = -lc -lm -L$(PARIDIR)GP/lib -lpari
 EXTRALIBS  =
 
-RUNPTH     = -Wl,-rpath "/home/nicolas/pari/GP/lib"
+RUNPTH     = -Wl,-rpath "$(PARIDIR)GP/lib"
 DLCFLAGS   = -fPIC
-LIBS       = -lm -L/home/nicolas/pari/GP/lib -lpari
+LIBS       = -lm -L$(PARIDIR)GP/lib -lpari
 
 RM = rm -f
 
