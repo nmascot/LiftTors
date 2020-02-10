@@ -9,7 +9,8 @@ ulong ZNnorm(long x, ulong N)
 
 GEN GetCoef(GEN A, GEN v)
 {
-	ulong N,i,j;
+	ulong N;
+	long i,j;
 
 	N = lg(A)-1;
 	//printf("N=%ld\n",N);
