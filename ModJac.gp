@@ -8,7 +8,10 @@ read("Div.gp");
 
 ModJacInit(N,H,p,a,e)=
 { \\ J_H(N) over Zq/p^e, q=p^a
-	my(Hlist,Hlist1,Lp,g,Cusps,nCusps,CuspsGl,CuspsGalDegs,CuspTags,E,P0,Q0,zN,zNpows,MFrobE,tMFrobE,T,pe=p^e,Tpe,d,d1,Pts,nPts,PtTags,MPts,M2,M2gens,v,w,M,qprec,M2qexps,B,d0,C0,U0,V1,V2,V3,V2gens,V1qexps,V2qexps,E1,E2,U1,U2,KV,f2,W0,J,CuspsQ);
+	my(Hlist,Hlist1,TH);
+	my(Lp,g,Cusps,nCusps,CuspsGal,CuspsGalDegs,CuspTags);
+	my(E,P0,Q0,zN,zNpows,MFrobE,tMFrobE,T,pe=p^e,Tpe,Ml1);
+	my(d,d1,Pts,nPts,PtTags,MPts,M2,M2gens,v,w,M,qprec,M2qexps,B,d0,C0,U0,V1,V2,V3,V2gens,V1qexps,V2qexps,E1,E2,U1,U2,KV,f2,W0,J,CuspsQ);
 	\\ Get H and H/+-1
   [Hlist,Hlist1] = GetHlist(N,H);
 	if(Mod(6*N*#Hlist,p)==0,error("Bad p"));
@@ -46,7 +49,6 @@ ModJacInit(N,H,p,a,e)=
       EN[x,y]=elladd_padic(E.a4,EN[x,N],EN[N,y],T,pe,p,e)
     )
   );
-	\\EN = liftall(EN);
 	\\ Matrix of l(P) for P in E[N]
 	print("Ml1");
 	Ml1=matrix(N,N);
@@ -69,28 +71,21 @@ ModJacInit(N,H,p,a,e)=
 	MPts = apply(s->BotToSL2(s,N),Pts); \\ Matrices having these bottom rows
 	\\ P_g = P_g' on X_H(N) <=> g,g' have same bottom row mod H
 	d1=min(ceil(1.2*d),#Pts); \\ # gens
-	M2=matrix(#Pts,d1);
-	M2gens=vector(d1);
 	TH = GammaHmodN(N,Hlist1); \\ elts of SL2(Z) representing GammaH mod N,+-1
 	while(1,
 		print("Attempt");
-		/* qprec = 100*N;
-		M2q = matrix(qprec,d1); DEBUG */
 		\\ Take d1 forms in M2(Gamma(N))
-  	for(j=1,d1, \\ of the form E_1^v * E_1^w : j = index of gen
-			print1("Prod ");
-			v=Pts[1+random(#Pts)];
-    	w=Pts[1+random(#Pts)];
-    	M2gens[j]=[v,w];
-			\\ symmetrise them by sum slashing the transversal
-    	for(P=1,nPts,
-				\\ sum_x f_v f_w | T at P for T in TH
-      	M2[P,j]=sum(i=1,#TH,GetCoef(Ml1,v*TH[i]*MPts[P])*GetCoef(Ml1,w*TH[i]*MPts[P]))
-    	);
-			/* DEBUG
-			fvw = sum(i=1,#TH,E1qexp(v*TH[i],N,zN,qprec,Tpe,'x)*E1qexp(w*TH[i],N,zN,qprec,Tpe,'x));
-			for(i=1,qprec,M2q[i,j]=polcoef(fvw,i-1)); */
- 	  );
+		M2gens=vector(d1,j,[Pts[1+random(#Pts)],Pts[1+random(#Pts)]]);
+		\\ of the form E_1^v * E_1^w
+		M2=matconcat(
+			parapply(
+				vw->apply(MP->
+					sum(i=1,#TH,
+						GetCoef(Ml1,vw[1]*TH[i]*MP)*GetCoef(Ml1,vw[2]*TH[i]*MP)
+					)
+				,MPts)~
+			,M2gens)
+		);
     /* DEBUG */
 		/*printf("Checking M2 qexps");
 		KM2 = Mod(Mod(matkerpadic(liftall(M2),T,p,e),T),pe);
@@ -105,7 +100,7 @@ ModJacInit(N,H,p,a,e)=
 		);*/
   	\\ See if we span all of M2(GammaH) by checking full rank
 		print("linalg");
-  	B=matindexrank(Mod(M2,p))[2]; \\ working mod p for efficiency
+  	B=matindexrank(Mod(liftint(M2),p))[2]; \\ working mod p for efficiency
   	if(#B>d,error("Bug M2(GammaH)")); \\ Not supposed to happen
   	if(#B==d,break); \\ This is what we want
   	print("Retrying: the products of Eis series of wt 1 span a subspace of dim ",#B," out of ",d)
@@ -120,8 +115,12 @@ ModJacInit(N,H,p,a,e)=
 		print1(s," ");
 		M2qexps[s] = matrix(qprec,d);
 		[M,w] = GammaHCuspData(Cusps[s],N,Hlist);
-		for(j=1,d,
-			M2qexps[s][,j] = Mod(Mod(TrE2qexp(M2gens[j],N,TH,M,w,zNpows,qprec,T,pe,p,e)~,T),pe)
+		M2qexps[s] = matconcat(
+			parapply(
+				vw->Mod(Mod(
+					TrE2qexp(vw,N,TH,M,w,zNpows,qprec,T,pe,p,e)~
+				,T),pe)
+			,M2gens)
 		)
 	);
 	\\ Prune: M2 -> S2(3 cusps) = M2(-C0)
@@ -130,7 +129,7 @@ ModJacInit(N,H,p,a,e)=
 	C0 = Divo2Div(C0o,CuspsGal,CuspTags,nCusps);
 	U0 = MRRsubspace(M2qexps,C0,T,p,e);
 	V1 = M2*U0;
-	V1qexps = apply(page->page*U0,M2qexps);
+	V1qexps = parapply(page->page*U0,M2qexps);
 	\\ Prune more: no need to evaluate at that many points
 	[PtsFrob,Pts] = SubPerm(PtsFrob,5*d0+1);
 	V1 = vecextract(V1,Pts,vector(#V1,i,i));
@@ -138,45 +137,34 @@ ModJacInit(N,H,p,a,e)=
 	d = 2*d0+1-g;
 	[V2,V2gens] = DivAdd1(V1,V1,2*d0+1-g,p,d0,1);
 	print("M4 qexps");
-	V2qexps = vector(nCusps);
-	for(s=1,nCusps,
-		V2qexps[s] = matrix(qprec,d);
-		for(j=1,d,
-			for(n=0,qprec-1,
-				V2qexps[s][n+1,j] = sum(k=0,n,V1qexps[s][k+1,V2gens[j][1]]*V1qexps[s][n-k+1,V2gens[j][2]])
-			)
+	V2qexps = parapply(
+		page->matrix(qprec,d,n,j,
+			sum(k=0,n-1,page[k+1,V2gens[j][1]]*page[n-k,V2gens[j][2]])
 		)
-	);
+	,V1qexps);
 	print("Eval data");
 	E1o = BalancedDiv(d0-g,CuspsGalDegs); \\ d0-g = g+1
 	E2o = DivPerturb(E1o,CuspsGalDegs);
 	E1 = Divo2Div(E1o,CuspsGal,CuspTags,nCusps);
 	E2 = Divo2Div(E2o,CuspsGal,CuspTags,nCusps);
-	U1 = MRRsubspace(V2qexps,2*C0+E1,T,p,e); \\ TODO: eqns for 2*C0 already satified. Make MRRsubspace more flexible.
-	U1 = liftall(V2*U1);
-	U2 = MRRsubspace(V2qexps,2*C0+E2,T,p,e);
-	U2 = liftall(V2*U2);
+	export(MRRsubspace);
+	[U1,U2] = parapply(Ei->
+		liftall(V2*MRRsubspace(V2qexps,2*C0+Ei,T,p,e)), \\ TODO: eqns for 2*C0 already satified. Make MRRsubspace more flexible.
+	[E1,E2]);
 	print("M6(GammaH)");
 	V3 = DivAdd1(V2,V1,3*d0+1-g,p,d0,0);
 	print("Eqn mats");
-	/*f2 = M2[,1]; \\ TODO ensure def/Q TODO necessary?
-	for(i=1,#f2, \\ Push to weight 6
-		M2[i,] *= f2[i]^2;
-		M4[i,] *= f2[i]
-	);*/
 	V = apply(liftall,[V1,V2,V3]);
-	KV = apply(x->matkerzq(x~,T,p,e)~,V); \\ TODO parallel
+	KV = parapply(x->mateqnpadic(x,T,p,e),V);
 	\\ W0 = f*M2 c M4, f in M2
-	\\ TODO need f def / Q ?
 	f2 = V1[,1];
 	W0 = V1;
 	for(i=1,#f2,W0[i,] *= f2[i]);
 	W0 = liftall(W0);
-	\\J = [f,g,d0,L,T,p,e,pe,FrobMat,[V],[KV],W0,EvData,Z,FrobCyc];
 	FrobMat = ZpXQ_FrobMat(T,p,e,pe);
 	J=[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[[U1],[U2]],[],PtsFrob];
 	\\CuspsQ = [GetCoef(CuspTags,o[1]) | o<-CuspsGal,#o==1]; \\ Cusps def / Q
-	CuspsQ = select(s->Mod(2*s[2],N)==0,Cusps,1); \\ TODO: verif cirterium
+	CuspsQ = select(s->Mod(2*s[2],N)==0,Cusps,1); \\ TODO: verif cirterion
 	[J,vecextract(V2qexps,CuspsQ),vecextract(Cusps,CuspsQ)];
 	\\[J,M4qexps,Cusps]; \\ DEBUG
 }
