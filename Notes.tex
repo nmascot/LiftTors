@@ -58,6 +58,7 @@
 
 
 \newcommand{\smat}[4]{\left[ \begin{smallmatrix} #1 & #2 \\ #3 & #4 \end{smallmatrix} \right]}
+\newcommand{\cusp}[2]{\left[ \begin{smallmatrix} #1 \\ #2 \end{smallmatrix} \right]}
 \newcommand{\mat}[4]{\left[ \begin{matrix} #1 & #2 \\ #3 & #4 \end{matrix} \right]}
 
 \newtheorem{thm}{Theorem}
@@ -115,7 +116,7 @@ for all $n$ and $x$. In particular, this means that $f$ is defined over $\Q$ iff
 whence
 \[ f^{\tau_x} = f \mact M \tau(x) M^{-1}. \]
 
-Let now $s = a/c$ be a cusp; we have $s = \gamma \infty$ for some $\gamma \equiv \smat{a}{*}{c}{*}$. We want to determine $s^{\tau_x}$.
+Let now $s = \cusp{a}{c}$ be a cusp; we have $s = \gamma \infty$ for some $\gamma \equiv \smat{a}{*}{c}{*}$. We want to determine $s^{\tau_x}$.
 
 Let $f \in \Q(X(\Gamma))$, so that
 \[ f = f^{\tau_{x^{-1}}} = f \mact M \tau(x^{-1}) M^{-1}. \]
@@ -126,7 +127,7 @@ Since this holds for all $f$, we deduce that
 \[ s^{\tau_x} = M \tau(x^{-1}) M^{-1} \gamma \tau(x) \infty. \]
 
 Take now $M = S = \smat{0}{-1}{1}{0}$; then since $M \tau(x^{-1}) M^{-1} = \smat{x^{-1}}{}{}{1}$, and as $\gamma \equiv \smat{a}{*}{c}{*}$, we get
-\[ s^{\tau_x} = ax^{-1}/c. \]
+\[ \cusp{a}{c}^{\tau_x} = \cusp{ax^{-1}}{c}. \]
 
 
 
@@ -150,32 +151,57 @@ We thus get
 \[ \Frob_p (c,d) = \Frob_p \big( C_{N/(c,N)}, (\zeta_N^d, c/(c,N) ) \big) = \big( C_{N/(c,N)}, (\zeta_N^{pd}, c/(c,N) ) \big) = (c,pd) \]
 so two cusps are in the same Galois orbit iff. they have the same $c$.
 
-Go down to $\Gamma_H$: let $M_s$ be such that $M_S \cdot \infty = s$. Then for $\gamma \equiv \smat{h^{-1}}{x}{}{h}$,
-\[ a/c \sim \gamma \cdot a/c = \gamma M_{a/c} \cdot \infty \]
+Go down to $\Gamma_H$: let $M_s$ be such that $M_s \cdot \infty = s$. Then for $\gamma \equiv \smat{h^{-1}}{x}{}{h}$,
+\[ s \sim \gamma \cdot s = \gamma M_{s} \cdot \infty \]
 so
 \[ \smat{*}{*}{c}{d} \sim \gamma \smat{*}{*}{c}{d} = \smat{*}{*}{hc}{hd} \]
 whence
 \[ \text{Cusps}(\Gamma_H(N)) \longleftrightarrow \{ (c,d) \in \Z/N\Z \times (\Z/(c,N)\Z)^\times \} / H. \]
 
-TODO width
+\subsubsection{Widths}
+
+Suppose $-1 \in H$. The width of $s$ is the min $w$ such that
+\[ M_s \smat{1}{w}{}{1} M_s^{-1} \in \Gamma_H. \]
+For $M_s = \matabcd$, we find
+\[ M_s \smat{1}{w}{}{1} M_s^{-1} = \mat{1-acw}{a^2w}{-c^2w}{1+acw} \]
+so we want $c^2 w \equiv 0$ and $1 \pm acw \in H$ (note that $(1+acw)(1-acw)=1-a^2c^2w^2 \equiv 1$ if $c^2w \equiv 0$, so the $\pm$ does not matter.) Let $g_2 = \gcd(N,c^2)$ and $N_2 = N/g_2$; then $c^2 w \equiv 0$ iff. $N_2 \nmid w$, whence finally
+\[ w = N_2 \min \{ t \ \vert \ 1+acN_2 t \in H \} \]
+
+Thm: $w=N$ iff. $\gcd(c,N)=1$.
+
+Pf: Let $g=\gcd(c,N)$, so that $ g \mid g_2 \mid g^2$. Suppose first that $g>1$; then $g_2>1$ so $N_2<N$. Two cases: if $g < g_2$, then taking $t=g$ we get
+\[ 1+acN_2t = 1+a \frac{c}g N \frac{g^2}{g_2} = 1, \]
+so $t \leqslant g$ and $w \leqslant N_2 g < N_2 g_2 = N$; and if $g=g_2$, then taking $t=1$ we get
+\[ 1+acN_2t = 1+a \frac{c}g N = 1 \]
+so $t=1$ and $w=N_2 < N$. Conversely, if $g=1$, then $g_2=1$, so $N_2=N$ whence $w=N$.
 
 \subsection{Forms}
 
-On  q-exps:
-\[ \Frob_p g_1^{(c,d)}(q) = g_1^{(c,pd)}(q) \]
-so
-\[ \sigma_x (g_k^v (q) )= g_k^{v B_x} (x) \]
-where $B_x = \smat{1}{0}{0}{x}$.
- 
-Besides $s=(c=1,d=0)$ is def on $\Q$ so $f$ def on $\Q$ iff. $f \vert M (q) \in \Q[[q]]$.
+%On  q-exps:
+%\[ \Frob_p g_1^{(c,d)}(q) = g_1^{(c,pd)}(q) \]
+%so
+%\[ \sigma_x (g_k^v (q) )= g_k^{v B_x} (x) \]
+%where $B_x = \smat{1}{0}{0}{x}$.
+% 
+%Besides $s=(c=1,d=0)$ is def on $\Q$ so $f$ def on $\Q$ iff. $f \vert M (q) \in \Q[[q]]$.
+%
+%So given $v_1,\cdots,v_k$, we define
+%\[ F = \sum_{\substack{x \in (\Z/N\Z)^\times \\ t \in T}} \zeta^x \prod_{j=1}^k g_1^{v_j t \smat{x}{0}{0}{1} } \]
+%\[ = \sum_{\substack{x \in (\Z/N\Z)^\times \\ t \in T}} \zeta^x \prod_{j=1}^k g_1^{v_j  \smat{x}{0}{0}{1} t} \]
+%where the equality follows from the fact that  $\smat{x}{0}{0}{1}$ normalises $T$, and we have
+%\[ F \in M_k(\Gamma;\Q). \]
+%
+%END OLD
 
-So given $v_1,\cdots,v_k$, we define
-\[ F = \sum_{\substack{x \in (\Z/N\Z)^\times \\ t \in T}} \zeta^x \prod_{j=1}^k g_1^{v_j t \smat{x}{0}{0}{1} } \]
-\[ = \sum_{\substack{x \in (\Z/N\Z)^\times \\ t \in T}} \zeta^x \prod_{j=1}^k g_1^{v_j  \smat{x}{0}{0}{1} t} \]
-where the equality follows from the fact that  $\smat{x}{0}{0}{1}$ normalises $T$, and we have
-\[ F \in M_k(\Gamma;\Q). \]
+Let $G_H = \smat{*}{*}{0}{H} \leqslant \SL_2(\Z/N\Z)/\pm1$; then $\Q(X_H) = F_N^{G_H}$. Thus
+\begin{align*}  & \{ M \in \SL_2(\Z/N\Z)/\pm1 \ \vert \ \forall f \in \Q(X_H), \ f \mact M  \text{ has coefs in } \Q \} \\
+= & \{ M \in \SL_2(\Z/N\Z)/\pm1 \ \vert \ \forall f, \ f \mact G_H = f \Rightarrow \forall x \in (\Z/N\Z)^\times, \ f \mact M = f \mact M \smat{1}{}{}{x} \} \\
+= & \{ M \in \SL_2(\Z/N\Z)/\pm1 \ \vert \ \forall x, M \smat{1}{}{}{x} M^{-1} \in G_H \}. \\
+\end{align*}
+For $M=\matabcd$, this translates into
+\[ \forall x, \ cd(x-1) \equiv 0 \text{ and } ad(x-1)+1 \in H. \]
 
-END OLD
+Conj: the cusps for which there exists such an $M$ are exactly those having width $N$.
 
 \section{L factor}
 

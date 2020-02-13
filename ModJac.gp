@@ -51,13 +51,14 @@ ModJacInit(N,H,p,a,e)=
   );
 	\\ Matrix of l(P) for P in E[N]
 	print("Ml1");
+	\\ TODO parallelise
 	Ml1=matrix(N,N);
 	for(x=1,N-1,Ml1[x,N]=l1(EN,[x,0],[0,1],T,pe,p,e)); \\ P=alpha(x,0) -> Q=alpha(0,1)
 	for(x=1,N,for(y=1,N-1,Ml1[x,y]=l1(EN,[x,y],[1,0],T,pe,p,e))); \\ P=alpha(x,y), y!=0 -> Q=alpha(1,0)
 	Ml1 = Mod(Mod(Ml1,T),pe);
 	print("M2(GammaH)");
 	\\ Find a basis for M2(GammaH(N))
-	[Cusps,CuspsGal,CuspTags] = GammaHCusps(N,Hlist);
+	[Cusps,CuspsGal,CuspsQ,CuspsMats,CuspsWidths,CuspTags] = GammaHCusps(N,Hlist);
 	nCusps = #Cusps;
 	print(nCusps," cusps");
 	CuspsGalDegs = apply(o->#o,CuspsGal);
@@ -113,8 +114,8 @@ ModJacInit(N,H,p,a,e)=
 	M2qexps = vector(nCusps);
 	for(s=1,nCusps,
 		print1(s," ");
-		M2qexps[s] = matrix(qprec,d);
-		[M,w] = GammaHCuspData(Cusps[s],N,Hlist);
+		M = CuspsMats[s];
+		w = CuspsWidths[s];
 		M2qexps[s] = matconcat(
 			parapply(
 				vw->Mod(Mod(
@@ -123,16 +124,16 @@ ModJacInit(N,H,p,a,e)=
 			,M2gens)
 		)
 	);
+	print("Pruning");
 	\\ Prune: M2 -> S2(3 cusps) = M2(-C0)
 	d0 = 2*g+1;
 	C0o = BalancedDiv(nCusps-3,CuspsGalDegs);
 	C0 = Divo2Div(C0o,CuspsGal,CuspTags,nCusps);
 	U0 = MRRsubspace(M2qexps,C0,T,p,e);
-	V1 = M2*U0;
 	V1qexps = parapply(page->page*U0,M2qexps);
 	\\ Prune more: no need to evaluate at that many points
 	[PtsFrob,Pts] = SubPerm(PtsFrob,5*d0+1);
-	V1 = vecextract(V1,Pts,vector(#V1,i,i));
+	V1 = vecextract(M2,Pts,vector(#M2,i,i))*U0;
 	print("M4(GammaH)");
 	d = 2*d0+1-g;
 	[V2,V2gens] = DivAdd1(V1,V1,2*d0+1-g,p,d0,1);
@@ -163,10 +164,7 @@ ModJacInit(N,H,p,a,e)=
 	W0 = liftall(W0);
 	FrobMat = ZpXQ_FrobMat(T,p,e,pe);
 	J=[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[[U1],[U2]],[],PtsFrob];
-	\\CuspsQ = [GetCoef(CuspTags,o[1]) | o<-CuspsGal,#o==1]; \\ Cusps def / Q
-	CuspsQ = select(s->Mod(2*s[2],N)==0,Cusps,1); \\ TODO: verif cirterion
 	[J,vecextract(V2qexps,CuspsQ),vecextract(Cusps,CuspsQ)];
-	\\[J,M4qexps,Cusps]; \\ DEBUG
 }
 
 PicEval(J,W)=

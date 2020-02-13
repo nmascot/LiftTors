@@ -9,7 +9,7 @@ DivAdd1(A,B,dimres,p,excess,flag)=
 		uv = vector(n,j,[1+random(nA),1+random(nB)]);
 		\\C = matrix(m,n,i,j,A[i,uv[j][1]]*B[i,uv[j][2]]);
 		C = matconcat(parvector(n,j,vector(m,i,A[i,uv[j][1]]*B[i,uv[j][2]])~));
-    r = matindexrank(Mod(C,p))[2];
+    r = matindexrank(Mod(liftint(C),p))[2];
     if(#r == dimres,
       C = vecextract(C,r);
       return(if(flag,[C,vecextract(uv,r)],C))
