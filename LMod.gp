@@ -13,24 +13,24 @@ LMod(N,H,p)=
 		if(H,
 			for(j=1,#H1,
 				if(chareval(G,chi,H1[j]),
-					print("Dropping chi=",chi, " because chi(",H1[j],")!=1");
+					if(default(debug),print("Dropping chi=",chi, " because chi(",H1[j],")!=1"));
 					next(2)
 				)
 			)
 		); \\ Drop chi if h not in Ker chi
 		S = mfinit([N,2,[G,chi]],1);
 		d = mfdim(S);
-		print("Dropping chi=",chi, " because dim=0");
+		if(default(debug),print("Dropping chi=",chi, " because dim=0"));
 		if(d==0,next);
 		o = charorder(G,chi);
-		print("Char ",chi," , order ",o," , dim ",d);
+		if(default(debug),print("Char ",chi," , order ",o," , dim ",d));
 		Z = polcyclo(o,t);
 		z = Mod(t,Z);
 		ep = chareval(G,chi,p,[z,o]);
 		Tp = mfheckemat(S,p);
 		L1 = polresultant(charpoly(Tp,y),x^2-y*x+p*ep,y);
 		L1 = polresultant(Z,liftpol(L1),t);
-		print(L1);
+		if(default(debug),print(L1));
 		L *= L1;
 	);
 	L;

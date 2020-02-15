@@ -203,6 +203,25 @@ For $M=\matabcd$, this translates into
 
 Conj: the cusps for which there exists such an $M$ are exactly those having width $N$.
 
+Thm: Suppose $H=\pm1$ and $\phi(N) \geqslant 3$. Then $M$ satisfies the above iff $N \mid 2d$.
+
+Proof: In this case $\Q(X_1) = \Q(j,f^{(0,1)})$, so we want $f^{(0,1)}\mact M \smat{1}{}{}{x} = f^{(0,1)}\mact M$, i.e. $(c,dx) \equiv \pm (c,d)$ for all $x \in (Z/N\Z)^\times$. 3 cases:
+
+If $c \not \equiv -c$, then for all $x$, $dx \equiv d$, i.e. $N \mid d(x-1)$. In particular ($x=-1$), $N \mid 2d$. Conversely, assume $N \mid 2d$. If $N$ odd, then $N \mid d$, so $d \equiv 0$, OK. If $N$ even, then $N/2 \mid d$, so $N \mid d(x-1)$ since $(x-1)$ even.
+
+If $c \equiv -c$ but $c \not \equiv 0$, then $N$ is even and $c \equiv N/2$. Then $1 = gcd(c,d,N) = \gcd(d,N/2)$ and $x\pm1$ even. Since $N \mid d(x \pm 1) $, we have $\frac{N}2 \mid d \frac{x \pm 1}2$ so $\frac{N}2 \mid \frac{x \pm 1}2$ so $N \mid (x \pm 1)$ so $x \equiv \pm 1$, absurd since $\phi(N) \geqslant 3$. So this case cannot happen.
+
+Finally, if $c \equiv 0$, then $1=\gcd(d,N)$, so $d(x\pm1) \equiv 0$ implies $x \equiv \pm 1$, so again this case cannot occur.
+
+
+Cor: Suppose $V_2(N) \neq 1$, $H=\pm1$, and $\phi(N) \geqslant 3$. Then the cusps for which there exists such an $M$ are exactly those having width $N$.
+
+Proof: Let $(c,d)$ be a cusp; recall it is also represented by $(c,d_t)$ where $d_t=d+tc$ for all $t$.
+
+If the cusp has width $N$, then $\gcd(c,N)=1$, so we cn choose $t$ so that $d_t \equiv 0$, and then OK.
+
+Conversely, suppose there is such an $M$, i.e. we can choose $t$ so that $N \mid 2 d_t$. Observe that $1 = \gcd(c,d,N) = \gcd(c,d_t,N)$ for all $t$. 3 cases: if $N$ odd, then $N \mid d_t$ so $\gcd(c,N)=1$. If $4 \mid N$, then pick $t$ so that $N \mid 2d_t$, i.e. $\frac{N}2 \mid d_t$; then $1 = \gcd(c,d_t,N) = \gcd(c,N/2)$. Since $N/2$ even, then $\gcd(c,N)=1$ as wanted.
+
 \section{L factor}
 
 \[ L_p\big(X_H(N)\big) = \hspace{-1cm} \prod_{\substack{\chi \bmod G_\Q \\ \chi : (\Z/N\Z)^\times \rightarrow \Q[t]/\Phi_{\ord \chi}(t) \\ \Ker \chi \geqslant H}} \hspace{-1cm} \Res_t\big( \Phi_{\ord \chi}(t),\Res_y(x^2-yx+p\chi(p), \det(y1-T_p \vert_{S_2(N,\chi)}) \big) \]

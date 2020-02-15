@@ -32,7 +32,8 @@ GammaHCuspData(s,N,Hlist)= \\ (c,d) -> [a,b;c,d],width
 ANH(N,Hlist)=
 { \\ Find all (u,v) s.t. gcd(u,v,N)=1 / H
 	my(A=List(),tag=matrix(N,N),nH=#Hlist,n=0);
-  for(u=0,N-1,
+  Hlist = liftint(Hlist); \\ TODO
+	for(u=0,N-1,
     for(v=0,N-1,
       if(GetCoef(tag,[u,v]),next);
       if(gcd([u,v,N])==1,
@@ -55,7 +56,7 @@ GammaHCusps(N,Hlist)= \\ Reps (c,d) of all cusps of GammaH, plus data to find re
 		 * Widths
 		 * Tags: (c',d') -> index of equivalent representative
 	*/
-  my(Cusps=List(),CuspsGal=List(),Qqexp=List(),Mats=List(),Widths=List(),GalOrb,tag=matrix(N,N),nH=#Hlist,n=0,g,g2,h,M,a,Q,w);
+  my(Cusps=List(),CuspsGal=List(),Qqexp=List(),Mats=List(),Widths=List(),GalOrb,tag=matrix(N,N),nH=#Hlist,n=0,g,g2,h,M,Q,w);
 	for(c=0,N-1, \\ c in Z/NZ
 		g = gcd(c,N);
 		g2 = N/gcd(c^2,N);
@@ -68,31 +69,27 @@ GammaHCusps(N,Hlist)= \\ Reps (c,d) of all cusps of GammaH, plus data to find re
 				n++; \\ Index of that class
 				for(x=0,N/g-1, \\ Mark equivalent cusps
 					for(i=1,nH,
-						h = Hlist[i];
+						h = liftint(Hlist[i]); \\ TODO
 						tag[ZNnorm(h*c,N),ZNnorm(h*d+x*g,N)]=n \\ up to H
 					)
 				);
 				M = BotToSL2([c,d],N); \\ Matrix [a,b;c,d]
 				\\ The other choices are [1,t;0,1]*M
-				if(Mod(2*c*d,N), \\ If qexps / Q, then necessarily N|2cd
-					listput(Mats,M)
-				,
-					\\ Qqexp iff can choose t so that for all invertible x, ad(x-1)+1 in H
-					for(i=1,N,
-						Q = 1;
-  					a = M[1,1];
-						for(x=2,N-1,
-							if(gcd(x,N)>1,next);
-							if(#select(y->Mod(y,N)==Mod(a*d*(x-1)+1,N),Hlist,1)==0,Q=0;break)
-						);
-						if(Q,break);
-						M=M*[1,1;0,1]
+				\\ Qqexp iff can choose t so that for all invertible x, ad(x-1)+1 in H
+				for(i=1,N,
+					Q = 1;
+					for(x=2,N-1,
+						if(gcd(x,N)>1,next);
+						if(Mod(2*M[2,1]*M[2,2],N),Q=0;break);
+						if(#select(y->Mod(y,N)==Mod(M[1,1]*M[2,2]*(x-1)+1,N),Hlist,1)==0,Q=0;break)
 					);
-          if(Q,listput(Qqexp,n));
-          listput(Mats,M);
+					if(Q,break);
+					M=M*[1,1;0,1]
 				);
+        if(Q,listput(Qqexp,n));
+        listput(Mats,M);
 				w=1; \\ Compute width: g2 * min w such that 1+acg2w in H
-  			while(#select(y->Mod(y,N)==Mod(1+a*c*g2*w,N),Hlist,1)==0,w++);
+  			while(#select(y->Mod(y,N)==Mod(1+M[1,1]*c*g2*w,N),Hlist,1)==0,w++);
 				listput(Widths,g2*w);
 			)
 		);
