@@ -512,7 +512,7 @@ GEN Jlift(GEN J, ulong e2)
 
 GEN RREval(GEN J, GEN W)
 {
-	pari_sp av = avma;
+	pari_sp av = avma, av1, av2;
 	GEN T,p,pe,V,KV,U,res;
 	long e;
 	ulong n1,n2,i1,i2;
@@ -530,21 +530,30 @@ GEN RREval(GEN J, GEN W)
 	n2 = lg(gel(U,2)); /* Deg of E2 / Q */
 
 	res = cgetg(n1,t_MAT);
+	/*for(i1=1;i1<n1;i1++)
+	{
+		gel(res,i1) = cgetg(n2,t_COL);
+		for(i2=1;i2<n2;i2++) gcoeff(res,i2,i1) = gen_0;
+	}
+	av0 = avma;*/
 	/* TODO free memory */
 	for(i1=1;i1<n1;i1++)
 	{
 		gel(res,i1) = cgetg(n2,t_COL);
+		av1 = avma;
 		S1 = DivAdd(W,gmael(U,1,i1),2*d0+1,T,p,e,pe,0); /* L(4D0-D-E1) */
 		S1 = DivSub(V,S1,KV,1,T,p,e,pe,2); /* L(2D0-D-E1), generically 1-dimensional */
 		S1 = gel(S1,1); /* Generator */
+		S1 = gerepileupto(av1,S1);
 		for(i2=1;i2<n2;i2++)
 		{
+			av2 = avma;
 			S2 = DivMul(S1,V,T,pe); /* L(4D0-D-E1-ED) */
 			S2 = DivSub(W,S2,KV,d0+1-g,T,p,e,pe,2); /* L(2D0-E1-ED) */
 			S2 = DivAdd(S2,gmael(U,2,i2),2*d0+1,T,p,e,pe,0); /* L(4D0-E1-E2-ED) */
 			S2 = DivSub(V,S2,KV,1,T,p,e,pe,2); /* L(2D0-E1-E2-ED), generically 1-dimensional */
   		s2 = gel(S2,1); /* Generator */
-			/*s2 = gerepilecopy(av,s2); TODO */
+			s2 = gerepileupto(av2,s2);
 			/* get coords of s2 w.r.t. V */
   		K = cgetg(nV+1,t_MAT);
   		for(i=1;i<nV;i++) gel(K,i) = gel(V,i);
@@ -552,7 +561,7 @@ GEN RREval(GEN J, GEN W)
   		K = matkerpadic(K,T,p,e);
 			K = gel(K,1);
 			setlg(K,nV);
-			gcoeff(res,i2,i1)=K;
+			gcoeff(res,i2,i1)=gerepilecopy(av2,K);
 		}
 	}
 	return gerepilecopy(av,res);
