@@ -350,7 +350,7 @@ GEN PicChord(GEN J, GEN WA, GEN WB, long flag)
 	WAWB = DivAdd(WA,WB,2*d0+1-g,T,p,e,pe,0);
 	/* L(3D0-A-B) */
 	WAB = DivSub(V1,WAWB,KV3,d0+1-g,T,p,e,pe,2);
-	/* TODO can free some memory here */
+	WAB = gerepileupto(av,WAB);
 	if(flag & 1) s = RandVec_padic(WAB,T,p,pe);
 	else s = gel(WAB,1);
 	/* s in WB: (s) = -3D0+A+B+C */
