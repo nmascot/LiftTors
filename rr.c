@@ -544,10 +544,10 @@ GEN RREval(GEN J, GEN W)
 			S2 = DivMul(S1,V,T,pe); /* L(4D0-D-E1-ED) */
 			S2 = DivSub(W,S2,KV,d0+1-g,T,p,e,pe,2); /* L(2D0-E1-ED) */
 			S2 = DivAdd(S2,gmael(U,2,i2),2*d0+1,T,p,e,pe,0); /* L(4D0-E1-E2-ED) */
-			S2 = gerepileupto(av2,S2);
+			if(gc_needed(av,1)) S2 = gerepileupto(av2,S2);
 			S2 = DivSub(V,S2,KV,1,T,p,e,pe,2); /* L(2D0-E1-E2-ED), generically 1-dimensional */
   		s2 = gel(S2,1); /* Generator */
-			s2 = gerepileupto(av2,s2);
+			if(gc_needed(av,1)) s2 = gerepileupto(av2,s2);
 			/* get coords of s2 w.r.t. V */
   		K = cgetg(nV+1,t_MAT);
   		for(i=1;i<nV;i++) gel(K,i) = gel(V,i);
