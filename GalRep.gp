@@ -72,14 +72,25 @@ TorsOrd(J,W,l)=
   [W,v];
 }
 
-RandTorsPt(J,l,M,chiC,seed)=
+RandTorsPt(J,l,a,Lp,Chi,Phi,seed)=
 {
-  my(W,o,T,lT);
+  my(N,v,M,Psi,fa,W,o,T,lT);
 	setrand(seed);
+	N = polresultant(Lp,if(Phi,Phi,'x^a-1));
+	v = valuation(N,l);
+  M = N/l^v;
   while(1,
     W = PicRand(J);
+		if(Phi,W = PicFrobPoly(J,W,('x^a-1)/Phi));
     W = PicMul(J,W,M,0);
-    if(chiC,W = PicFrobPoly(J,W,chiC));
+    if(Chi,
+			Psi = lift(Mod(Lp,l)/Chi); \\ cofactor
+    	fa = [Chi,Psi];
+    	fa = polhensellift(Lp,fa,l,v); \\ lift cofactor l-adically
+    	Psi = fa[2];
+    	Psi = centerlift(Mod(Psi,l^v)); \\ center mod l^v 
+			W = PicFrobPoly(J,W,Psi)
+		);
 		o = 0;
 		T = W;
 		lT = T;
@@ -88,7 +99,7 @@ RandTorsPt(J,l,M,chiC,seed)=
     	T = lT;
     	lT = PicMul(J,T,l,0)
   	);
-		if(o,return([W,o,T]));
+		if(o,return([W,o,T,if(Phi,poldegree(Phi),a)]));
   );
 }
 
@@ -100,24 +111,20 @@ TorsBasis(J,l,chi,C)=
 \\ If C==0, then we take T=J[l]
 \\ Also computes the matrix M of Frob w.r.t B, and returns the vector [B,M]
 {
-  my(i,a,d,N,M,v,chiC,Batch,nBatch,iBatch,iFrob,W,o,T,BW,Bo,BT,R,KR,Rnew,KRnew,Wtest,Wnew,am,S,AddC,W0,z);
-	iBatch = nBatch = 0; \\ index and length of batch of tors pts
+  my(i,a,d,Phi,iPhi,UsedPhi,Batch,nBatch,iBatch,iFrob,W,o,T,BW,Bo,BT,R,KR,Rnew,KRnew,Wtest,Wnew,am,S,AddC,W0,z);
+	Phi = 0; \\ List of Cyclo Pols used to accelerated exponentiation if a%l
+	iPhi = 0; \\ Index of last used elt of Phi
+	nBatch = 0; \\ Size of current batch
+	iBatch = 0; \\ Position in current batch
+	iFrob = 0; \\ Number of mes Frob has been applied to current point of current batch
+	iFrobMax = 0; \\ Upper bound on deg of minpoly of Frob on current point on current batch
 	a = poldegree(JgetT(J)); \\ work over Fq=Fp[t]/T, q=p^a
-	iFrob = a-1; \\ How many times we have applied Frob to l-tors pt
-	N = polresultant(chi,'x^a-1);
-  v = valuation(N,l);
-  M = N/l^v; \\ # J(Fq) = M*l^v, coprime
-  if(C,
-		d = poldegree(C); \\ dim of rep
-    chiC = lift(Mod(chi,l)/C); \\ cofactor
-    fa = [C,chiC];
-    fa = polhensellift(chi,fa,l,v); \\ lift cofactor l-adically
-    chiC = fa[2];
-    chiC = centerlift(Mod(chiC,l^v)) \\ center mod l^v
-	,
-		d = poldegree(chi); \\ dim of rep
-    chiC = 0 \\ no cofactor
-  );
+  d = if(C,poldegree(C),poldegree(chi)); \\ dim of rep
+	if(Mod(a,l),
+		Phi = vecsort(divisors(a),,4); \\ Divisors of a in reverse order
+		Phi = apply(polcyclo,Phi); \\ Corresponding cyclotomic pols
+  	if(C,Phi = select(phi->poldegree(gcd(Mod(phi,l),Mod(C,l))),Phi)) \\ Keep the ones compatible with charpoly C
+	);
   BW = vector(d); \\ list of l-power tors pts
   Bo = vector(d); \\ list of exponents of orders
   BT = vector(d); \\ list of l-tors pts
@@ -128,22 +135,31 @@ TorsBasis(J,l,chi,C)=
   W0 = PicChord(J,W0,W0,1); \\ Non-trivial origin, needed for pairings
 	z = Fq_zeta_l(JgetT(J),Jgetp(J),l); \\ primitive l-th root of 1, to linearize parings
   r = 0; \\ dim of l-tors obtained so far
+
   while(r<d,
     print("Getting new point");
 		iFrob += 1;
-		if(iFrob==a, \\ No use applying Frob anymore
+		if(iFrob>=iFrobMax, \\ No use applying Frob anymore
+			iFrob = 0;
 			print(" from batch");
-			if(iBatch==nBatch, \\ Have we used all of the previous batch?
+			if(iBatch>=nBatch, \\ Have we used all of the previous batch?
 				nBatch = max(ceil((d-r)/a),ceil(default(nbthreads)/2)); \\ If yes, make new batch
 				print("  Generating a new batch of ",nBatch," points in parallel");
 				my(RandTorsPt=RandTorsPt,seed=vector(nBatch,i,random()));
-				Batch = parvector(nBatch,i,RandTorsPt(J,l,M,chiC,seed[i]));
+				if(Phi,
+					UsedPhi = vector(nBatch,i,Phi[(iPhi+i-1)%#Phi+1]);
+					iPhi += nBatch;
+					print("   Using Phi=",UsedPhi)
+				,
+					UsedPhi = vector(nBatch,i,0);
+				);
+				Batch = parvector(nBatch,i,RandTorsPt(J,l,a,chi,C,UsedPhi[i],seed[i]));
 				print("  Batch of points generated.");
 				iBatch=1;
     	,
 				iBatch+=1; \\ Else just move to next pt in batch
 			);
-			[W,o,T]=Batch[iBatch];
+			[W,o,T,iFrobMax]=Batch[iBatch];
     	print(" It has order l^",o);
 		,
 			print(" from Frob"); \\ Get new pt by Frob (fast)
@@ -173,6 +189,7 @@ TorsBasis(J,l,chi,C)=
 			if(#KR>1,error("Bug in TorsSpace, please report")); \\ Not supposed to happen by (H)
 			if(#KR==0,
 				print(" Good, no relation");
+				\\breakpoint();
 				next(2)
 			);
 			KR=KR[,1];
@@ -227,7 +244,7 @@ TorsBasis(J,l,chi,C)=
 					);
 					if(PicEq(J,BT[r],T), \\ This can happen if we have generated a Frob-stable suspace
 						print("The new point is equal to the old one, giving up this point");
-						iFrob = a-1; \\ Reset indices
+						iFrob = iFrobMax; \\ Reset indices
           	r -= 1; \\ Erase data about this point
           	break
 					);
@@ -237,7 +254,7 @@ TorsBasis(J,l,chi,C)=
 				,
         	print(" Giving up this point");
 					\\ Nothing more to do with this point. Start over with a new one.
-					iFrob = a-1; \\ Reset indices
+					iFrob = iFrobMax; \\ Reset indices
         	r -= 1; \\ Erase data about this point
         	break
       	)
