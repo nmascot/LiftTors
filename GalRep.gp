@@ -123,7 +123,7 @@ TorsBasis(J,l,chi,C)=
 	if(Mod(a,l),
 		Phi = vecsort(divisors(a),,4); \\ Divisors of a in reverse order
 		Phi = apply(polcyclo,Phi); \\ Corresponding cyclotomic pols
-  	if(C,Phi = select(phi->poldegree(gcd(Mod(phi,l),Mod(C,l))),Phi)) \\ Keep the ones compatible with charpoly C
+		Phi = select(phi->if(C,poldegree(gcd(Mod(phi,l),Mod(C,l))),Mod(polresultant(chi,phi),l)==0),Phi) \\ Keep the ones compatible with charpoly C
 	);
   BW = vector(d); \\ list of l-power tors pts
   Bo = vector(d); \\ list of exponents of orders
