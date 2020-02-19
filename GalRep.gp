@@ -74,17 +74,24 @@ TorsOrd(J,W,l)=
 
 RandTorsPt(J,l,a,Lp,Chi,Phi,seed)=
 {
-  my(N,v,M,Psi,fa,W,o,T,lT);
+  my(N,v,M,Psid,Psi,fa,W,o,T,lT);
 	setrand(seed);
 	N = polresultant(Lp,if(Phi,Phi,'x^a-1));
 	v = valuation(N,l);
   M = N/l^v;
   while(1,
     W = PicRand(J);
-		if(Phi,W = PicFrobPoly(J,W,('x^a-1)/Phi));
+		if(Phi,
+			Psid = ('x^a-1)/Phi;
+			W = PicFrobPoly(J,W,Psid)
+		);
     W = PicMul(J,W,M,0);
     if(Chi,
-			Psi = lift(Mod(Lp,l)/Chi); \\ cofactor
+			Psi = Mod(Lp,l)/Chi; \\ cofactor
+			if(Phi,
+				Psi = Psi / gcd(Psi,Mod(Psid,l))
+			);
+			Psi = liftint(Psi);
     	fa = [Chi,Psi];
     	fa = polhensellift(Lp,fa,l,v); \\ lift cofactor l-adically
     	Psi = fa[2];
@@ -99,7 +106,11 @@ RandTorsPt(J,l,a,Lp,Chi,Phi,seed)=
     	T = lT;
     	lT = PicMul(J,T,l,0)
   	);
-		if(o,return([W,o,T,if(Phi,poldegree(Phi),a)]));
+		if(o,
+				return([W,o,T,if(Phi,poldegree(Phi),a)])
+		,
+			if(default(debug),print("RandTorsPt got zero (Phi=",Phi,"), retrying"));
+		);
   );
 }
 
