@@ -360,6 +360,9 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
   int newpt;
   ulong nZ,n,cyc_top,i;
   GEN vars,pe,t,T,FrobMat,Z,Zp,P,Pp,Q,FrobCyc,x,y,V1,V2,V3,W0,V,KV,U,J;
+	struct pari_mt pt;
+	GEN worker,done,E;
+	long workid,pending,k;
 
 	vars = variables_vecsmall(f);
 	nZ = 5*d0+1;
@@ -417,7 +420,16 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
 	V = mkvecn(3,V1,V2,V3);
 	if(DEBUGLEVEL) printf("PicInit: Computing equation matrices\n");
 	KV = cgetg(4,t_VEC);
-	for(i=1;i<=3;i++) gel(KV,i) = mateqnpadic(gel(V,i),T,p,e);
+	E = stoi(e);
+	worker = strtofunction("mateqnpadic");
+  mt_queue_start(&pt,worker);
+  for(k=1;k<=3||pending;k++)
+  {
+    mt_queue_submit(&pt,k,k<=3?mkvecn(4,gel(V,k),T,p,E):NULL);
+    done = mt_queue_get(&pt,&workid,&pending);
+    if(done) gel(KV,workid) = done;
+  }
+  mt_queue_end(&pt);
 	if(DEBUGLEVEL) printf("PicInit: Constructing evaluation maps\n");
 	U = RREvalInit(L,vars,Z,T,p,e,pe);
   J = mkvecn(lgJ,f,stoi(g),stoi(d0),L,T,p,stoi(e),pe,FrobMat,V,KV,W0,U,Z,FrobCyc);
@@ -429,8 +441,11 @@ GEN Jlift(GEN J, ulong e2)
 	pari_sp av = avma, avZ;
 	GEN J2,T,p,pe2,f,vars,L,FrobCyc,FrobMat2;
 	long g,d0;
-	GEN Z,Z2,V1,V2,V3,W0,KV1,KV2,KV3,P,x,y,fx,U;
+	GEN Z,Z2,V,W0,KV,P,x,y,fx,U;
 	ulong nZ,i,j;
+	struct pari_mt pt;
+  GEN worker,done,E2;
+  long pending,k,workid;
   if(Jgete(J)>=e2)
 	{
 		pari_warn(warner,"Current accuracy already higher than required in Jlift, not changing anything");
@@ -458,7 +473,7 @@ GEN Jlift(GEN J, ulong e2)
   gel(J2,4) = L;
   gel(J2,5) = T;
   gel(J2,6) = p;
-  gel(J2,7) = utoi(e2);
+  gel(J2,7) = E2 = utoi(e2);
   gel(J2,8) = pe2 = powiu(p,e2);
   gel(J2,9) = FrobMat2 = ZpXQ_FrobMat(T,p,e2,pe2);
 	
@@ -488,21 +503,42 @@ GEN Jlift(GEN J, ulong e2)
 		}
 	}
 	Z2 = gerepilecopy(avZ,Z2);
-	/* TODO parllelise */
-	V1 = FnsEvalAt_Rescale(gel(L,1),Z2,vars,T,p,e2,pe2);
-  V2 = FnsEvalAt_Rescale(gel(L,2),Z2,vars,T,p,e2,pe2);
-  V3 = DivAdd(V1,V2,3*d0+1-g,T,p,e2,pe2,0);
-  W0 = V1; /* TODO can it happen that W0 != V1 even though all data is present? */
-	/* TODO parllelise */
-  KV1 = mateqnpadic(V1,T,p,e2);
-  KV2 = mateqnpadic(V2,T,p,e2);
-  KV3 = mateqnpadic(V3,T,p,e2);
+	V = cgetg(4,t_VEC);
+	KV = cgetg(4,t_VEC);
 	U = cgetg(3,t_VEC);
-	/* TODO parllelise */
-  for(i=1;i<=2;i++)
-    gel(U,i) = RRspaceEval(gel(L,i+2),vars,Z2,T,p,e2,pe2);
-  gel(J2,10) = mkvecn(3,V1,V2,V3);
-  gel(J2,11) = mkvecn(3,KV1,KV2,KV3);
+	/* TODO why does that parallel version not work?
+	printf("RR\n");
+	worker = strtofunction("RRspaceEval");
+	mt_queue_start(&pt,worker);
+  for(k=1;k<=4||pending;k++)
+  {
+		mt_queue_submit(&pt,k,k<=4?mkvecn(7,gel(L,k),vars,Z2,T,p,E2,pe2):NULL);
+		done = mt_queue_get(&pt,&workid,&pending);
+		if(done)
+		{
+			if(workid<=2) gel(V,workid) = gel(done,1);
+			else gel(U,workid-2) = done;
+		}
+	}
+	mt_queue_end(&pt);
+	printf("End RR\n"); */
+	gel(V,1) = gel(RRspaceEval(gel(L,1),vars,Z2,T,p,e2,pe2),1);
+	gel(V,2) = gel(RRspaceEval(gel(L,2),vars,Z2,T,p,e2,pe2),1);
+	gel(U,1) = RRspaceEval(gel(L,3),vars,Z2,T,p,e2,pe2);
+	gel(U,2) = RRspaceEval(gel(L,4),vars,Z2,T,p,e2,pe2);
+  gel(V,3) = DivAdd(gel(V,1),gel(V,2),3*d0+1-g,T,p,e2,pe2,0);
+  W0 = gel(V,1); /* TODO can it happen that W0 != V1 even though all data is present? */
+	worker = strtofunction("mateqnpadic");
+  mt_queue_start(&pt,worker);
+  for(k=1;k<=3||pending;k++)
+  {
+    mt_queue_submit(&pt,k,k<=3?mkvecn(4,gel(V,k),T,p,E2):NULL);
+    done = mt_queue_get(&pt,&workid,&pending);
+    if(done) gel(KV,workid) = done;
+  }
+  mt_queue_end(&pt);
+  gel(J2,10) = V;
+  gel(J2,11) = KV;
   gel(J2,12) = W0;
   gel(J2,13) = U;
   gel(J2,14) = Z2;
