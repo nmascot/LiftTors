@@ -78,6 +78,7 @@ RandTorsPt(J,l,a,Lp,Chi,Phi,seed)=
 	setrand(seed);
 	N = polresultant(Lp,if(Phi,Phi,'x^a-1));
 	v = valuation(N,l);
+	if(v==0,error("No l-torsion!"));
   M = N/l^v;
   while(1,
     W = PicRand(J);
@@ -91,11 +92,14 @@ RandTorsPt(J,l,a,Lp,Chi,Phi,seed)=
 			if(Phi,
 				Psi = Psi / gcd(Psi,Mod(Psid,l))
 			);
-			Psi = liftint(Psi);
-    	fa = [Chi,Psi];
-    	fa = polhensellift(Lp,fa,l,v); \\ lift cofactor l-adically
-    	Psi = fa[2];
-    	Psi = centerlift(Mod(Psi,l^v)); \\ center mod l^v 
+			if(v>1,
+    		fa = apply(liftint,[Lp/Psi,Psi]);
+    		fa = polhensellift(Lp,fa,l,v); \\ lift cofactor l-adically
+    		Psi = fa[2];
+    		Psi = centerlift(Mod(Psi,l^v)) \\ center mod l^v 
+			,
+				Psi = centerlift(Psi)
+			);
 			W = PicFrobPoly(J,W,Psi)
 		);
 		o = 0;
