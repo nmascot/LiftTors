@@ -429,7 +429,7 @@ GEN Jlift(GEN J, ulong e2)
 	pari_sp av = avma, avZ;
 	GEN J2,T,p,pe2,f,vars,L,FrobCyc,FrobMat2;
 	long g,d0;
-	GEN Z,Z2,V1,V2,V3,W0,V,KV,KV3,P,x,y,fx,U;
+	GEN Z,Z2,V1,V2,V3,W0,KV1,KV2,KV3,P,x,y,fx,U;
 	ulong nZ,i,j;
   if(Jgete(J)>=e2)
 	{
@@ -488,25 +488,25 @@ GEN Jlift(GEN J, ulong e2)
 		}
 	}
 	Z2 = gerepilecopy(avZ,Z2);
+	/* TODO parllelise */
 	V1 = FnsEvalAt_Rescale(gel(L,1),Z2,vars,T,p,e2,pe2);
   V2 = FnsEvalAt_Rescale(gel(L,2),Z2,vars,T,p,e2,pe2);
   V3 = DivAdd(V1,V2,3*d0+1-g,T,p,e2,pe2,0);
   W0 = V1; /* TODO can it happen that W0 != V1 even though all data is present? */
-  V = V2;
-  KV = mateqnpadic(V,T,p,e2);
+	/* TODO parllelise */
+  KV1 = mateqnpadic(V1,T,p,e2);
+  KV2 = mateqnpadic(V2,T,p,e2);
   KV3 = mateqnpadic(V3,T,p,e2);
 	U = cgetg(3,t_VEC);
+	/* TODO parllelise */
   for(i=1;i<=2;i++)
     gel(U,i) = RRspaceEval(gel(L,i+2),vars,Z2,T,p,e2,pe2);
-  gel(J2,10) = V1;
-  gel(J2,11) = V;
-  gel(J2,12) = V3;
-  gel(J2,13) = KV;
-  gel(J2,14) = KV3;
-  gel(J2,15) = W0;
-	gel(J2,16) = U;
-  gel(J2,17) = Z2;
-  gel(J2,18) = JgetFrobCyc(J);
+  gel(J2,10) = mkvecn(3,V1,V2,V3);
+  gel(J2,11) = mkvecn(3,KV1,KV2,KV3);
+  gel(J2,12) = W0;
+  gel(J2,13) = U;
+  gel(J2,14) = Z2;
+  gel(J2,15) = JgetFrobCyc(J);
   return gerepilecopy(av,J2);
 }
 
