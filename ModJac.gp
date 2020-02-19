@@ -10,7 +10,7 @@ ModJacInit(N,H,p,a,e)=
 { \\ J_H(N) over Zq/p^e, q=p^a
 	my(Hlist,Hlist1,TH);
 	my(Lp,g,Cusps,nCusps,CuspsGal,CuspsGalDegs,CuspTags);
-	my(E,P0,Q0,zN,zNpows,MFrobE,tMFrobE,T,pe=p^e,Tpe,Ml1);
+	my(E,P0,Q0,zN,zNpows,MFrobE,tMFrobE,T,pe=p^e,EN,todo,done,x,y,Ml1);
 	my(d,d1,Pts,nPts,PtTags,MPts,M2,M2gens,v,w,M,qprec,M2qexps,B,d0,C0,U0,V1,V2,V3,V2gens,V1qexps,V2qexps,E1,E2,U1,U2,KV,f2,W0,J,CuspsQ);
 	\\ Get H and H/+-1
   [Hlist,Hlist1] = GetHlist(N,H);
@@ -33,7 +33,6 @@ ModJacInit(N,H,p,a,e)=
 	);
 	tMFrobE = mattranspose(MFrobE);
 	T = zN.mod;
-	Tpe = [T,pe,p,e];
 	print("E:y²=x³+",E.a4,"x+",E.a6," ",p,"-adically");
 	\\print("Order ", N,": ",mordroot(x^2-ellap(E,p)*x+p,N));
 	\\ Write down all N-torsion: : this is a naive level structure alpha: (Z/NZ)² ~ E[N]
@@ -44,17 +43,20 @@ ModJacInit(N,H,p,a,e)=
     EN[x,N]=elladd_padic(E.a4,EN[x-1,N],P0,T,pe,p,e);
     EN[N,x]=elladd_padic(E.a4,EN[N,x-1],Q0,T,pe,p,e);
   );
-  for(x=1,N-1,
-    for(y=1,N-1,
-      EN[x,y]=elladd_padic(E.a4,EN[x,N],EN[N,y],T,pe,p,e)
-    )
-  );
+	todo = List();
+	for(x=1,N-1,for(y=1,N-1,listput(todo,[x,y])));
+	done = parapply(X->elladd_padic(E.a4,EN[X[1],N],EN[N,X[2]],T,pe,p,e),Vec(todo));
+	for(i=1,#todo,[x,y]=todo[i];EN[x,y]=done[i]);
 	\\ Matrix of l(P) for P in E[N]
 	print("Ml1");
 	\\ TODO parallelise
 	Ml1=matrix(N,N);
-	for(x=1,N-1,Ml1[x,N]=l1(EN,[x,0],[0,1],T,pe,p,e)); \\ P=alpha(x,0) -> Q=alpha(0,1)
-	for(x=1,N,for(y=1,N-1,Ml1[x,y]=l1(EN,[x,y],[1,0],T,pe,p,e))); \\ P=alpha(x,y), y!=0 -> Q=alpha(1,0)
+	\\ TODO do we use non coprime entries?
+	todo = List();
+	for(x=1,N-1,listput(todo,[[x,N],[0,1]])); \\ P=alpha(x,0) -> Q=alpha(0,1)
+	for(x=1,N,for(y=1,N-1,listput(todo,[[x,y],[1,0]]))); \\ P=alpha(x,y), y!=0 -> Q=alpha(1,0)
+	done = parapply(X->l1(EN,X[1],X[2],T,pe,p,e),Vec(todo));
+	for(i=1,#todo,[x,y]=todo[i][1];Ml1[x,y]=done[i]); 
 	Ml1 = Mod(Mod(Ml1,T),pe);
 	print("M2(GammaH)");
 	\\ Find a basis for M2(GammaH(N))
