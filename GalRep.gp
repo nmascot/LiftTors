@@ -171,7 +171,7 @@ TorsBasis(J,l,chi,C)=
 				iBatch+=1; \\ Else just move to next pt in batch
 			);
 			[W,o,T,iFrobMax]=Batch[iBatch];
-    	print(" It has order l^",o);
+    	print(" It has order ",l,"^",o);
 		,
 			print(" from Frob"); \\ Get new pt by Frob (fast)
 			W = PicFrob(J,W);

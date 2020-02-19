@@ -377,7 +377,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 				/* But first check if really l-tors, as the chart might not be injective ! */
     		if(P0_tested == 0)
 				{
-					if(DEBUGLEVEL) printf("Checking l tors\n");
+					if(DEBUGLEVEL) pari_printf("Checking %Ps-tors\n",l);
 					for(i=1;i<=g+1;i++) gel(Wlifts,i) = FqM_Fq_mul(gel(Wlifts,i),gel(Ktors,i),T,pe2);
 					W = gel(Wlifts,1);
   	  		for(i=2;i<=g+1;i++) W = FpXM_add(W,gel(Wlifts,i),pe2);
