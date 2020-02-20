@@ -111,7 +111,7 @@ RandTorsPt(J,l,a,Lp,Chi,Phi,seed)=
     	lT = PicMul(J,T,l,0)
   	);
 		if(o,
-				return([W,o,T,if(Phi,poldegree(Phi),a)])
+				return([W,o,T,if(Phi||Chi,poldegree(gcd(Mod(Chi,l),Mod(Phi,l))),a)])
 		,
 			if(default(debug),print("RandTorsPt got zero (Phi=",Phi,"), retrying"));
 		);
