@@ -343,14 +343,27 @@ GEN CurveRandPt(GEN f, GEN T, GEN p, long e, GEN bad)
   }
 }
 
-GEN RREvalInit(GEN L, GEN vars, GEN Z, GEN T, GEN p, long e, GEN pe)
+GEN RREvalInit(GEN L, GEN vars, GEN Z, GEN V2, GEN T, GEN p, long e, GEN pe)
 {
   pari_sp av = avma;
-  GEN res;
-  ulong i;
-  res = cgetg(3,t_VEC);
+  GEN res,I,M;
+  ulong i,j,nV2;
+  res = cgetg(5,t_VEC);
   for(i=1;i<=2;i++)
     gel(res,i) = RRspaceEval(gel(L,i+2),vars,Z,T,p,e,pe);
+	nV2 = lg(V2);
+	I = FqM_indexrank(V2,T,p);
+	I = gel(I,1); /* Rows of V2 forming invertible block */
+	gel(res,3) = I;
+	/* That invertible block */
+	M = cgetg(nV2,t_MAT);
+	for(j=1;j<nV2;j++)
+	{
+		gel(M,j) = cgetg(nV2,t_COL);
+		for(i=1;i<nV2;i++)
+			gcoeff(M,i,j) = gcoeff(V2,I[i],j);
+	}
+	gel(res,4) = ZpXQM_inv(M,T,p,e);
   return gerepilecopy(av,res);
 }
 
@@ -431,7 +444,7 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
   }
   mt_queue_end(&pt);
 	if(DEBUGLEVEL) printf("PicInit: Constructing evaluation maps\n");
-	U = RREvalInit(L,vars,Z,T,p,e,pe);
+	U = RREvalInit(L,vars,Z,V2,T,p,e,pe);
   J = mkvecn(lgJ,f,stoi(g),stoi(d0),L,T,p,stoi(e),pe,FrobMat,V,KV,W0,U,Z,FrobCyc);
 	return gerepilecopy(av,J);
 }
@@ -441,8 +454,8 @@ GEN Jlift(GEN J, ulong e2)
 	pari_sp av = avma, avZ;
 	GEN J2,T,p,pe2,f,vars,L,FrobCyc,FrobMat2;
 	long g,d0;
-	GEN Z,Z2,V,W0,KV,P,x,y,fx,U;
-	ulong nZ,i,j;
+	GEN Z,Z2,V,W0,KV,P,x,y,fx,U,V2,I,M;
+	ulong nZ,i,j,nV2;
 	struct pari_mt pt;
   GEN worker,done,E2;
   long pending,k,workid;
@@ -505,7 +518,7 @@ GEN Jlift(GEN J, ulong e2)
 	Z2 = gerepilecopy(avZ,Z2);
 	V = cgetg(4,t_VEC);
 	KV = cgetg(4,t_VEC);
-	U = cgetg(3,t_VEC);
+	U = cgetg(5,t_VEC);
 	/* TODO why does that parallel version not work?
 	printf("RR\n");
 	worker = strtofunction("RRspaceEval");
@@ -523,11 +536,21 @@ GEN Jlift(GEN J, ulong e2)
 	mt_queue_end(&pt);
 	printf("End RR\n"); */
 	gel(V,1) = gel(RRspaceEval(gel(L,1),vars,Z2,T,p,e2,pe2),1);
-	gel(V,2) = gel(RRspaceEval(gel(L,2),vars,Z2,T,p,e2,pe2),1);
+	V2 = gel(V,2) = gel(RRspaceEval(gel(L,2),vars,Z2,T,p,e2,pe2),1);
 	gel(U,1) = RRspaceEval(gel(L,3),vars,Z2,T,p,e2,pe2);
 	gel(U,2) = RRspaceEval(gel(L,4),vars,Z2,T,p,e2,pe2);
   gel(V,3) = DivAdd(gel(V,1),gel(V,2),3*d0+1-g,T,p,e2,pe2,0);
   W0 = gel(V,1); /* TODO can it happen that W0 != V1 even though all data is present? */
+	I = gel(U,3) = gmael(J,13,3);
+	nV2 = lg(V2);
+	M = cgetg(nV2,t_MAT);
+  for(j=1;j<nV2;j++)
+  {
+    gel(M,j) = cgetg(nV2,t_COL);
+    for(i=1;i<nV2;i++)
+      gcoeff(M,i,j) = gcoeff(V2,I[i],j);
+  }
+  gel(U,4) = ZpXQM_inv(M,T,p,e2);
 	worker = strtofunction("mateqnpadic");
   mt_queue_start(&pt,worker);
   for(k=1;k<=3||pending;k++)
@@ -552,7 +575,7 @@ GEN RREval(GEN J, GEN W)
 	GEN T,p,pe,V,KV,U,res;
 	long e;
 	ulong n1,n2,i1,i2;
-	GEN S1,S2,s2,K;
+	GEN S1,S2,I,M,s2,s2I,K;
 	ulong d0,g,nV,i;
 	
 	JgetTpe(J,&T,&pe,&p,&e);
@@ -564,6 +587,8 @@ GEN RREval(GEN J, GEN W)
 	U = JgetEvalData(J); /* L(2D0-Ei), deg Ei = d0-g (i=1,2), repeated for each embedding into Qq */
 	n1 = lg(gel(U,1)); /* Deg of E1 / Q */
 	n2 = lg(gel(U,2)); /* Deg of E2 / Q */
+	I = gel(U,3); /* Row indices to look at to ID an elt of V */
+	M = gel(U,4); /* Matrix to apply to the I-entries */
 
 	res = cgetg(n1,t_MAT);
 	for(i1=1;i1<n1;i1++)
@@ -585,13 +610,10 @@ GEN RREval(GEN J, GEN W)
   		s2 = gel(S2,1); /* Generator */
 			if(gc_needed(av,1)) s2 = gerepileupto(av2,s2);
 			/* get coords of s2 w.r.t. V */
-  		K = cgetg(nV+1,t_MAT);
-  		for(i=1;i<nV;i++) gel(K,i) = gel(V,i);
-  		gel(K,nV) = s2;
-  		K = matkerpadic(K,T,p,e);
-			K = gel(K,1);
-			setlg(K,nV);
-			gcoeff(res,i2,i1)=gerepilecopy(av2,K);
+			s2I = cgetg(nV,t_COL);
+			for(i=1;i<nV;i++) gel(s2I,i) = gel(s2,I[i]);
+  		K = FqM_FqC_mul(M,s2I,T,pe);
+			gcoeff(res,i2,i1) = gerepileupto(av2,K);
 		}
 	}
 	return gerepilecopy(av,res);

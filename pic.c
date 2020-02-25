@@ -16,12 +16,13 @@ Structure of a Jacobian:
 10: V = [V1,V2,V3] where Vn = H0(n*B). (Having a nice basis of V2 improves the evaluaton map.)
 11: KV = [KV1,KV2,KV3], where KVn = equation matrix for Vn
 12: W0 = f*V1 for some f in V1, subspace of V2 representing the origin
-13: EvalData, pair of subspaces of the form V2(-E) with E effective of degree d0-g, used for construction of eval map
+13: EvalData: pair of subspaces of the form V2(-E) with E effective of degree d0-g, used for construction of eval map, then vecsmall I of row indices and matrix M such that v in V should be taken to M*(v_I) for evaluation  
 14: If B=O_X(D0), vector Z of points at which the sections are evaluated; else []
 15: FrobCyc, permutation describing the action of Frob on Z
 
 Note: usually, B=O_X(D0), in which case W0=V1=L(D0).
 Note: if either of f, one of the RR spaces L(...), or Z are not available, then the p-adic accuracy cannot be increased.
+Note: if accuracy is increased, assume that in 13, the block froms by the I-rows of V2 is invertible, and that M is the inverse of that block.
 */
 
 GEN Jgetf(GEN J) {return gel(J,1);}
@@ -54,7 +55,7 @@ void JgetTpe(GEN J, GEN* T, GEN* pe, GEN* p, long* e)
 GEN PicRed(GEN J, ulong e)
 {
 	pari_sp av = avma;
-	GEN Je,p,pe;
+	GEN Je,U,Ue,p,pe;
 	if(Jgete(J)<e) pari_err(e_MISC,"Cannot perform this reduction");
 	Je = cgetg(lgJ+1,t_VEC);
 	gel(Je,1) = gcopy(Jgetf(J));
@@ -69,7 +70,13 @@ GEN PicRed(GEN J, ulong e)
 	gel(Je,10) = FpXT_red(JgetV_all(J),pe);
 	gel(Je,11) = FpXT_red(JgetKV_all(J),pe);
 	gel(Je,12) = FpXM_red(JgetW0(J),pe);
-	gel(Je,13) = FpXT_red(JgetEvalData(J),pe);
+	U = JgetEvalData(J);
+	Ue = cgetg(5,t_VEC);
+	gel(Ue,1) = FpXM_red(gel(U,1),pe);
+	gel(Ue,2) = FpXM_red(gel(U,2),pe);
+	gel(Ue,3) = gcopy(gel(U,3));
+	gel(Ue,4) = FpXM_red(gel(U,4),pe);
+	gel(Je,13) = Ue;
 	gel(Je,14) = FpXT_red(JgetZ(J),pe);
 	gel(Je,15) = gcopy(JgetFrobCyc(J));
 	return gerepileupto(av,Je);
