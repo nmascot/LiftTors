@@ -12,6 +12,7 @@ ModJacInit(N,H,p,a,e)=
 	my(Lp,g,Cusps,nCusps,CuspsGal,CuspsGalDegs,CuspTags);
 	my(E,P0,Q0,zN,zNpows,MFrobE,tMFrobE,T,pe=p^e,EN,todo,done,x,y,Ml1);
 	my(d,d1,Pts,nPts,PtTags,MPts,M2,M2gens,v,w,M,qprec,M2qexps,B,d0,C0,U0,V1,V2,V3,V2gens,V1qexps,V2qexps,E1,E2,U1,U2,KV,f2,W0,J,CuspsQ);
+	my(IU,MU);
 	\\ Get H and H/+-1
   [Hlist,Hlist1] = GetHlist(N,H);
 	if(Mod(6*N*#Hlist,p)==0,error("Bad p"));
@@ -158,6 +159,11 @@ ModJacInit(N,H,p,a,e)=
 	V3 = DivAdd1(V2,V1,3*d0+1-g,p,d0,0);
 	print("Eqn mats");
 	V = apply(liftall,[V1,V2,V3]);
+	IU = matindexrank(Mod(V2,p))[1];
+	MU = vecextract(V2,IU,"..");
+	MU = ZpXQM_inv(liftall(MU),T,p,e);
+	MU = matconcat(vecextract(V2qexps,CuspsQ)~)*MU;
+	MU = liftall(MU);
 	KV = parapply(x->mateqnpadic(x,T,p,e),V);
 	\\ W0 = f*M2 c M4, f in M2
 	f2 = V1[,1];
@@ -165,11 +171,10 @@ ModJacInit(N,H,p,a,e)=
 	for(i=1,#f2,W0[i,] *= f2[i]);
 	W0 = liftall(W0);
 	FrobMat = ZpXQ_FrobMat(T,p,e,pe);
-	J=[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[[U1],[U2]],[],PtsFrob];
-	[J,vecextract(V2qexps,CuspsQ),vecextract(Cusps,CuspsQ)];
+	J=[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[[U1],[U2],IU,MU],[],PtsFrob];
 }
 
-PicEval(J,W)=
+/*PicEval(J,W)=
 {
 	my(Z);
 	Z = PicEval0(J,W)[1,1];
@@ -192,4 +197,4 @@ PicEvalDbg(J,W)=
 		Yp = apply(y->ZpXQ_div(y,Yp[#Yp],T,pe,p,e),Yp);
 		if(apply(y->Frob(y,FrobMat,T,pe),Y)!=Yp,print("Cusp ",s," BAD!!!"),print("Cusp ",s," OK"))
 	);
-}
+}*/

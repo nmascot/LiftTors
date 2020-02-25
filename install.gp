@@ -1,5 +1,6 @@
 install("ZpXQ_inv","GGGL");
 install("ZpXQ_div","GGGGGL");
+install("ZpXQM_inv","GGGL");
 
 WeiRed(f,h)=
 {
@@ -27,7 +28,7 @@ install("PlaneZeta","GU","PlaneZeta","./libzeta.so");
 install("SuperZeta","GUU","SuperZeta","./libzeta.so");
 
 install("RRInit","GUUGGGUL","PicInit","./librr.so");
-install("RREval","GG","PicEval0","./librr.so");
+install("RREval","GG","PicEval","./librr.so");
 install("OnePol","GGGG","OnePol","./librr.so");
 install("AllPols","GGGLG","AllPols","./librr.so");
 install("Jlift","GU","Jlift","./librr.so");

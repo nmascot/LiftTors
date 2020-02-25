@@ -74,7 +74,7 @@ mfgalrep(f,l,coeffs,pmax,D)=
 	print("O(",p,"^",e,")");
 	[N,k] = mfparams(f)[1..2];
 	if(k>2,N*=l);
-	[J,M4Q,CuspsQ]=ModJacInit(N,H,p,a,e);
+	J=ModJacInit(N,H,p,a,e);
 	J1 = PicRed(J,1);
 	[B,matFrob] = TorsBasis(J1,l,Lp,chi); \\ Basis of the mod p^1 space and matrix of Frob_p
 	print("The matrix of Frob is");
@@ -88,8 +88,6 @@ mfgalrep(f,l,coeffs,pmax,D)=
 	print("\n--> All of T");
 	TI = TorsSpaceFrob(J,WB,cWB,l,matFrob);
 	print("\n--> Evaluation of ",#TI[2]," points");
-	export(M4Q);
-	export(PicEval);
 	Z = TorsSpaceFrobEval(J,TI,l,2,matFrob);
 	AF = TorsSpaceGetPols(J,Z);
 	AF[1];
