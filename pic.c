@@ -55,7 +55,8 @@ void JgetTpe(GEN J, GEN* T, GEN* pe, GEN* p, long* e)
 GEN PicRed(GEN J, ulong e)
 {
 	pari_sp av = avma;
-	GEN Je,U,Ue,p,pe;
+	GEN Je,p,pe;
+	ulong i;
 	if(Jgete(J)<e) pari_err(e_MISC,"Cannot perform this reduction");
 	Je = cgetg(lgJ+1,t_VEC);
 	gel(Je,1) = gcopy(Jgetf(J));
@@ -66,17 +67,17 @@ GEN PicRed(GEN J, ulong e)
 	gel(Je,6) = p = gcopy(Jgetp(J));
 	gel(Je,7) = utoi(e);
 	gel(Je,8) = pe = powiu(p,e);
-	gel(Je,9) = FpM_red(JgetFrobMat(J),pe);
-	gel(Je,10) = FpXT_red(JgetV_all(J),pe);
-	gel(Je,11) = FpXT_red(JgetKV_all(J),pe);
+	gel(Je,9) = FpXM_red(JgetFrobMat(J),pe);
+	gel(Je,10) = cgetg(4,t_VEC);
+	for(i=1;i<=3;i++) gmael(Je,10,i) = FpXM_red(gmael(J,10,i),pe);
+	gel(Je,11) = cgetg(4,t_VEC);
+	for(i=1;i<=3;i++) gmael(Je,11,i) = FpXM_red(gmael(J,11,i),pe);
 	gel(Je,12) = FpXM_red(JgetW0(J),pe);
-	U = JgetEvalData(J);
-	Ue = cgetg(5,t_VEC);
-	gel(Ue,1) = FpXM_red(gel(U,1),pe);
-	gel(Ue,2) = FpXM_red(gel(U,2),pe);
-	gel(Ue,3) = gcopy(gel(U,3));
-	gel(Ue,4) = FpXM_red(gel(U,4),pe);
-	gel(Je,13) = Ue;
+	gel(Je,13) = cgetg(5,t_VEC);
+	gmael(Je,13,1) = FpXM_red(gmael(J,13,1),pe);
+	gmael(Je,13,2) = FpXM_red(gmael(J,13,2),pe);
+	gmael(Je,13,3) = gcopy(gmael(J,13,3));
+	gmael(Je,13,4) = FpXM_red(gmael(J,13,4),pe);
 	gel(Je,14) = FpXT_red(JgetZ(J),pe);
 	gel(Je,15) = gcopy(JgetFrobCyc(J));
 	return gerepileupto(av,Je);
