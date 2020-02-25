@@ -1,4 +1,4 @@
-#include<pari/pari.h>
+#include<linalg.h>
 
 GEN GetFq1(GEN T)
 {
@@ -6,6 +6,14 @@ GEN GetFq1(GEN T)
 	Fq1 = mkpoln(1,gen_1);
   setvarn(Fq1,varn(T));
 	return Fq1;
+}
+
+GEN GetFq0(GEN T)
+{
+  GEN Fq0;
+  Fq0 = mkpoln(0);
+  setvarn(Fq0,varn(T));
+  return Fq0;
 }
 
 GEN Z2Fq(GEN x, GEN T)
@@ -233,7 +241,7 @@ GEN matkerpadic_safe(GEN A, GEN T, GEN p, long e)
   return gerepilecopy(av,K);
 }
 
-GEN matkerpadic(GEN A, GEN T, GEN p, long e)
+GEN matkerpadic_(GEN A, GEN T, GEN p, long e)
 { /* Same as above, but we only take a sample of equations by looking at the mod p span (faster) */
 	pari_sp av = avma;
 	GEN B,K;
@@ -242,6 +250,60 @@ GEN matkerpadic(GEN A, GEN T, GEN p, long e)
 	K = matkerpadic_safe(B,T,p,e);
 	return gerepileupto(av,K);
 }
+
+GEN matkerpadic(GEN A, GEN T, GEN p, long e)
+{
+	pari_sp av = avma;
+	GEN IJ,I,J,J1,P,A1,A2,pe,B,K;
+	ulong n,r,i,j;
+	GEN Fq0,Fq1;
+	if(e==1) return FqM_ker(A,T,p);
+	n = lg(A)-1;
+	printf("n=%lu\n",n);
+	IJ = FqM_indexrank(A,T,p);
+	I = gel(IJ,1);
+	J = gel(IJ,2);
+	r = lg(J)-1;
+	printf("r=%lu\n",r);
+	J1 = VecSmallCompl(J,n);
+	P = cgetg(n+1,t_VECSMALL);
+	for(j=1;j<=r;j++) P[j] = J[j];
+	for(j=1;j<=n-r;j++) P[r+j] = J1[j];
+	pari_printf("P=%Ps\n",P);
+	A1 = cgetg(r+1,t_MAT);
+	for(j=1;j<=r;j++)
+	{
+		gel(A1,j) = cgetg(r+1,t_COL);
+		for(i=1;i<=r;i++) gcoeff(A1,i,j) = gcoeff(A,I[i],j);
+	}
+	//pari_printf("A1=%Ps\n",A1);
+	A2 = cgetg(n-r+1,t_MAT);
+	for(j=1;j<=n-r;j++)
+  {
+    gel(A2,j) = cgetg(r+1,t_COL);
+    for(i=1;i<=r;i++) gcoeff(A2,i,j) = gcoeff(A,I[i],j+r);
+  }
+	//pari_printf("A2=%Ps\n",A2);
+	B = ZpXQM_inv(A1,T,p,e);
+	//pari_printf("A1inv=%Ps\n",B);
+	pe = powis(p,e); /* TODO */
+	B = FqM_mul(B,A2,T,pe);
+	//pari_printf("B=%Ps\n",B);
+	Fq0 = GetFq0(T);
+	Fq1 = GetFq1(T);
+	K = cgetg(n-r+1,t_MAT);
+	for(j=1;j<=n-r;j++)
+	{
+		gel(K,j) = cgetg(n+1,t_COL);
+		for(i=1;i<=r;i++) gcoeff(K,P[i],j) = FpX_neg(gcoeff(B,i,j),pe);
+		for(i=r+1;i<=n;i++)
+			gcoeff(K,P[i],j) = j+r==i?Fq1:Fq0;
+	}
+	if(!gequal0(FqM_mul(A,K,T,pe))) pari_err(e_MISC,"Bug in Ker");
+	return gerepilecopy(av,K);
+}
+
+	
 
 /*
 GEN matkerpadic_hint(GEN A, GEN T, GEN p, long e, GEN pe, ulong dimker)
