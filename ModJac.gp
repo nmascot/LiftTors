@@ -1,18 +1,19 @@
 read("LMod.gp");
 read("Etors.gp");
-\\read("Dimensions.gp");
 read("GammaH.gp");
 read("Perms.gp");
-\\read("qexp.gp");
 read("Div.gp");
 
-ModJacInit(N,H,p,a,e)=
+ModJacInit(N,H,p,a,e,qprec)=
 { \\ J_H(N) over Zq/p^e, q=p^a
 	my(Hlist,Hlist1,TH);
-	my(Lp,g,Cusps,nCusps,CuspsGal,CuspsGalDegs,CuspTags);
+	my(Lp,g,Cusps,nCusps,CuspsGal,CuspsGalDegs,CuspTags,CuspQexp,CuspsQexp_list);
 	my(E,P0,Q0,zN,zNpows,MFrobE,tMFrobE,T,pe=p^e,EN,todo,done,x,y,Ml1);
-	my(d,d1,Pts,nPts,PtTags,MPts,M2,M2gens,v,w,M,qprec,M2qexps,B,d0,C0,U0,V1,V2,V3,V2gens,V1qexps,V2qexps,E1,E2,U1,U2,KV,f2,W0,J,CuspsQ);
+	my(d,d1,Pts,nPts,PtTags,MPts);
+	my(E1o,E2o,E1,E2,C0o,C0,Emax);
+	my(M2,M2gens,v,w,M,sprec,M2qexps,B,d0,U0,V1,V2,V3,V2gens,V1qexps,V2qexps,U1,U2,KV,f2,W0);
 	my(IU,MU);
+	if(qprec==0,qprec=10);
 	\\ Get H and H/+-1
   [Hlist,Hlist1] = GetHlist(N,H);
 	if(Mod(6*N*#Hlist,p)==0,error("Bad p"));
@@ -61,11 +62,13 @@ ModJacInit(N,H,p,a,e)=
 	Ml1 = Mod(Mod(Ml1,T),pe);
 	print("M2(GammaH)");
 	\\ Find a basis for M2(GammaH(N))
-	[Cusps,CuspsGal,CuspsQ,CuspsMats,CuspsWidths,CuspTags] = GammaHCusps(N,Hlist);
+	[Cusps,CuspsGal,CuspsQexp_list,CuspsMats,CuspsWidths,CuspTags] = GammaHCusps(N,Hlist);
 	nCusps = #Cusps;
 	print(nCusps," cusps");
 	CuspsGalDegs = apply(o->#o,CuspsGal);
 	print("Degrees of Galois orbits: ",CuspsGalDegs);
+	CuspQexp=vector(nCusps); \\ Vec of bits
+	for(i=1,#CuspsQexp_list,CuspQexp[CuspsQexp_list[i]]=1);
 	d = g+nCusps-1; \\ dim M2(GammaH(N))
 	[Pts,PtTags] = ANH(N,Hlist); \\ List of vectors (c,d) mod N,H
 	nPts = #Pts;
@@ -112,26 +115,34 @@ ModJacInit(N,H,p,a,e)=
 	\\ Extract basis
 	M2 = vecextract(M2,B);
 	M2gens = vecextract(M2gens,B);
+	\\ Prepare divisors to know min qprec
+	\\ Prune: M2 -> S2(3 cusps) = M2(-C0)
+  d0 = 2*g+1;
+  C0o = BalancedDiv(nCusps-3,CuspsGalDegs);
+  C0 = Divo2Div(C0o,CuspsGal,CuspTags,nCusps);
+	\\ Evaluation
+	E1o = BalancedDiv(d0-g,CuspsGalDegs); \\ d0-g = g+1
+  E2o = DivPerturb(E1o,CuspsGalDegs);
+  E1 = Divo2Div(E1o,CuspsGal,CuspTags,nCusps);
+  E2 = Divo2Div(E2o,CuspsGal,CuspTags,nCusps);
+	Emax = 2*C0+vector(nCusps,i,max(E1[i],E2[i]));
 	print("M2 qexps");
-	qprec = 8; \\ TODO adjust
 	M2qexps = vector(nCusps);
 	for(s=1,nCusps,
 		print1(s," ");
 		M = CuspsMats[s];
 		w = CuspsWidths[s];
+		sprec = if(CuspQexp[s],max(Emax[s],qprec),Emax[s]);
 		M2qexps[s] = matconcat(
 			parapply(
 				vw->Mod(Mod(
-					TrE2qexp(vw,N,TH,M,w,zNpows,qprec,T,pe,p,e)~
+					TrE2qexp(vw,N,TH,M,w,zNpows,sprec,T,pe,p,e)~
 				,T),pe)
 			,M2gens)
 		)
 	);
 	print("Pruning");
 	\\ Prune: M2 -> S2(3 cusps) = M2(-C0)
-	d0 = 2*g+1;
-	C0o = BalancedDiv(nCusps-3,CuspsGalDegs);
-	C0 = Divo2Div(C0o,CuspsGal,CuspTags,nCusps);
 	U0 = MRRsubspace(M2qexps,C0,T,p,e);
 	V1qexps = parapply(page->page*U0,M2qexps);
 	\\ Prune more: no need to evaluate at that many points
@@ -142,15 +153,11 @@ ModJacInit(N,H,p,a,e)=
 	[V2,V2gens] = DivAdd1(V1,V1,2*d0+1-g,p,d0,1);
 	print("M4 qexps");
 	V2qexps = parapply(
-		page->matrix(qprec,d,n,j,
+		page->matrix(matsize(page)[1],d,n,j,
 			sum(k=0,n-1,page[k+1,V2gens[j][1]]*page[n-k,V2gens[j][2]])
 		)
 	,V1qexps);
 	print("Eval data");
-	E1o = BalancedDiv(d0-g,CuspsGalDegs); \\ d0-g = g+1
-	E2o = DivPerturb(E1o,CuspsGalDegs);
-	E1 = Divo2Div(E1o,CuspsGal,CuspTags,nCusps);
-	E2 = Divo2Div(E2o,CuspsGal,CuspTags,nCusps);
 	export(MRRsubspace);
 	[U1,U2] = parapply(Ei->
 		liftall(V2*MRRsubspace(V2qexps,2*C0+Ei,T,p,e)), \\ TODO: eqns for 2*C0 already satified. Make MRRsubspace more flexible.
@@ -162,7 +169,7 @@ ModJacInit(N,H,p,a,e)=
 	IU = matindexrank(Mod(V2,p))[1];
 	MU = vecextract(V2,IU,"..");
 	MU = ZpXQM_inv(liftall(MU),T,p,e);
-	MU = matconcat(vecextract(V2qexps,CuspsQ)~)*MU;
+	MU = matconcat(vecextract(V2qexps,CuspsQexp_list)~)*MU;
 	MU = liftall(MU);
 	KV = parapply(x->mateqnpadic(x,T,p,e),V);
 	\\ W0 = f*M2 c M4, f in M2
@@ -171,30 +178,5 @@ ModJacInit(N,H,p,a,e)=
 	for(i=1,#f2,W0[i,] *= f2[i]);
 	W0 = liftall(W0);
 	FrobMat = ZpXQ_FrobMat(T,p,e,pe);
-	J=[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[[U1],[U2],IU,MU],[],PtsFrob];
+	[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[[U1],[U2],IU,MU],[],PtsFrob];
 }
-
-/*PicEval(J,W)=
-{
-	my(Z);
-	Z = PicEval0(J,W)[1,1];
-	Z = concat(apply(M->liftall(M*Z),M4Q)); \\ TODO pass M4Q
-	matrix(1,1,i,j,Z);
-}
-
-PicEvalDbg(J,W)=
-{
-	my(p=Jgetp(J),pe=Jgetpe(J),T=JgetT(J),e=Jgete(J),FrobMat=JgetFrobMat(J),Wp,Z,Zp,Y,Yp);
-	\\J = PicRed(J,1);
-	print("Checking PicEval commutes with Frob, precision ",O(p^e));
-	Wp = PicFrob(J,W);
-	Z = PicEval0(J,W)[1,1];
-	Zp = PicEval0(J,Wp)[1,1];
-	for(s=1,#M4Q,
-		Y = liftall(M4Q[s]*Z);
-		Yp = liftall(M4Q[s]*Zp);
-		Y = apply(y->ZpXQ_div(y,Y[#Y],T,pe,p,e),Y);
-		Yp = apply(y->ZpXQ_div(y,Yp[#Yp],T,pe,p,e),Yp);
-		if(apply(y->Frob(y,FrobMat,T,pe),Y)!=Yp,print("Cusp ",s," BAD!!!"),print("Cusp ",s," OK"))
-	);
-}*/

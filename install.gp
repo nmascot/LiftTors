@@ -73,4 +73,4 @@ install("elladd_padic","GGGGGGL","elladd_padic","./libelladd_padic.so");
 install("E1qexp","GUGUGGGL","CE1qexp","./libqexp.so");
 install("TrE2qexp","GUGGUGUGGGL","TrE2qexp","./libqexp.so");
 
-read("ModJac.gp");
+read("ModGalRep.gp");

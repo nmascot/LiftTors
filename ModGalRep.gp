@@ -1,5 +1,5 @@
-read("install.gp");
 read("GalRep.gp");
+read("ModJac.gp");
 
 IDpolcyclo(Phi,N)=
 {
@@ -65,7 +65,7 @@ mfbestp(f,l,coeffs,pmax)=
 	[H,best];
 }
 
-mfgalrep(f,l,coeffs,pmax,D)=
+mfgalrep(f,l,coeffs,pmax,D,qprec)=
 {
 	my(N,k,H,best,p,a,Lp,chi,e,J,CuspsQ,J1,B,matFrob,i,M,WB,cWB,TI,Z,AF);
 	[H,best] = mfbestp(f,l,coeffs,pmax);
@@ -74,7 +74,7 @@ mfgalrep(f,l,coeffs,pmax,D)=
 	print("O(",p,"^",e,")");
 	[N,k] = mfparams(f)[1..2];
 	if(k>2,N*=l);
-	J=ModJacInit(N,H,p,a,e);
+	J=ModJacInit(N,H,p,a,e,qprec);
 	J1 = PicRed(J,1);
 	[B,matFrob] = TorsBasis(J1,l,Lp,chi); \\ Basis of the mod p^1 space and matrix of Frob_p
 	print("The matrix of Frob is");

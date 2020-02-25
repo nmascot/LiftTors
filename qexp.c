@@ -59,7 +59,7 @@ GEN TrE2qexp(GEN vw, ulong N, GEN H, GEN M, ulong w, GEN zpows, ulong B, GEN T, 
 	ulong Nw,Nwi,BN,nH,h,i,j;
 	GEN Fq0,E,hM,fv,fw;
 
-	if(B==0) return cgetg(t_VEC,1);
+	if(B==0) return cgetg(1,t_VEC);
 	Nw = N/w;
 	BN = (B-1)*N/w+1;
 

@@ -1,4 +1,3 @@
-* TODO: parametrer qprec
 * TODO: improve Ml1
 
 * Some E give points of J[l] def over smll field c Fq, why? (E ss?)
