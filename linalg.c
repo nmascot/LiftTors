@@ -259,29 +259,29 @@ GEN matkerpadic(GEN A, GEN T, GEN p, long e)
 	GEN Fq0,Fq1;
 	if(e==1) return FqM_ker(A,T,p);
 	n = lg(A)-1;
-	printf("n=%lu\n",n);
+	//printf("n=%lu\n",n);
 	IJ = FqM_indexrank(A,T,p);
 	I = gel(IJ,1);
 	J = gel(IJ,2);
 	r = lg(J)-1;
-	printf("r=%lu\n",r);
+	//printf("r=%lu\n",r);
 	J1 = VecSmallCompl(J,n);
 	P = cgetg(n+1,t_VECSMALL);
 	for(j=1;j<=r;j++) P[j] = J[j];
 	for(j=1;j<=n-r;j++) P[r+j] = J1[j];
-	pari_printf("P=%Ps\n",P);
+	//pari_printf("P=%Ps\n",P);
 	A1 = cgetg(r+1,t_MAT);
 	for(j=1;j<=r;j++)
 	{
 		gel(A1,j) = cgetg(r+1,t_COL);
-		for(i=1;i<=r;i++) gcoeff(A1,i,j) = gcoeff(A,I[i],j);
+		for(i=1;i<=r;i++) gcoeff(A1,i,j) = gcoeff(A,I[i],P[j]);
 	}
 	//pari_printf("A1=%Ps\n",A1);
 	A2 = cgetg(n-r+1,t_MAT);
 	for(j=1;j<=n-r;j++)
   {
     gel(A2,j) = cgetg(r+1,t_COL);
-    for(i=1;i<=r;i++) gcoeff(A2,i,j) = gcoeff(A,I[i],j+r);
+    for(i=1;i<=r;i++) gcoeff(A2,i,j) = gcoeff(A,I[i],P[j+r]);
   }
 	//pari_printf("A2=%Ps\n",A2);
 	B = ZpXQM_inv(A1,T,p,e);
@@ -299,7 +299,8 @@ GEN matkerpadic(GEN A, GEN T, GEN p, long e)
 		for(i=r+1;i<=n;i++)
 			gcoeff(K,P[i],j) = j+r==i?Fq1:Fq0;
 	}
-	if(!gequal0(FqM_mul(A,K,T,pe))) pari_err(e_MISC,"Bug in Ker");
+	//if(lg(K)!=lg(matkerpadic_safe(A,T,p,e))) pari_err(e_MISC,"Wrong size of Ker");
+	//if(!gequal0(FqM_mul(A,K,T,pe))) pari_err(e_MISC,"Bug in Ker");
 	return gerepilecopy(av,K);
 }
 
