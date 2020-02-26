@@ -35,7 +35,7 @@ mfyt(f,l,coeffs)=
 
 mfbestp(f,l,coeffs,pmax)=
 {
-	my(N,k,eps,P,Phi,yl,tl,o,ZNX,lN,H,best,ap,epsp,chi,Lp,Psi,a1,a2,a);
+	my(N,k,eps,P,Phi,yl,tl,o,ZNX,lN,H,listp,qf,best,p,ap,epsp,chi,Lp,Psi,a1,a2,a);
 	[N,k,eps,P,Phi]=mfparams(f);
 	[yl,tl] = mfyt(f,l,coeffs);
 	o = IDpolcyclo(Phi,N);
@@ -44,23 +44,27 @@ mfbestp(f,l,coeffs,pmax)=
 	lN = if(k==2,N,l*N);
 	H = select(h->gcd(lN,h)==1,[1..lN-1]);
 	H = select(h->Mod(h^(k-2),l)*chareval(eps[1],eps[2],h,[tl,o])==1,H);
+	listp = select(p->Mod(l*N,p),primes([5,pmax]));
+	print("qexp");
+	qf = mfcoefs(f,pmax);
+	print("Lp");
+	Lp = LMod_multi(lN,H,listp);
 	best = [];
-	forprime(p=5,pmax,
+	for(i=1,#listp,
+		p = listp[i];
 		if(Mod(l*N,p)==0,next);
-		ap = mfcoef(f,p);
-		ap = subst(subst(liftall(ap),'t,tl),'y,yl);
+		ap = subst(subst(liftall(qf[p+1]),'t,tl),'y,yl);
 		epsp = chareval(eps[1],eps[2],p,[tl,o]);
 		chi = 'x^2-ap*'x+p^(k-1)*epsp;
-		Lp = LMod(lN,H,p);
-		Psi = Mod(Lp,l)/chi;
+		Psi = Mod(Lp[i],l)/chi;
 		if(poldegree(denominator(Psi)),error("Bug in charpoly"));
 		if(poldegree(gcd(chi,Psi)),print("p=",p, " has multiplicity");next);
 		a1 = mordroot(chi,l);
 		a2 = znorder(Mod(p,lN));
 		a = lcm(a1,a2);
-		print("p="p,": Needs deg ",a," (",a1," to split rep, ",a2," for roots of 1), log #J=",round(log(polresultant(Lp,'x^a-1))),")");
+		print("p="p,": Needs deg ",a," (",a1," to split rep, ",a2," for roots of 1), log #J=",round(log(polresultant(Lp[i],'x^a-1))),")");
 		a = lcm(a1,a2);
-		if(best==[] || a < best[2], best=[p,a,Lp,chi]);
+		if(best==[] || a < best[2], best=[p,a,Lp[i],chi]);
 	);
 	[H,best];
 }
