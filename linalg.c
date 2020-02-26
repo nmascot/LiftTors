@@ -259,36 +259,30 @@ GEN matkerpadic(GEN A, GEN T, GEN p, long e)
 	GEN Fq0,Fq1;
 	if(e==1) return FqM_ker(A,T,p);
 	n = lg(A)-1;
-	//printf("n=%lu\n",n);
 	IJ = FqM_indexrank(A,T,p);
-	I = gel(IJ,1);
-	J = gel(IJ,2);
+	I = gel(IJ,1); /* Rows spanning the eqns, ignore others (good red) */
+	J = gel(IJ,2); /* Cols forming invertible block */
 	r = lg(J)-1;
-	//printf("r=%lu\n",r);
-	J1 = VecSmallCompl(J,n);
+	J1 = VecSmallCompl(J,n); /* Other cols */
 	P = cgetg(n+1,t_VECSMALL);
 	for(j=1;j<=r;j++) P[j] = J[j];
 	for(j=1;j<=n-r;j++) P[r+j] = J1[j];
-	//pari_printf("P=%Ps\n",P);
-	A1 = cgetg(r+1,t_MAT);
+	A1 = cgetg(r+1,t_MAT); /* Invertible block */
 	for(j=1;j<=r;j++)
 	{
 		gel(A1,j) = cgetg(r+1,t_COL);
 		for(i=1;i<=r;i++) gcoeff(A1,i,j) = gcoeff(A,I[i],P[j]);
 	}
-	//pari_printf("A1=%Ps\n",A1);
-	A2 = cgetg(n-r+1,t_MAT);
+	A2 = cgetg(n-r+1,t_MAT); /* Other block */
 	for(j=1;j<=n-r;j++)
   {
     gel(A2,j) = cgetg(r+1,t_COL);
     for(i=1;i<=r;i++) gcoeff(A2,i,j) = gcoeff(A,I[i],P[j+r]);
   }
-	//pari_printf("A2=%Ps\n",A2);
+	/* K = vcat of -A1^-1*A2, Id_{n-r}, with perm P^-1 of rows */
 	B = ZpXQM_inv(A1,T,p,e);
-	//pari_printf("A1inv=%Ps\n",B);
 	pe = powis(p,e); /* TODO */
 	B = FqM_mul(B,A2,T,pe);
-	//pari_printf("B=%Ps\n",B);
 	Fq0 = GetFq0(T);
 	Fq1 = GetFq1(T);
 	K = cgetg(n-r+1,t_MAT);
@@ -299,61 +293,55 @@ GEN matkerpadic(GEN A, GEN T, GEN p, long e)
 		for(i=r+1;i<=n;i++)
 			gcoeff(K,P[i],j) = j+r==i?Fq1:Fq0;
 	}
-	//if(lg(K)!=lg(matkerpadic_safe(A,T,p,e))) pari_err(e_MISC,"Wrong size of Ker");
-	//if(!gequal0(FqM_mul(A,K,T,pe))) pari_err(e_MISC,"Bug in Ker");
 	return gerepilecopy(av,K);
 }
-
-	
-
-/*
-GEN matkerpadic_hint(GEN A, GEN T, GEN p, long e, GEN pe, ulong dimker)
-{
-  pari_sp av=avma;
-	long m,n,r,j;
-  GEN K,B;
-	RgM_dimensions(A,&m,&n);
-	r = n-dimker;
-	do
-	{
-		avma = av;
-		B = cgetg(m+1,t_MAT);
-		for(j=1;j<=m;j++)
-		{
-			gel(B,j) = random_FpC(r,p);
-		}
-		K = FqM_mul(B,A,T,p);
-		K = FqM_ker(K,T,p);
-	} while(lg(K)!=dimker+1);
-  if(e==1) return K;
-	K = FqM_mul(B,A,T,pe);
-  K = ZpXQM_ker(K,T,p,e,NULL);
-	if(lg(K)==dimker+1) return gerepileupto(av,K);
-	K = Hsort(K,p);
-  return gerepilecopy(av,K);
-}*/
-
 
 GEN mateqnpadic(GEN A, GEN T, GEN p, long e)
 {
 	pari_sp av = avma;
-	return gerepilecopy(av,shallowtrans(matkerpadic(shallowtrans(A),T,p,e)));
+	GEN IJ,I,J,I1,P,A1,A2,pe,B,E;
+	ulong n,r,i,j;
+	GEN Fq0,Fq1;
+	if(e==1)
+		return gerepilecopy(av,shallowtrans(FqM_ker(shallowtrans(A),T,p)));
+	n = lg(gel(A,1))-1;
+	IJ = FqM_indexrank(A,T,p);
+  I = gel(IJ,1); /* Rows forming invertible block */
+  J = gel(IJ,2); /* Columns spanning the space, ignore othrs (good red) */
+  r = lg(I)-1;
+  I1 = VecSmallCompl(I,n); /* Other rows */
+  P = cgetg(n+1,t_VECSMALL); /* First I then I1 */
+  for(i=1;i<=r;i++) P[i] = I[i];
+  for(i=1;i<=n-r;i++) P[r+i] = I1[i];
+  A1 = cgetg(r+1,t_MAT); /* Invertible block */
+	A2 = cgetg(r+1,t_MAT); /* Other block */
+	for(j=1;j<=r;j++)
+  {
+    gel(A1,j) = cgetg(r+1,t_COL);
+    for(i=1;i<=r;i++) gcoeff(A1,i,j) = gcoeff(A,P[i],J[j]);
+		gel(A2,j) = cgetg(n-r+1,t_COL);
+    for(i=1;i<=n-r;i++) gcoeff(A2,i,j) = gcoeff(A,P[i+r],J[j]);
+	}
+	/* E = hcat of -A2*A1^-1, Id_{n-r}, with perm P^-1 of cols*/
+	B = ZpXQM_inv(A1,T,p,e);
+  pe = powis(p,e); /* TODO */
+  B = FqM_mul(A2,B,T,pe);
+  Fq0 = GetFq0(T);
+  Fq1 = GetFq1(T);
+  E = cgetg(n+1,t_MAT);
+  for(j=1;j<=r;j++)
+  {
+    gel(E,P[j]) = cgetg(n-r+1,t_COL);
+		for(i=1;i<=n-r;i++)
+			gcoeff(E,i,P[j]) = FpX_neg(gcoeff(B,i,j),pe);
+	}
+	for(j=r+1;j<=n;j++)
+	{
+		gel(E,P[j]) = cgetg(n-r+1,t_COL);
+    for(i=1;i<=n-r;i++) gcoeff(E,i,P[j]) = i+r==j?Fq1:Fq0;
+  }
+  return gerepilecopy(av,E);
 }
-
-/*GEN matimagepadic(GEN A, GEN T, GEN p, long e)
-{
-  pari_sp av;
-  GEN J,K;
-	ulong r,j;
-  if(e==1) return FqM_image(A,T,p);
-  av = avma;
-	J = FqM_indexrank(A,T,p);
-	J = gel(J,2);
-	r = lg(J);
-  K = cgetg(r,t_MAT);
-	for(j=1;j<r;j++) gel(K,j) = gcopy(gel(A,J[j]));
-  return gerepileupto(av,K);
-}*/
 
 GEN matF(GEN A, GEN T, GEN p, long e)
 {
