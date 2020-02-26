@@ -241,20 +241,10 @@ GEN matkerpadic_safe(GEN A, GEN T, GEN p, long e)
   return gerepilecopy(av,K);
 }
 
-GEN matkerpadic_(GEN A, GEN T, GEN p, long e)
-{ /* Same as above, but we only take a sample of equations by looking at the mod p span (faster) */
+GEN matkerpadic(GEN A, GEN T, GEN pe, GEN p, long e)
+{ /* Assumes good red, i.e. the rank does not recreae mod p */
 	pari_sp av = avma;
-	GEN B,K;
-	if(e==1) return FqM_ker(A,T,p);
-	B = shallowtrans(FqM_image(shallowtrans(A),T,p));
-	K = matkerpadic_safe(B,T,p,e);
-	return gerepileupto(av,K);
-}
-
-GEN matkerpadic(GEN A, GEN T, GEN p, long e)
-{
-	pari_sp av = avma;
-	GEN IJ,I,J,J1,P,A1,A2,pe,B,K;
+	GEN IJ,I,J,J1,P,A1,A2,B,K;
 	ulong n,r,i,j;
 	GEN Fq0,Fq1;
 	if(e==1) return FqM_ker(A,T,p);
@@ -281,7 +271,6 @@ GEN matkerpadic(GEN A, GEN T, GEN p, long e)
   }
 	/* K = vcat of -A1^-1*A2, Id_{n-r}, with perm P^-1 of rows */
 	B = ZpXQM_inv(A1,T,p,e);
-	pe = powis(p,e); /* TODO */
 	B = FqM_mul(B,A2,T,pe);
 	Fq0 = GetFq0(T);
 	Fq1 = GetFq1(T);
@@ -296,10 +285,10 @@ GEN matkerpadic(GEN A, GEN T, GEN p, long e)
 	return gerepilecopy(av,K);
 }
 
-GEN mateqnpadic(GEN A, GEN T, GEN p, long e)
-{
+GEN mateqnpadic(GEN A, GEN T, GEN pe, GEN p, long e)
+{ /* Assumes good red, i.e. the rank does not recreae mod p */
 	pari_sp av = avma;
-	GEN IJ,I,J,I1,P,A1,A2,pe,B,E;
+	GEN IJ,I,J,I1,P,A1,A2,B,E;
 	ulong n,r,i,j;
 	GEN Fq0,Fq1;
 	if(e==1)
@@ -324,7 +313,6 @@ GEN mateqnpadic(GEN A, GEN T, GEN p, long e)
 	}
 	/* E = hcat of -A2*A1^-1, Id_{n-r}, with perm P^-1 of cols*/
 	B = ZpXQM_inv(A1,T,p,e);
-  pe = powis(p,e); /* TODO */
   B = FqM_mul(A2,B,T,pe);
   Fq0 = GetFq0(T);
   Fq1 = GetFq1(T);

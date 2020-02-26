@@ -215,7 +215,7 @@ GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong 
 	GEN KB,K,s,res;
 	nZ = lg(KV);
 	nV = lg(gel(KV,1))-1;
-	KB = mateqnpadic(WB,T,p,e);
+	KB = mateqnpadic(WB,T,pe,p,e);
 	nB = lg(gel(KB,1))-1;
 	/* Prepare a mat K of size a v stack of KV + nIGS copies of KB */
 	/* and copy KV at the top */
@@ -240,7 +240,7 @@ GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong 
 					gcoeff(K,nV+(n-1)*nB+E,P) = Fq_mul(gel(s,P),gcoeff(KB,E,P),T,pe);
 			}
 		}
-		res = matkerpadic(K,T,p,e);
+		res = matkerpadic(K,T,pe,p,e);
 		r = lg(res)-1;
 		if(r==d) return gerepileupto(av,res);
 		if(DEBUGLEVEL) err_printf("sub(%lu/%lu)",r,d);
@@ -255,7 +255,7 @@ GEN DivSub_safe(GEN WA, GEN WB, GEN KV, GEN T, GEN p, long e, GEN pe)
   GEN KB,K,res;
   nZ = lg(KV);
   nV = lg(gel(KV,1))-1;
-  KB = mateqnpadic(WB,T,p,e);
+  KB = mateqnpadic(WB,T,pe,p,e);
   nB = lg(gel(KB,1))-1;
 	nA = lg(WA)-1;
 
@@ -584,7 +584,7 @@ GEN PicChart(GEN J, GEN W, ulong P0, GEN P1) /* /!\ Not Galois-equivariant ! */
 		for(P=1;P<=n1;P++) gel(col,P) = gcoeff(W,P+P0,j);
 		gel(K,j) = col;
 	}
-	K = matkerpadic(K,T,p,e);
+	K = matkerpadic(K,T,pe,p,e);
 	if(lg(K)!=2)
 	{
 		pari_printf("Genericity 1 failed in PicChart\n");
@@ -655,7 +655,7 @@ GEN PicRand0(GEN J)
 		}
 		gel(K,j) = col;
 	}
-	K = matkerpadic(K,T,p,e);
+	K = matkerpadic(K,T,pe,p,e);
 	K = FqM_mul(V,K,T,pe);
 	return gerepileupto(av,K);
 }

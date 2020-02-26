@@ -382,7 +382,7 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
 
 	t = varlower("t",vars[2]);
   T = liftint(ffinit(p,a,varn(t)));
-  pe = powiu(p,e);
+  pe = powis(p,e);
   FrobMat = ZpXQ_FrobMat(T,p,e,pe);
 
 	if(DEBUGLEVEL) printf("PicInit: Finding points\n");
@@ -438,7 +438,7 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
   mt_queue_start(&pt,worker);
   for(k=1;k<=3||pending;k++)
   {
-    mt_queue_submit(&pt,k,k<=3?mkvecn(4,gel(V,k),T,p,E):NULL);
+    mt_queue_submit(&pt,k,k<=3?mkvecn(5,gel(V,k),T,pe,p,E):NULL);
     done = mt_queue_get(&pt,&workid,&pending);
     if(done) gel(KV,workid) = done;
   }
@@ -555,7 +555,7 @@ GEN Jlift(GEN J, ulong e2)
   mt_queue_start(&pt,worker);
   for(k=1;k<=3||pending;k++)
   {
-    mt_queue_submit(&pt,k,k<=3?mkvecn(4,gel(V,k),T,p,E2):NULL);
+    mt_queue_submit(&pt,k,k<=3?mkvecn(5,gel(V,k),T,pe2,p,E2):NULL);
     done = mt_queue_get(&pt,&workid,&pending);
     if(done) gel(KV,workid) = done;
   }

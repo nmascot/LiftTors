@@ -45,23 +45,21 @@ GEN PicDeflate(GEN J, GEN W, ulong nIGS)
 GEN PicDeflate_U(GEN J, GEN W, ulong nIGS)
 {
 	pari_sp av = avma;
-	GEN V,T,p;
+	GEN V,T,pe,p;
 	long e;
 	ulong nV;
 	GEN GW,K,U;
 	ulong j;
 
+	JgetTpe(J,&T,&pe,&p,&e);
 	V = JgetV(J,2);
-	T = JgetT(J);
-	p = Jgetp(J);
-	e = Jgete(J);
 	nV = lg(V);
 
 	GW = PicDeflate(J,W,nIGS); /* IGS of W */
   K = cgetg(nV+nIGS,t_MAT);
   for(j=1;j<nV;j++) gel(K,j) = gel(V,j);
   for(j=1;j<=nIGS;j++) gel(K,nV-1+j) = gel(GW,j);
-  U = matkerpadic(K,T,p,e); /* Coords of IGS of W // basis of V */
+  U = matkerpadic(K,T,pe,p,e); /* Coords of IGS of W // basis of V */
   for(j=1;j<=nIGS;j++) setlg(gel(U,j),nV);
   return gerepilecopy(av,U);
 }
@@ -216,7 +214,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
   }
 	efin2 = efin/2; /* Upper bound for e21 for all iterations */
 	pefin2 = powis(p,efin2);
-	U0 = matkerpadic(Vs,T,p,efin2); /* # = nV-nW = d0 */
+	U0 = matkerpadic(Vs,T,pefin2,p,efin2); /* # = nV-nW = d0 */
 	V0 = cgetg(d0+1,t_VEC);
 	for(i=1;i<=d0;i++) gel(V0,i) = DivMul(FqM_FqC_mul(V,gel(U0,i),T,pefin2),V,T,pefin2); /* s*V for s in subspace of V whose rows in sW are 0 */
 	/* TODO parallel? */
@@ -289,7 +287,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
     mt_queue_end(&pt);
   	gel(K,nGW*d0+1) = mat2col(rho);
   	/* Find a random solution to the inhomogeneous system */
-  	KM = matkerpadic(K,T,p,e21);
+  	KM = matkerpadic(K,T,pe21,p,e21);
 		if(DEBUGLEVEL||(lg(KM)==1)) printf("dim ker lift: %ld\n",lg(KM)-1);
 		if(cmpii(pe21,powiu(l,g+1))<=0)
   	{
@@ -348,7 +346,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
       		}
     		}
     		mt_queue_end(&pt);
-				Ktors = matkerpadic(Clifts,T,p,e21); /* Find comb with coord = 0 */
+				Ktors = matkerpadic(Clifts,T,pe21,p,e21); /* Find comb with coord = 0 */
     		n = lg(Ktors)-1;
 				if(DEBUGLEVEL || n!=1) printf("dim ker tors: %ld\n",n);
     		if(n!=1)

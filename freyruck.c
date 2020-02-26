@@ -97,7 +97,7 @@ GEN PicNorm(GEN J, GEN F1, GEN F2, GEN WE, ulong n)
 			gcoeff(M,i,j) = Fq_mul(gcoeff(S,i,j),gel(F1,i),T,pe);
 	}
 	for(j=1;j<=nVn2;j++) gel(M,nS+j) = gel(SS,j);
-	M1 = detratio(matkerpadic(M,T,p,e),T,p,e,pe);
+	M1 = detratio(matkerpadic(M,T,pe,p,e),T,p,e,pe);
 	if(ZX_is0mod(M1,p))
 	{
 		if(DEBUGLEVEL) err_printf("PicNorm: F1 has zeros on D, giving up\n");
@@ -110,7 +110,7 @@ GEN PicNorm(GEN J, GEN F1, GEN F2, GEN WE, ulong n)
 		for(i=1;i<=nZ;i++)
 			gcoeff(M,i,j) = Fq_mul(gcoeff(S,i,j),gel(F2,i),T,pe);
 	}
-	M2 = detratio(matkerpadic(M,T,p,e),T,p,e,pe);
+	M2 = detratio(matkerpadic(M,T,pe,p,e),T,p,e,pe);
 	if(ZX_is0mod(M2,p))
 	{
 		if(DEBUGLEVEL) err_printf("PicNorm: F2 has zeros on D, giving up\n");
