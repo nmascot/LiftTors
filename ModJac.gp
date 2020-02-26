@@ -77,7 +77,7 @@ ModJacInit(N,H,p,a,e,qprec)=
   print("Action of Frob on fibre: ",PtsFrob);
 	MPts = apply(s->BotToSL2(s,N),Pts); \\ Matrices having these bottom rows
 	\\ P_g = P_g' on X_H(N) <=> g,g' have same bottom row mod H
-	d1=min(ceil(1.2*d),#Pts); \\ # gens
+	d1=min(ceil(4*d/3),#Pts); \\ # gens
 	TH = GammaHmodN(N,Hlist1); \\ elts of SL2(Z) representing GammaH mod N,+-1
 	while(1,
 		print("Attempt");
@@ -95,7 +95,7 @@ ModJacInit(N,H,p,a,e,qprec)=
 		);
     /* DEBUG */
 		/*printf("Checking M2 qexps");
-		KM2 = Mod(Mod(matkerpadic(liftall(M2),T,p,e),T),pe);
+		KM2 = Mod(Mod(matkerpadic(liftall(M2),T,pe,p,e),T),pe);
 		qprec = 20; \\ TODO adjust
 		for(s=1,nCusps,
     	M2qexps = matrix(qprec,d1);
@@ -166,12 +166,12 @@ ModJacInit(N,H,p,a,e,qprec)=
 	V3 = DivAdd1(V2,V1,3*d0+1-g,p,d0,0);
 	print("Eqn mats");
 	V = apply(liftall,[V1,V2,V3]);
-	IU = matindexrank(Mod(V2,p))[1];
+	IU = matindexrank(Mod(liftint(V2),p))[1];
 	MU = vecextract(V2,IU,"..");
 	MU = ZpXQM_inv(liftall(MU),T,p,e);
 	MU = matconcat(vecextract(V2qexps,CuspsQexp_list)~)*MU;
 	MU = liftall(MU);
-	KV = parapply(x->mateqnpadic(x,T,p,e),V);
+	KV = parapply(x->mateqnpadic(x,T,pe,p,e),V);
 	\\ W0 = f*M2 c M4, f in M2
 	f2 = V1[,1];
 	W0 = V1;

@@ -1,4 +1,5 @@
 * TODO: improve Ml1
+* TODO: LMod // on several p
 
 * Some E give points of J[l] def over smll field c Fq, why? (E ss?)
 * Test 16 passes with x^2+1, but eval fail with x^2-1

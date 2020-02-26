@@ -110,6 +110,6 @@ M4RRsubspace(N,Hlist,TH,z,Tpe,M4gens,Cusps,D)=
 		);
 		i += D[s];
 	);
-	matkerpadic(liftall(A),T,p,e);
+	matkerpadic(liftall(A),T,pe,p,e);
 }
 
