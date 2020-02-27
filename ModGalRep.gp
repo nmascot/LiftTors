@@ -69,9 +69,14 @@ mfbestp(f,l,coeffs,pmax)=
 	[H,best];
 }
 
-mfgalrep(f,l,coeffs,pmax,D,qprec)=
+mfgalrep(f,l,coeffs,pmax,D,qprec,threadlim)=
 {
-	my(N,k,H,best,p,a,Lp,chi,e,J,CuspsQ,J1,B,matFrob,i,M,WB,cWB,TI,Z,AF);
+	my(N,k,H,best,p,a,Lp,chi,e,J,CuspsQ,J1,B,matFrob,i,M,WB,cWB,TI,Z,AF,def_threads);
+	if(threadlim,
+		def_threads = default(nbthreads);
+		if(#threadlim!=4,error("Give 4 thread limits: Jacobian initialisation, generation of points mod p, p-adic lift, and evaluation"))
+	);
+	if(threadlim,default(nbthreads,threadlim[1]));
 	print("--> Finding prime p with small residual degree");
 	[H,best] = mfbestp(f,l,coeffs,pmax);
 	[p,a,Lp,chi] = best;
@@ -80,6 +85,7 @@ mfgalrep(f,l,coeffs,pmax,D,qprec)=
 	if(k>2,N*=l);
 	print("\n--> Initialising modular Jacobian");
 	J=ModJacInit(N,H,p,a,e,qprec);
+	if(threadlim,default(nbthreads,threadlim[2]));
 	print("\n--> Getting basis of T mod ",p);
 	J1 = PicRed(J,1);
 	[B,matFrob] = TorsBasis(J1,l,Lp,chi); \\ Basis of the mod p^1 space and matrix of Frob_p
@@ -89,12 +95,15 @@ mfgalrep(f,l,coeffs,pmax,D,qprec)=
 	while(M!=1,M*=matFrob;i++);
 	print("It has order ",i);
 	[WB,cWB] = TorsSpaceFrobGen(J1,l,B,matFrob);
+	if(threadlim,default(nbthreads,threadlim[3]));
 	print("\n--> Lifting ",#WB," points ",p,"-adically");
 	WB = apply(W->PicLiftTors(J,W,1,l),WB);
+	if(threadlim,default(nbthreads,threadlim[4]));
 	print("\n--> All of T");
 	TI = TorsSpaceFrob(J,WB,cWB,l,matFrob);
 	print("\n--> Evaluation of ",#TI[2]," points");
 	Z = TorsSpaceFrobEval(J,TI,l,2,matFrob);
 	AF = TorsSpaceGetPols(J,Z);
+	if(threadlim,default(nbthreads,def_threads));
 	AF[1];
 }
