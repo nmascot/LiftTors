@@ -18,7 +18,7 @@ l=7;
 chi=x^2+4*x+p;
 e=64;
 
-J=ModJacInit(N,0,p,a,e);
+J=ModJacInit(N,0,p,a,e,8);
 Lp = LMod(N,1,p);
 J1 = PicRed(J,1);
 NJ=polresultant(Lp,x^a-1);

@@ -20,7 +20,7 @@ chi=x^2+1;
 \\ Other choice: x^2+1: Galrep = Borel psi chi5, chi5 cyclo mod 5, psi mod 16: -1->1, 5->2, Frob_43 -> [2,0;0,3]
 e=8;
 
-J=ModJacInit(N,1,p,a,e);
+J=ModJacInit(N,1,p,a,e,3);
 Lp = LMod(N,1,p);
 J1 = PicRed(J,1);
 
