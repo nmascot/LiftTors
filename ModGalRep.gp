@@ -72,13 +72,15 @@ mfbestp(f,l,coeffs,pmax)=
 mfgalrep(f,l,coeffs,pmax,D,qprec)=
 {
 	my(N,k,H,best,p,a,Lp,chi,e,J,CuspsQ,J1,B,matFrob,i,M,WB,cWB,TI,Z,AF);
+	print("--> Finding prime p with small residual degree");
 	[H,best] = mfbestp(f,l,coeffs,pmax);
 	[p,a,Lp,chi] = best;
 	e=2^ceil(log((log(2)+2*D*log(10))/log(p))/log(2)); \\ Power of 2 such that sqrt(1/2*p^e)>10^D
-	print("O(",p,"^",e,")");
 	[N,k] = mfparams(f)[1..2];
 	if(k>2,N*=l);
+	print("\n--> Initialising modular Jacobian");
 	J=ModJacInit(N,H,p,a,e,qprec);
+	print("\n--> Getting basis of T mod ",p);
 	J1 = PicRed(J,1);
 	[B,matFrob] = TorsBasis(J1,l,Lp,chi); \\ Basis of the mod p^1 space and matrix of Frob_p
 	print("The matrix of Frob is");

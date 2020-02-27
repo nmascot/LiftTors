@@ -7,12 +7,12 @@ Esplit(p,N,d)= \\ Look for an ell. curve / Fp such tht E[N] splits over Fq, q=p^
 	/*m = valuation(N,2);
 	M = N/2^m;*/
   while(1,
-    print("---- New curve ----");
+    if(default(debug),print("---- New curve ----"));
     a=random(Mod(1,p));
     b=random(Mod(1,p));
 		if(a==0||b==0,next); \\ Avoid ramification X(N)->X(1)
     if(4*a^3+27*b^2==0,
-			print("Singular");
+			if(default(debug),print("Singular"));
 			next
 		);
     E=ellinit([a,b]);
@@ -24,21 +24,21 @@ Esplit(p,N,d)= \\ Look for an ell. curve / Fp such tht E[N] splits over Fq, q=p^
 		faM = factor(M);
 		M1 = prod(i=1,#faM~,faM[i,1]); \\ Radical of M
 		if(M1>1,
-      print("Checking Frob^",d," trivial on E[",M1,"]");
+      if(default(debug),print("Checking Frob^",d," trivial on E[",M1,"]"));
 			if(polsym(Mod('x^2-ap*'x+p,M1),d)[d+1]!=2, \\ Check if Frob^d=1 on E[M] by testing a^d+b^d==2
-        print("Frob^",d," not trivial on E[",M1,"]");
+        if(default(debug),print("Frob^",d," not trivial on E[",M1,"]"));
         next
       )
 		);
 		for(i=1,#L, \\ Check if Frob^d unipotent on E[l^v]
 			l=L[i];
 			v=V[i];
-			print("Checking Frob^",d," unipotent on E[",l,"^",v,"]");
+			if(default(debug),print("Checking Frob^",d," unipotent on E[",l,"^",v,"]"));
 			lv=l^v;
 			if(l!=2,
 				c=ap/Mod(2,lv); \\ Frob = c*unipotent on E[l^v]
 				if(c^d!=1, \\ Check if Frob^d unipotent on E[l^v]
-					print("Frob^",d," not unipotent on E[",l,"^",v,"]");
+					if(default(debug),print("Frob^",d," not unipotent on E[",l,"^",v,"]"));
 					next(2)
 				);
 			);
@@ -50,19 +50,19 @@ Esplit(p,N,d)= \\ Look for an ell. curve / Fp such tht E[N] splits over Fq, q=p^
 		\\ and Frob^d trivial on E[l] but maybe not E[l^v] for [l,v] in faM
 		L = matconcat([L,faM]~);
 		for(i=1,#L~,
-			print("Checking Frob^",d," trivial on E[",L[i,1],"^",L[i,2],"]");
+			if(default(debug),print("Checking Frob^",d," trivial on E[",L[i,1],"^",L[i,2],"]"));
 			[l,v] = L[i,];
 			lv = l^v;
 			D = elldivpol(E,lv)/elldivpol(E,l^(v-1)); \\ Check manually that E[l^v] def over Fq
 			X=polrootsmod(D,[T,p]);
 			if(#X<poldegree(D),
-				print("E[",l,"^",v,"]/+-1 not split: ",#X," roots out of ",poldegree(D));
+				if(default(debug),print("E[",l,"^",v,"]/+-1 not split: ",#X," roots out of ",poldegree(D)));
 				next(2)
 			);
 			if(lv!=2,
 				for(j=1,#X,
 					if((X[i]^3+a*X[i]+b)^q2!=1,
-						print("E[",l,"^",v,"] not split");
+						if(default(debug),print("E[",l,"^",v,"] not split"));
 						next(3)
 					)
 				)

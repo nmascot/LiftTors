@@ -22,12 +22,6 @@ ModJacInit(N,H,p,a,e,qprec)=
 	print("Genus ",g);
 	\\ Get a curve E and a basis of E[N]
 	[E,P0,Q0,zN,MFrobE] = EBasis(N,p,a,e);
-	for(i=1,a,
-		if(MFrobE^i==1,
-			print("MFrobE has order ",i);
-			break
-		)
-	);
 	zNpows = vector(N);
 	zNpows[1] = liftall(zN);
 	for(i=2,N,
@@ -35,7 +29,13 @@ ModJacInit(N,H,p,a,e,qprec)=
 	);
 	tMFrobE = mattranspose(MFrobE);
 	T = zN.mod;
-	print("E:y²=x³+",E.a4,"x+",E.a6," ",p,"-adically");
+	print("\nE:y²=x³+",E.a4,"x+",E.a6," with accuracy O(",p,"^",e,") and residual degree a=",a);
+	for(i=1,a,
+    if(MFrobE^i==1,
+      print("MFrobE has order ",i,"\n");
+      break
+    )
+  );
 	\\print("Order ", N,": ",mordroot(x^2-ellap(E,p)*x+p,N));
 	\\ Write down all N-torsion: : this is a naive level structure alpha: (Z/NZ)² ~ E[N]
 	EN=matrix(N,N); \\ [[ m P0 + n Q0 ]]
@@ -60,7 +60,6 @@ ModJacInit(N,H,p,a,e,qprec)=
 	done = parapply(X->l1(EN,X[1],X[2],T,pe,p,e),Vec(todo));
 	for(i=1,#todo,[x,y]=todo[i][1];Ml1[x,y]=done[i]); 
 	Ml1 = Mod(Mod(Ml1,T),pe);
-	print("M2(GammaH)");
 	\\ Find a basis for M2(GammaH(N))
 	[Cusps,CuspsGal,CuspsQexp_list,CuspsMats,CuspsWidths,CuspTags] = GammaHCusps(N,Hlist);
 	nCusps = #Cusps;
@@ -72,9 +71,9 @@ ModJacInit(N,H,p,a,e,qprec)=
 	d = g+nCusps-1; \\ dim M2(GammaH(N))
 	[Pts,PtTags] = ANH(N,Hlist); \\ List of vectors (c,d) mod N,H
 	nPts = #Pts;
-	print(nPts," points in the fibre of X_H(N) -> X(1)");
+	print(nPts," points on the fibre of X_H(N) -> X(1)");
+	print("M2(GammaH) (dim ",d,")");
   PtsFrob = Vecsmall(apply(P->GetCoef(PtTags,liftint(P*tMFrobE)),Pts)); \\ Frob([c,d]) = [c,d]*(t^MFrobE)
-  print("Action of Frob on fibre: ",PtsFrob);
 	MPts = apply(s->BotToSL2(s,N),Pts); \\ Matrices having these bottom rows
 	\\ P_g = P_g' on X_H(N) <=> g,g' have same bottom row mod H
 	d1=min(ceil(4*d/3),#Pts); \\ # gens
@@ -128,6 +127,7 @@ ModJacInit(N,H,p,a,e,qprec)=
 	Emax = 2*C0+vector(nCusps,i,max(E1[i],E2[i]));
 	print("M2 qexps");
 	M2qexps = vector(nCusps);
+	print1("Cusp ");
 	for(s=1,nCusps,
 		print1(s," ");
 		M = CuspsMats[s];
@@ -141,15 +141,15 @@ ModJacInit(N,H,p,a,e,qprec)=
 			,M2gens)
 		)
 	);
-	print("Pruning");
+	print("\nPruning: dim ",d-vecsum(C0),"; eval on ",5*d0+1," pts");
 	\\ Prune: M2 -> S2(3 cusps) = M2(-C0)
 	U0 = MRRsubspace(M2qexps,C0,T,p,e);
 	V1qexps = parapply(page->page*U0,M2qexps);
 	\\ Prune more: no need to evaluate at that many points
 	[PtsFrob,Pts] = SubPerm(PtsFrob,5*d0+1);
 	V1 = vecextract(M2,Pts,vector(#M2,i,i))*U0;
-	print("M4(GammaH)");
 	d = 2*d0+1-g;
+	print("M4(GammaH)(-2C0) (dim ",d,")");
 	[V2,V2gens] = DivAdd1(V1,V1,2*d0+1-g,p,d0,1);
 	print("M4 qexps");
 	V2qexps = parapply(
@@ -162,7 +162,7 @@ ModJacInit(N,H,p,a,e,qprec)=
 	[U1,U2] = parapply(Ei->
 		liftall(V2*MRRsubspace(V2qexps,2*C0+Ei,T,p,e)), \\ TODO: eqns for 2*C0 already satified. Make MRRsubspace more flexible.
 	[E1,E2]);
-	print("M6(GammaH)");
+	print("M6(GammaH)(-3C0) (dim ",3*d0+1-g,")");
 	V3 = DivAdd1(V2,V1,3*d0+1-g,p,d0,0);
 	print("Eqn mats");
 	V = apply(liftall,[V1,V2,V3]);
