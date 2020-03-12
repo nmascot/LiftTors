@@ -59,7 +59,7 @@ GEN PicDeflate_U(GEN J, GEN W, ulong nIGS)
   K = cgetg(nV+nIGS,t_MAT);
   for(j=1;j<nV;j++) gel(K,j) = gel(V,j);
   for(j=1;j<=nIGS;j++) gel(K,nV-1+j) = gel(GW,j);
-  U = matkerpadic(K,T,pe,p,e); /* Coords of IGS of W // basis of V */
+  U = matkerpadic(K,T,pe,p,e); /* Coords of IGS of W // basis of V */ /* TODO use M from eval data */
   for(j=1;j<=nIGS;j++) setlg(gel(U,j),nV);
   return gerepilecopy(av,U);
 }
@@ -103,7 +103,7 @@ GEN PicInflate_U(GEN J, GEN U, GEN I) /* Takes IGS given by coords // V */
 
 GEN PicLift_worker(GEN V0j, ulong shift, GEN uv, GEN AinvB, GEN CAinv, GEN T, GEN pe21)
 {
-	pari_sp av = avma;
+	pari_sp av = avma; /* TODO save mem? */
 	GEN abcd,drho;
 	abcd = M2ABCD_1block(V0j,0,shift,uv); /* Split */
   drho = FpXM_sub(FqM_mul(gel(abcd,1),AinvB,T,pe21),gel(abcd,2),pe21); /* aA^-1B-b */
@@ -128,11 +128,12 @@ GEN PicLift_RandLift_U(GEN U, GEN U0, GEN KM, GEN T, GEN p, GEN pe1, GEN pe21, l
 
 	av=avma;
   do
-  {
+  { /* Get random vector in KM with nonzero last entry */
     avma=av;
     K = RandVec_1(KM,pe21);
     red = gel(K,lg(K)-1);
   } while(ZX_is0mod(red,p));
+	/* Divide by last entry */
   red = ZpXQ_inv(red,T,p,e21);
   setlg(K,lg(K)-1);
   K = FqC_Fq_mul(K,red,T,pe21);
@@ -175,6 +176,7 @@ GEN PicLiftTors_Chart_worker(GEN J, GEN l, GEN U, GEN U0, GEN I, GEN KM, GEN pe1
 
 GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 {
+	/* TODO reduce mem usage */
   pari_sp av=avma,av1,av2;
 	GEN T,p,V;
   long efin,e1,e2,e21,efin2;

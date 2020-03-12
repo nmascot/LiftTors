@@ -349,7 +349,7 @@ GEN RREvalInit(GEN L, GEN vars, GEN Z, GEN V2, GEN T, GEN p, long e, GEN pe)
   GEN res,I,M;
   ulong i,j,nV2;
   res = cgetg(5,t_VEC);
-  for(i=1;i<=2;i++)
+  for(i=1;i<=2;i++) /* TODO parallelise */
     gel(res,i) = RRspaceEval(gel(L,i+2),vars,Z,T,p,e,pe);
 	nV2 = lg(V2);
 	I = FqM_indexrank(V2,T,p);

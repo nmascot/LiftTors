@@ -16,7 +16,7 @@ Structure of a Jacobian:
 10: V = [V1,V2,V3] where Vn = H0(n*B). (Having a nice basis of V2 improves the evaluaton map.)
 11: KV = [KV1,KV2,KV3], where KVn = equation matrix for Vn
 12: W0 = f*V1 for some f in V1, subspace of V2 representing the origin
-13: EvalData: pair of subspaces of the form V2(-E) with E effective of degree d0-g, used for construction of eval map, then vecsmall I of row indices and matrix M such that v in V should be taken to M*(v_I) for evaluation  
+13: EvalData [U1,U2,I,M]: pair of subspaces Ui of the form V2(-E) with E effective of degree d0-g, used for construction of eval map, then vecsmall I of row indices, and matrix M such that v in V should be taken to M*(v_I) for evaluation  
 14: If B=O_X(D0), vector Z of points at which the sections are evaluated; else []
 15: FrobCyc, permutation describing the action of Frob on Z
 
