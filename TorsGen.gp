@@ -86,7 +86,7 @@ RandTorsPt(J,l,a,Lp,Chi,Phi,seed)=
     if(Chi,W = PicFrobPoly(J,W,Psi)); \\ Project onto the Chi part
 		[T,o] = TorsOrd(J,W,l);
     if(o,
-        return([W,o,T,min(poldegree(ChiPhi),a),ChiPhi])
+        return([W,o,T,ChiPhi])
     ,
       if(default(debug),print("RandTorsPt got zero (Phi=",Phi,"), retrying"));
     );
@@ -187,7 +187,7 @@ TorsBasis(J,l,Lp,chi)=
 		 Also computes the matrix M of Frob w.r.t B, and returns the vector [B,M]
 	*/
 	my(a,d,Phi,BW,Bo,BT,LinTests,R,matFrob,ddC,W0,z,FRparams,r,iPhi,nBatch,UsedPhi,Batch);
-	my(W,o,T,b,B,iFrob,res,rel,m,S);
+	my(W,o,T,B,iFrob,res,rel,m,S);
 	a = poldegree(JgetT(J)); \\ work over Fq=Fp[t]/T, q=p^a
   d = if(chi,poldegree(chi),poldegree(Lp)); \\ dim T
 	if(Mod(a,l),
@@ -226,7 +226,7 @@ TorsBasis(J,l,Lp,chi)=
 		\\ Loop through batch
 		for(iBatch=1,nBatch,
 			print("Picking point ",iBatch," from batch");
-			[W,o,T,b,B] = Batch[iBatch];
+			[W,o,T,B] = Batch[iBatch];
 			print("b=",b" B=",B);
 			while(1,
 				print("Entering outer loop, r=",r);
@@ -258,7 +258,7 @@ TorsBasis(J,l,Lp,chi)=
 						print("matFrob:");
 						printp(matFrob);
 						print("Guessing last col from charpoly");
-						matFrob = GuessColFromCharpoly(matFrob,if(chi,chi,Lp));
+						matFrob = GuessColFromCharpoly(Mod(matFrob,l),Mod(if(chi,chi,Lp),l)); \\ TODO this may fail
 						return([BT,matFrob]);
 					);
 					\\ Apply Frob and start over
@@ -278,7 +278,7 @@ TorsBasis(J,l,Lp,chi)=
 					break;
 				);
         if(default(debug)>=2,print(" Dividing relation ",rel," by ",l));
-        S = vector(r,i,if(KR[i],l^(Bo[i]-m)*KR[i],0));
+        S = vector(r,i,if(rel[i],l^(Bo[i]-m)*rel[i],0));
         W = PicLC(J,S,BW[1..r]);
         [T,o] = TorsOrd(J,W,l);
 				B = 0;
