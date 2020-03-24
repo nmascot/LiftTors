@@ -43,7 +43,7 @@ GEN AddChain(GEN n, long signmatters)
 		return gerepilecopy(av,A);
 	}
   if(equalis(n,-3))
-  { 
+  {
     A = mkvecn(4,
         mkvec2(gen_1,mkvecsmall2(0,-1)),
         mkvec2(gen_m2,mkvecsmall2(1,1)),

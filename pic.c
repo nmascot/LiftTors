@@ -473,6 +473,8 @@ GEN Frob(GEN x, GEN FrobMat, GEN T, GEN pe)
 	for(i=0;i<d;i++) gel(cx,i+1) = polcoef(x,i,var);
 	cy = FpM_FpC_mul(FrobMat,cx,pe);
 	y = cgetg(d+2,t_POL);
+	y[1] = 0;
+	setsigne(y,1);
 	setvarn(y,var);
 	for(i=1;i<=d;i++) gel(y,i+1) = gel(cy,i);
 	y = normalizepol(y);

@@ -4,6 +4,8 @@ GEN GetFq1(GEN T)
 {
 	GEN Fq1;
 	Fq1 = mkpoln(1,gen_1);
+	Fq1[1] = 0;
+	setsigne(Fq1,1);
   setvarn(Fq1,varn(T));
 	return Fq1;
 }
@@ -12,6 +14,8 @@ GEN GetFq0(GEN T)
 {
   GEN Fq0;
   Fq0 = mkpoln(0);
+	Fq0[1] = 0;
+	setsigne(Fq0,0);
   setvarn(Fq0,varn(T));
   return Fq0;
 }
@@ -19,6 +23,7 @@ GEN GetFq0(GEN T)
 GEN Z2Fq(GEN x, GEN T)
 {
   GEN y = mkpoln(1,x);
+	y[1] = 0;
   setsigne(y,1);
   setvarn(y,varn(T));
   return y;

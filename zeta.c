@@ -6,18 +6,24 @@ GEN ZetaFromPointCount(GEN N, ulong p, ulong g)
 	GEN Z,D,L,Pi;
 	ulong i;
 	Z = cgetg(g+2,t_SER);
+	Z[1] = 0;
   setsigne(Z,1);
   setvarn(Z,0);
   setvalp(Z,1);
   for(i=1;i<=g;i++) gel(Z,i+1) = gdiv(stoi(N[i]),utoi(i));
   Z = gexp(Z,0);
   D = mkpoln(2,gen_m1,gen_1);
+	D[1] = 0;
+	setsigne(D,1);
   setvarn(D,0);
   Z = gmul(Z,D);
   D = mkpoln(2,gneg(utoi(p)),gen_1);
+	D[1] = 0;
+	setsigne(D,1);
   setvarn(D,0);
   Z = gmul(Z,D);
   L = cgetg(2*g+3,t_POL);
+	L[1] = 0;
   setvarn(L,0);
   setsigne(L,1);
   gel(L,2*g+2) = gen_1;
@@ -47,6 +53,7 @@ GEN PlaneZeta(GEN f, ulong p)
   t = varlower("t",vars[2]);
 	Mf = RgXX_to_RgM(f,df+1);
 	f00 = cgetg(df+3,t_POL);
+	f00[1] = 0;
 	setsigne(f00,1);
 	setvarn(f00,0);
 	for(i=0;i<=df;i++)

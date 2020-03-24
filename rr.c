@@ -69,6 +69,7 @@ GEN FnEvalAt(GEN F, GEN P, GEN vars, GEN T, GEN p, long e/*GEN E*/, GEN pe)
 	if(gvar(F)!=vars[1]) pari_err(e_MISC,"Bad var 2 in %Ps",F);
 	d = lg(F);
 	Fy = cgetg(d,t_POL);
+	Fy[1] = 0;
 	setsigne(Fy,1);
 	setvarn(Fy,vars[1]);
 	for(i=2;i<d;i++) gel(Fy,i) = EvalRatMod(gel(F,i),vars[2],gel(P,2),T,p,e,pe);
