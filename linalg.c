@@ -24,7 +24,7 @@ GEN Z2Fq(GEN x, GEN T)
 {
   GEN y = mkpoln(1,x);
 	y[1] = 0;
-  setsigne(y,1);
+  setsigne(y,gequal0(x)?0:1);
   setvarn(y,varn(T));
   return y;
 }
