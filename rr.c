@@ -605,19 +605,21 @@ GEN RREval(GEN J, GEN W)
 			av2 = avma;
 			S2 = DivMul(S1,V,T,pe); /* L(4D0-D-E1-ED) */
 			S2 = DivSub(W,S2,KV,d0+1-g,T,p,e,pe,2); /* L(2D0-E1-ED) */
+			S2 = gerepileupto(av2,S2);
 			S2 = DivAdd(S2,gmael(U,2,i2),2*d0+1,T,p,e,pe,0); /* L(4D0-E1-E2-ED) */
-			if(gc_needed(av,1)) S2 = gerepileupto(av2,S2);
+			S2 = gerepileupto(av2,S2);
 			S2 = DivSub(V,S2,KV,1,T,p,e,pe,2); /* L(2D0-E1-E2-ED), generically 1-dimensional */
   		s2 = gel(S2,1); /* Generator */
-			if(gc_needed(av,1)) s2 = gerepileupto(av2,s2);
+			s2 = gerepileupto(av2,s2);
 			/* get coords of s2 w.r.t. V */
 			s2I = cgetg(nV,t_COL);
 			for(i=1;i<nV;i++) gel(s2I,i) = gel(s2,I[i]);
   		K = FqM_FqC_mul(M,s2I,T,pe);
 			gcoeff(res,i2,i1) = gerepileupto(av2,K);
 		}
+		gel(res,i1) = gerepileupto(av1,gel(res,i1));
 	}
-	return gerepilecopy(av,res);
+	return gerepileupto(av,res);
 }
 
 GEN PolExpId(GEN Z, GEN T, GEN pe) /* bestappr of prod(x-z), z in Z */
