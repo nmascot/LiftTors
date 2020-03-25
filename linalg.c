@@ -22,9 +22,10 @@ GEN GetFq0(GEN T)
 
 GEN Z2Fq(GEN x, GEN T)
 {
+	if(gequal0(x)) return GetFq0(T);
   GEN y = mkpoln(1,x);
 	y[1] = 0;
-  setsigne(y,gequal0(x)?0:1);
+  setsigne(y,1);
   setvarn(y,varn(T));
   return y;
 }
