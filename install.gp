@@ -22,8 +22,6 @@ install("SuperZeta","GUU","SuperZeta","./libzeta.so");
 
 install("RRInit","GUUGGGUL","PicInit","./librr.so");
 install("RREval","GG","PicEval","./librr.so");
-install("OnePol","GGGG","OnePol","./librr.so");
-install("AllPols","GGGLG","AllPols","./librr.so");
 install("Jlift","GU","Jlift","./librr.so");
 
 install("PicRed","GU","PicRed","./libpic.so");
@@ -58,3 +56,11 @@ install("PicTorsRels","GGGU","PicTorsRels","./libfreyruck.so");
 install("Fq_zeta_l","GGG","Fq_zeta_l","./libfreyruck.so");
 install("Fq_mu_l_log","GGGGG","Fq_mu_l_log","./libfreyruck.so");
 
+install("TorsSpaceFrob_worker","GGGGG",,"./libtorsspace.so");
+install("TorsSpaceFrobEval","GGGUG",,"./libtorsspace.so");
+install("OnePol","GGGGUGGG",,"./libtorsspace.so");
+install("AllPols","GUGGGGGL",,"./libtorsspace.so");
+install("c2i","uGU",,"./libtorsspace.so");
+install("i2c","UUU",,"./libtorsspace.so");
+install("Chordi","uUUUU",,"./libtorsspace.so");
+install("ActOni","uGUU",,"./libtorsspace.so");

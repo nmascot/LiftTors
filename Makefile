@@ -48,7 +48,7 @@ LIBS       = -lm -L$(PARIDIR)GP/lib -lpari
 
 RM = rm -f
 
-all: liblinalg.so libexp.so libpic.so liblift.so libfreyruck.so librr.so libzeta.so
+all: liblinalg.so libexp.so libpic.so liblift.so libfreyruck.so librr.so libtorsspace.so libzeta.so
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $(EXTRACFLAGS) $(CPPFLAGS) $(DLCFLAGS) $<
@@ -74,6 +74,8 @@ libzeta.so: zeta.o
 librr.so: rr.o
 	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) rr.o $(EXTRAMODLDFLAGS)
 
+libtorsspace.so: torsspace.o
+	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) torsspace.o $(EXTRAMODLDFLAGS)
 
 libfreyruck.so: freyruck.o
 	$(MODLD) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) freyruck.o $(EXTRAMODLDFLAGS)

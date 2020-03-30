@@ -1,4 +1,4 @@
-\\ The first 4 functions establish a correspondence Fl^d <-> {0,1,...,l^d-1}
+/*\\ The first 4 functions establish a correspondence Fl^d <-> {0,1,...,l^d-1}
 \\ and give the action of a matrix and vector addition under this correspondence
 
 c2i(c,l)= \\ Conversion coordinates -> index in an Fl-space of finite dim
@@ -34,7 +34,7 @@ Chordi(i1,i2,l,d)= \\ u,v -> -(u+v) in  terms of indices
 	c2 = i2c(i2,l,d);
 	c3 = apply(x->x%l,-(c1+c2));
 	c2i(c3,l);
-}
+}*/
 
 ProjPol(Z,l,d,op)=
 \\ Given conjugate algebraic numbers indexed by A^n,
@@ -48,11 +48,11 @@ ProjPol(Z,l,d,op)=
 	done=vector(l^d-1);
 	for(i=1,l^d-1,
 		if(done[i],next);
-		v=i2c(i,l,d);
+		v=Vec(i2c(i,l,d));
 		listput(PV,v);
 		z=op;
 		for(k=1,l-1,
-		 j=c2i(lift(Mod(k*v,l)),l);
+		 j=c2i(Vecsmall(k*v),l);
 		 done[j]=1;
 		 z=if(op,z*Z[j],z+Z[j]);
 		);
@@ -90,7 +90,7 @@ TorsSpaceFrobGen(J,l,B,matFrob)=
 	[WB,cWB];
 }
 
-TorsSpaceFrob(J,gens,cgens,l,matFrob)=
+/*TorsSpaceFrob_(J,gens,cgens,l,matFrob)=
 \\ Given a list gens of generators of a Galois-submodule T of J[l],
 \\ as well as the matrix of Frob and the coords of these generators (w.r.t. the same basis),
 \\ computes a system of representatives of the non-zero orbits of T under Frob
@@ -154,20 +154,19 @@ TorsSpaceFrob(J,gens,cgens,l,matFrob)=
 			)
     )
   );
-  [V,Vec(ImodF)];
-}
+	ImodF = Vec(ImodF);
+  [apply(i->V[i],ImodF),ImodF];
+}*/
 
-TorsSpaceFrobEval(J,TI,l,d,matFrob)=
+/*TorsSpaceFrobEval(ZmodF,ImodF,l,d,matFrob,JFrob,T,pe)=
 \\ Given a submodule T of J[l] of Fl-dimension d specified by TI, 
-\\ where TI is formed of a list ofrepresentatives of orbits of T under Frob
+\\ where TI is formed of a list of representatives of orbits of T under Frob
 \\ as output by the previous function,
-\\ as well as the matrix of Frob on T
-\\ and evaluation data U obtained by PicEvalInit(),
+\\ as well as the matrix of Frob on T,
 \\ computes the evaluation of every nonzero point of T
 {
-  my(J=J,T=TI[1],ImodF=TI[2],Z,ZmodF,i,z);
+  my(Z,i,z);
   Z = vector(l^d-1,i,[]);
-  ZmodF = parapply(i->PicEval(J,T[i]),ImodF);
   for(n=1,#ImodF,
     i = ImodF[n];
     z = ZmodF[n];
@@ -175,8 +174,8 @@ TorsSpaceFrobEval(J,TI,l,d,matFrob)=
       Z[i] = z;
       i = ActOni(matFrob,i,l);
       if(Z[i] != [],break);
-      z = apply(x->apply(y->Frob(y,JgetFrobMat(J),JgetT(J),Jgetpe(J)),x),z);
+      z = apply(x->apply(y->Frob(y,JFrob,T,pe),x),z);
     )
   );
   Z;
-}
+}*/

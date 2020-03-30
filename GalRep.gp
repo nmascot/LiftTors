@@ -38,22 +38,24 @@ mordroot(f,p)=
 
 PicIsTorsion(J,W,N)=PicIsZero(J,PicFrobPoly(J,W,N)); \\ For debugging purposes. N can be an integer or a polynomial.
 
-TorsSpaceGetPols(J,Z)=
+TorsSpaceGetPols(Z,l,JFrobMat,QqFrobMat,T,pe,p,e)=
 \\ Given a vector Z of evaluations of the points of a submodule T of J[l],
 \\ Computes polynomials defining the Galois representation afforded by T
 \\ and returns then ordered by height,
 \\ each polynomial being given by a triplet:
 \\ [list of p-adic roots, p-adic approximation, and rational identification (non-rigorous)]
 {
-  my(A,AI,AF);
-  A = AllPols(Z,JgetT(J),Jgetp(J),Jgete(J),Jgetpe(J)); \\ p-adic approximation of a set of polynomials which all define a subfield of the field cut out by the representation, with equality iff. no repeated roots
-	print(#A," candidate polynomials");
-  AI = select(x->x[3]!=[],A); \\ Drop the approximations that could not be identified as rationals
-  print(#AI," identified polynomials");
-  AF = select(x->#Set(x[1])==#(x[1]),AI); \\ Drop the polynomials having multiple roots
-  print(#AF," faithful polynomials");
-	if(#AF==0 && #A==#AI,error("None of the evaluation maps gives a squarefree polynomial. Try again with different points."));
-  vecsort(AF,x->sizebyte(x[3]));
+  my(A,nA,nI);
+  A = AllPols(Z,l,JFrobMat,QqFrobMat,T,pe,p,e); \\ p-adic approximation of a set of polynomials which all define a subfield of the field cut out by the representation, with equality iff. no repeated roots
+	nA = #A;
+	print(nA," candidate polynomials");
+  A = select(x->x[3]!=[],A); \\ Drop the approximations that could not be identified as rationals
+	nI = #A;
+  print(nI," identified polynomials");
+  A = select(x->#Set(x[1])==#(x[1]),A); \\ Drop the polynomials having multiple roots
+  print(#A," faithful polynomials");
+	if(#A==0 && nA==nI,error("None of the evaluation maps gives a squarefree polynomial. Try again with different points."));
+  vecsort(A,x->sizebyte(x[3]));
 }
 
 RR_rescale(L,p)=
@@ -82,7 +84,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 	 and if chi is nonzero,
 	 we must have chi || (Lp mod l).*/
 {
-	my([f,g,d0,L,LL,L1,L2,Bad]=C,d,J,J1,U,B,matFrob,WB,cWB,TI,Z,AF,F,ZF,M,i,e1=1);
+	my([f,g,d0,L,LL,L1,L2,Bad]=C,pe=p^e,d,J,J1,B,matFrob,WB,cWB,Z,AF,F,ZF,M,i,JT,e1=1);
 	/* TODO rescale to remove denoms */
 	L = RR_rescale(L,p);
   LL = RR_rescale(LL,p);
@@ -109,6 +111,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 	print("It has order ",i);
 	if(i<a,warning("Therefore working in degree a=",a," is not optimal. Consider restarting the computation while forcing a=",i,"."));
 	[WB,cWB] = TorsSpaceFrobGen(J1,l,B,matFrob); \\ Generating set of T under Frob and coordinates of these generators on B
+	J1 = B = 0;
 	while(1,
 		print("\n--> Lifting ",#WB," points ",p,"-adically");
 		if(#WB > Jgetg(J),
@@ -117,20 +120,21 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
   		WB = apply(W->PicLiftTors(J,W,e1,l),WB); \\ Less efficient in parallel (TODO tune)
 		);
 		print("\n--> All of T");
-		TI = TorsSpaceFrob(J,WB,cWB,l,matFrob);
-		print("\n--> Evaluation of ",#TI[2]," points");
-		Z = TorsSpaceFrobEval(J,TI,l,d,matFrob);
+		Z = TorsSpaceFrobEval(J,WB,cWB,l,matFrob);
 		print("\n--> Expansion and identification");
-		AF = TorsSpaceGetPols(J,Z); \\ List of polynomials defining the representation
+		JT = JgetT(J);
+		AF = TorsSpaceGetPols(Z,l,matFrob,JgetFrobMat(J),JT,pe,p,e); \\ List of polynomials defining the representation
 		if(AF!=[],break);
 		e1=e;
 		e*=2;
+		pe = pe^2;
 		warning("Could not identify any squarefree polynomial. Increasing p-adic accuracy: ",O(p^e),".");
 		J = Jlift(J,e);
 	);
+	J = Z = WB = 0;
 	F = AF[1][3];
 	if(#variables(F)>1,error("F has more than one variable"));
-	ZF = apply(z->Mod(apply(c->c+O(p^e),z),JgetT(J)),AF[1][1]);
+	ZF = apply(z->Mod(apply(c->c+O(p^e),z),JT),AF[1][1]);
 	[F,ZF];
 }
 
