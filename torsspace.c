@@ -328,7 +328,6 @@ GEN AllPols(GEN Z, ulong l, GEN JFrobMat, GEN QqFrobMat, GEN T, GEN pe, GEN p, l
   GEN worker,done;
   long pending,workid;
 
-	printf("Into AllPols\n");
 	F = gel(Z,1);
 	ImodF = gel(Z,2);
 	d = lg(JFrobMat)-1;

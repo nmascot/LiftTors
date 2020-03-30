@@ -618,9 +618,8 @@ GEN RREval(GEN J, GEN W)
   		K = FqM_FqC_mul(M,s2I,T,pe);
 			gel(resi1,i2) = gerepileupto(av2,K);
 		}
-		//gel(res,i1)=resi1;
 		gel(res,i1) = gerepileupto(av1,resi1);
 	}
-	return gerepileupto(av,res); // TODO why is upto wrong here?
+	return gerepileupto(av,res);
 }
 
