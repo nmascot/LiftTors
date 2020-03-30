@@ -572,7 +572,7 @@ GEN Jlift(GEN J, ulong e2)
 
 GEN RREval(GEN J, GEN W)
 {
-	pari_sp av = avma, av1, av2, lbot;
+	pari_sp av = avma, av1, av2;
 	GEN T,p,pe,V,KV,U,res,resi1;
 	long e;
 	ulong n1,n2,i1,i2;
@@ -594,32 +594,33 @@ GEN RREval(GEN J, GEN W)
 	res = cgetg(n1,t_MAT);
 	for(i1=1;i1<n1;i1++)
 	{
-		resi1 = cgetg(n2,t_COL);
 		av1 = avma;
 		S1 = DivAdd(W,gmael(U,1,i1),2*d0+1,T,p,e,pe,0); /* L(4D0-D-E1) */
 		S1 = DivSub(V,S1,KV,1,T,p,e,pe,2); /* L(2D0-D-E1), generically 1-dimensional */
-		S1 = DivMul(gel(S1,1),V,T,pe); /* L(4D0-D-E1-ED) */
-		//S1 = gerepileupto(av1,S1);
+		S1 = gerepileupto(av1,gel(S1,1));
+		S1 = DivMul(S1,V,T,pe); /* L(4D0-D-E1-ED) */
+		S1 = gerepileupto(av1,S1);
+		S1 = DivSub(W,S1,KV,d0+1-g,T,p,e,pe,2); /* L(2D0-E1-ED) */
+		S1 = gerepileupto(av1,S1);
+		resi1 = cgetg(n2,t_COL);
 		for(i2=1;i2<n2;i2++)
 		{
 			av2 = avma;
-			S2 = DivSub(W,S1,KV,d0+1-g,T,p,e,pe,2); /* L(2D0-E1-ED) */
-			//S2 = gerepileupto(av2,S2);
-			S2 = DivAdd(S2,gmael(U,2,i2),2*d0+1,T,p,e,pe,0); /* L(4D0-E1-E2-ED) */
-			//S2 = gerepileupto(av2,S2);
+			S2 = DivAdd(S1,gmael(U,2,i2),2*d0+1,T,p,e,pe,0); /* L(4D0-E1-E2-ED) */
+			S2 = gerepileupto(av2,S2);
 			S2 = DivSub(V,S2,KV,1,T,p,e,pe,2); /* L(2D0-E1-E2-ED), generically 1-dimensional */
   		s2 = gel(S2,1); /* Generator */
-			//s2 = gerepileupto(av2,s2);
+			s2 = gerepileupto(av2,s2);
 			/* get coords of s2 w.r.t. V */
 			s2I = cgetg(nV,t_COL);
 			for(i=1;i<nV;i++)
 				gel(s2I,i) = gel(s2,I[i]);
   		K = FqM_FqC_mul(M,s2I,T,pe);
-			gel(resi1,i2) = K;//gerepileupto(av2,K);
+			gel(resi1,i2) = gerepileupto(av2,K);
 		}
 		//gel(res,i1)=resi1;
-		gel(res,i1) = resi1;//gerepileupto(av1,resi1);
+		gel(res,i1) = gerepileupto(av1,resi1);
 	}
-	return gerepilecopy(av,res);
+	return gerepileupto(av,res); // TODO why is upto wrong here?
 }
 
