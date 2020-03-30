@@ -228,7 +228,6 @@ GEN TorsSpaceFrobEval(GEN J, GEN gens, GEN cgens, ulong l, GEN matFrob)
 			pari_printf("%Ps\n",gel(ZmodF,i));
 			RgM_dimensions(gel(ZmodF,i),(long*)&j,(long*)&k);
 			printf("%lu %lu\n",j,k);
-			pari_printf("%Ps\n",gel(ZmodF,1));
 		}
 	}
 	printf("U\n");
