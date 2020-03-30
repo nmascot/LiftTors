@@ -60,13 +60,11 @@ GEN TorsSpaceFrob_worker(GEN J, GEN W1, GEN X1, GEN W2, GEN X2)
 	pari_sp av = avma;
 	GEN W;
 	ulong x,x1,x2,y;
-	printf("Into Tors_worker\n");
 	x1 = itou(X1);
 	if(W2==gen_0)
 	{
 		W = PicNeg(J,W1,0);
 		for(y=1;y<=x1;y++) W = gerepileupto(av,PicFrob(J,W));
-		printf("Exiting Tors_worker (0)\n");
 		return W;
 	}
 	x2 = itou(X2);
@@ -82,7 +80,6 @@ GEN TorsSpaceFrob_worker(GEN J, GEN W1, GEN X1, GEN W2, GEN X2)
   }
 	W = PicChord(J,W1,W2,0);
 	for(y=1;y<=x;y++) W = gerepileupto(av,PicFrob(J,W));
-	printf("Exiting Tors_worker\n");
   return W;
 }
 
@@ -91,8 +88,8 @@ GEN TorsSpaceFrobEval(GEN J, GEN gens, GEN cgens, ulong l, GEN matFrob)
 	pari_sp av = avma;
 	ulong d,ld,ndone,ngens,nmodF,ntodo,i,j,k,n,ij,ik,xj,xk,x;
 	GEN VmodF,ImodF,ZmodF,ImodF2,done,mfrob,c,todo,todon,args,Wj,Wk;
-	struct pari_mt pt,pt2;
-	GEN worker,worker2,res;
+	struct pari_mt pt;
+	GEN worker,res;
   long pending;
 
 	d = lg(matFrob)-1; // Dim of rep
@@ -208,46 +205,27 @@ GEN TorsSpaceFrobEval(GEN J, GEN gens, GEN cgens, ulong l, GEN matFrob)
 	args = cgetg(3,t_VEC);
 	gel(args,1) = J;
 	ZmodF = cgetg(nmodF+1,t_VEC);
-	worker2 = strtofunction("PicEval");
-	mt_queue_start(&pt2,worker2);
+	worker = strtofunction("PicEval");
+	mt_queue_start(&pt,worker);
 	for(n=1;n<=nmodF||pending;n++)
 	{
 		if(n<=nmodF)
 		{
 			gel(args,2) = gel(VmodF,n);
-			printf("Submit %lu\n",n);
-			mt_queue_submit(&pt2,n,args);
+			mt_queue_submit(&pt,n,args);
 		}
-		else mt_queue_submit(&pt2,0,NULL);
-		res = mt_queue_get(&pt2,(long*)&i,&pending);
+		else mt_queue_submit(&pt,0,NULL);
+		res = mt_queue_get(&pt,(long*)&i,&pending);
 		if(res)
 		{
-			printf("Getting %lu\n",i);
 			gel(ZmodF,i) = res; // TODO gerepile
-			printf("%p\n",gel(ZmodF,i));
-			pari_printf("%Ps\n",gel(ZmodF,i));
-			RgM_dimensions(gel(ZmodF,i),(long*)&j,(long*)&k);
-			printf("%lu %lu\n",j,k);
 		}
 	}
-	printf("U\n");
-	pari_printf("%Ps\n",gel(ZmodF,1));
-	mt_queue_end(&pt2);
-	printf("End eval\n");
-	pari_printf("%Ps\n",gel(ZmodF,1));
+	mt_queue_end(&pt);
 
 	ImodF2 = cgetg(nmodF+1,t_VECSMALL);
 	for(n=1;n<=nmodF;n++) ImodF2[n] = ImodF[n];
 	res = mkvec2(ZmodF,ImodF2);
-	printf("End Tors\n");
-	pari_printf("ImodF: %Ps\n",ImodF2);
-	for(i=1;i<=nmodF;i++)
-	{
-		printf("%lu\n",i);
-		printf("%p\n",gel(ZmodF,i));
-		pari_printf("%Ps\n",gel(ZmodF,i));
-	}
-	pari_printf("ZmodF: %Ps\n",ZmodF);
 	return gerepilecopy(av,res); // TODO do not copy
 }
 
