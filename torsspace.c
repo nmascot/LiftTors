@@ -266,7 +266,7 @@ GEN PolExpID(GEN Z, GEN T, GEN pe) /* bestappr of prod(x-z), z in Z */
 GEN OnePol(GEN N, GEN D, GEN ImodF, GEN Jfrobmat, ulong l, GEN QqFrobMat, GEN T, GEN pe)
 { /* Actually returns a vector of n1*n2 pols (all elem. symm. fns) */
   pari_sp av = avma, av1;
-  GEN R,Z,F,z;
+  GEN R,Z,F,Fi,z;
   ulong d,ld,j,k,n,i1,i2,i;
   long n1,n2,n12;
   n = lg(N);
@@ -311,9 +311,9 @@ GEN OnePol(GEN N, GEN D, GEN ImodF, GEN Jfrobmat, ulong l, GEN QqFrobMat, GEN T,
         z = Frob(z,QqFrobMat,T,pe);
       }
     }
-    Z = PolExpID(Z,T,pe);
-    if(n12>1) Z = gerepileupto(av1,Z);
-    gel(F,i+1) = Z;
+    Fi = PolExpID(Z,T,pe);
+    if(n12>1) Fi = gerepileupto(av1,Fi);
+    gel(F,i+1) = Fi;
   }
   return gerepileupto(av,F);
 }
@@ -339,7 +339,6 @@ GEN AllPols(GEN Z, ulong l, GEN JFrobMat, GEN QqFrobMat, GEN T, GEN pe, GEN p, l
     for(k=1;k<=d;k++)
       gel(Jfrobmat,j)[k] = itos(liftint(gcoeff(JFrobMat,k,j)));
   }
-	printf("a\n");
   nF = lg(F); /* Number of vectors */
   RgM_dimensions(gel(F,1),&n2,&n1);
   n12 = n1*n2;
@@ -361,7 +360,6 @@ GEN AllPols(GEN Z, ulong l, GEN JFrobMat, GEN QqFrobMat, GEN T, GEN pe, GEN p, l
       }
     }
   }
-	printf("b\n");
   F1 = cgetg(lF,t_VEC);
   npols = 0;
   for(i=1;i<lF;i++) /* Find the i such that the ith coord of all the vectors in all the matrices are invertible, and store there inverses */
@@ -389,7 +387,6 @@ GEN AllPols(GEN Z, ulong l, GEN JFrobMat, GEN QqFrobMat, GEN T, GEN pe, GEN p, l
       }
     }
   }
-	printf("c\n");
   pending = 0;
   worker = strtofunction("OnePol");
   args = cgetg(9,t_VEC);
@@ -429,6 +426,5 @@ GEN AllPols(GEN Z, ulong l, GEN JFrobMat, GEN QqFrobMat, GEN T, GEN pe, GEN p, l
     }
   }
   mt_queue_end(&pt);
-	printf("d\n");
   return gerepileupto(av,pols);
 }
