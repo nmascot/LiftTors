@@ -623,3 +623,7 @@ GEN RREval(GEN J, GEN W)
 	return gerepileupto(av,res);
 }
 
+GEN RREval_worker(GEN W, GEN J)
+{
+	return RREval(J,W);
+}
