@@ -288,9 +288,10 @@ GEN OnePol(GEN N, GEN D, GEN ImodF, GEN Jfrobmat, ulong l, GEN QqFrobMat, GEN T,
 
 GEN AllPols(GEN Z, ulong l, GEN JFrobMat, GEN QqFrobMat, GEN T, GEN pe, GEN p, long e)
 {
-  pari_sp av = avma;
+  pari_sp av = avma, avj;
   GEN F,ImodF,Jfrobmat,Ft,F1,f,pols,args;
-  ulong d,nF,lF,npols,n,i,j,i1,i2,m,k;
+  ulong d,nF,lF,npols,n,i,j,j0,i1,i2,m,k;
+	int All0;
   long n1,n2,n12;
   struct pari_mt pt;
   GEN worker,done;
@@ -312,21 +313,30 @@ GEN AllPols(GEN Z, ulong l, GEN JFrobMat, GEN QqFrobMat, GEN T, GEN pe, GEN p, l
   lF = lg(gmael3(F,1,1,1))-1; /* Size of each vector */
   /* F = list of nF-1 matrices of size n2*n1 of vectors of size lF */
   Ft = cgetg(lF,t_VEC);
-  /* Ft[j,i,i1,i2] = F[i,i1,i2,j] */
-  for(j=1;j<lF;j++)
+  /* Ft[j,i,i1,i2] = F[i,i1,i2,j], keeping only the j such that F[.,.,.,j] not identically 0 */
+  for(j=j0=1;j<lF;j++)
   {
-    gel(Ft,j) = cgetg(nF,t_VEC);
+		All0 = 1;
+		avj = avma;
+    gel(Ft,j0) = cgetg(nF,t_VEC);
     for(i=1;i<nF;i++)
     {
-      gmael(Ft,j,i) = cgetg(n1+1,t_MAT);
+      gmael(Ft,j0,i) = cgetg(n1+1,t_MAT);
       for(i1=1;i1<=n1;i1++)
       {
-        gmael3(Ft,j,i,i1) = cgetg(n2+1,t_COL);
+        gmael3(Ft,j0,i,i1) = cgetg(n2+1,t_COL);
         for(i2=1;i2<=n2;i2++)
-          gmael4(Ft,j,i,i1,i2) = gmael4(F,i,i1,i2,j);
+				{
+          f = gmael4(Ft,j0,i,i1,i2) = gmael4(F,i,i1,i2,j);
+					if(gequal0(f)==0) All0 = 0;
+				}
       }
     }
+		if(All0) avma = avj; /* Drop this j */
+    else j0++;
   }
+	printf("Reducing lF from %lu to %lu\n",lF-1,j0-1);
+	lF = j0;
   F1 = cgetg(lF,t_VEC);
   npols = 0;
   for(i=1;i<lF;i++) /* Find the i such that the ith coord of all the vectors in all the matrices are invertible, and store there inverses */
@@ -341,7 +351,7 @@ GEN AllPols(GEN Z, ulong l, GEN JFrobMat, GEN QqFrobMat, GEN T, GEN pe, GEN p, l
         gmael3(F1,i,j,i1) = cgetg(n2+1,t_COL);
         for(i2=1;i2<=n2;i2++)
         {
-          f = gmael4(F,j,i1,i2,i);
+          f = gmael4(Ft,i,j,i1,i2);
           if(ZX_is0mod(f,p))
           {
             gel(F1,i) = NULL;

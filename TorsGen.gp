@@ -242,7 +242,7 @@ TorsBasis(J,l,Lp,chi)=
 					[LinTests,R] = res[2]; \\ Update Lintests and R
 					iFrob++;
 					if(B && iFrob==poldegree(B), \\ We know that next time will be dependent and the relation
-						print(" B=",centerlift(B), " says we'll get linear dependency next time");
+						print(" B = ",centerlift(B), " says we'll get linear dependency next time");
 						for(i=1,poldegree(B)-1,matFrob[r+1-i,r-i]=Mod(1,l));
             for(i=0,poldegree(B)-1,matFrob[r+1-poldegree(B)+i,r]=Mod(-polcoef(B,i),l));
 						if(r==d,return([BT,matFrob]));
