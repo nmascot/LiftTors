@@ -55,7 +55,7 @@ ulong ActOni(GEN m, ulong i, ulong l)
 	return i;
 }
 
-GEN TorsSpaceFrob_worker(GEN J, GEN W1, GEN X1, GEN W2, GEN X2)
+GEN TorsSpaceFrob_worker(GEN W1, GEN X1, GEN W2, GEN X2, GEN J)
 {
 	pari_sp av = avma;
 	GEN W;
@@ -87,7 +87,7 @@ GEN TorsSpaceFrobEval(GEN J, GEN gens, GEN cgens, ulong l, GEN matFrob)
 {
 	pari_sp av = avma;
 	ulong d,ld,ndone,ngens,nmodF,ntodo,i,j,k,n,ij,ik,xj,xk,x;
-	GEN VmodF,ImodF,ZmodF,ImodF2,done,mfrob,c,todo,todon,args,Wj,Wk;
+	GEN vJ,vW,VmodF,ImodF,ZmodF,ImodF2,done,mfrob,c,todo,Wj,Wk;
 	struct pari_mt pt;
 	GEN worker,res;
   long pending;
@@ -103,9 +103,9 @@ GEN TorsSpaceFrobEval(GEN J, GEN gens, GEN cgens, ulong l, GEN matFrob)
 	ndone = 1;
 	nmodF = 0;
 	ngens = lg(gens)-1;
-	worker = strtofunction("TorsSpaceFrob_worker");
-	args = cgetg(6,t_VEC);
-  gel(args,1) = J;
+	vJ = cgetg(2,t_VEC);
+  gel(vJ,1) = J;
+	worker = snm_closure(is_entry("TorsSpaceFrob_worker"),vJ);
 	// matFrob, version Flm
 	mfrob = cgetg(d+1,t_MAT);
   for(j=1;j<=d;j++)
@@ -157,7 +157,7 @@ GEN TorsSpaceFrobEval(GEN J, GEN gens, GEN cgens, ulong l, GEN matFrob)
 						Wj = ij?gel(VmodF,ij):gen_0;
 						Wk = ik?gel(VmodF,ik):gen_0;
 						ntodo++;
-						gel(todo,ntodo) = mkvecn(5,utoi(i),Wj,utoi(xj),Wk,utoi(xk));
+						gel(todo,ntodo) = mkvec2(mkvecn(4,Wj,utoi(xj),Wk,utoi(xk)),utoi(i));
 						// Mark that we are about to get this Frob orbit
 						while(gel(done,i)==NULL)
 						{
@@ -173,14 +173,7 @@ GEN TorsSpaceFrobEval(GEN J, GEN gens, GEN cgens, ulong l, GEN matFrob)
 		printf("Computing %lu new points\n",ntodo);
 	  for(n=1;n<=ntodo||pending;n++)
   	{
-			if(n<=ntodo)
-			{
-				todon = gel(todo,n);
-				i = itos(gel(todon,1));
-				for(j=2;j<=5;j++)
-					gel(args,j) = gel(todon,j);
-    		mt_queue_submit(&pt,i,args);
-			}
+			if(n<=ntodo) mt_queue_submit(&pt,itos(gmael(todo,n,2)),gmael(todo,n,1));
 			else mt_queue_submit(&pt,0,NULL);
     	res = mt_queue_get(&pt,(long*)&i,&pending);
     	if(res)
@@ -202,24 +195,21 @@ GEN TorsSpaceFrobEval(GEN J, GEN gens, GEN cgens, ulong l, GEN matFrob)
 	}
 
 	printf("Evaluating %lu points\n",nmodF);
-	args = cgetg(3,t_VEC);
-	gel(args,1) = J;
+	vW = cgetg(2,t_VEC);
 	ZmodF = cgetg(nmodF+1,t_VEC);
-	worker = strtofunction("PicEval");
+	worker = snm_closure(is_entry("RREval_worker"),vJ);
 	mt_queue_start(&pt,worker);
 	for(n=1;n<=nmodF||pending;n++)
 	{
 		if(n<=nmodF)
 		{
-			gel(args,2) = gel(VmodF,n);
-			mt_queue_submit(&pt,n,args);
+			gel(vW,1) = gel(VmodF,n);
+			mt_queue_submit(&pt,n,vW);
 		}
 		else mt_queue_submit(&pt,0,NULL);
 		res = mt_queue_get(&pt,(long*)&i,&pending);
 		if(res)
-		{
 			gel(ZmodF,i) = res; // TODO gerepile
-		}
 	}
 	mt_queue_end(&pt);
 

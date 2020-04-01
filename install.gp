@@ -22,7 +22,8 @@ install("SuperZeta","GUU","SuperZeta","./libzeta.so");
 
 install("RRInit","GUUGGGUL","PicInit","./librr.so");
 install("RREval","GG","PicEval","./librr.so");
-install("Jlift","GU","Jlift","./librr.so");
+install("RREval_worker","GG",,"./librr.so");
+install("Jlift","GU",,"./librr.so");
 
 install("PicRed","GU","PicRed","./libpic.so");
 install("PicChord","GGGL","PicChord","./libpic.so");
@@ -47,7 +48,7 @@ install("JgetFrobMat","G","JgetFrobMat","./libpic.so");
 install("Frob","GGGG","Frob","./libpic.so");
 
 install("PicLift_worker","GUGGGGG",,"./liblift.so");
-install("PicLiftTors_Chart_worker","GGGGGGGGLGUGG",,"./liblift.so");
+install("PicLiftTors_Chart_worker","GGGGGGGGGLGUG",,"./liblift.so");
 install("PicLiftTors","GGLG",,"./liblift.so");
 
 install("PicNorm","GGGGU","PicNorm","./libfreyruck.so");

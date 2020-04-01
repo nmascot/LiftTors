@@ -153,7 +153,7 @@ GEN PicLift_RandLift_U(GEN U, GEN U0, GEN KM, GEN T, GEN p, GEN pe1, GEN pe21, l
 	return gerepileupto(av,newU);
 }
 
-GEN PicLiftTors_Chart_worker(GEN J, GEN l, GEN U, GEN U0, GEN I, GEN KM, GEN pe1, GEN pe21, long e21, GEN c0, ulong P0, GEN P1, GEN randseed)
+GEN PicLiftTors_Chart_worker(GEN randseed, GEN J, GEN l, GEN U, GEN U0, GEN I, GEN KM, GEN pe1, GEN pe21, long e21, GEN c0, ulong P0, GEN P1)
 {
   pari_sp av = avma;
 	GEN T,p,pe2;
@@ -193,7 +193,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 	int P0_tested=0;
 	GEN Clifts,Ulifts,Wlifts,Ktors;
 	struct pari_mt pt;
-  GEN randseed,args,worker,done;
+  GEN randseed,vFixedParams,args,worker,done;
   long pending,workid;
   ulong r,i,j,k,n;
 
@@ -268,7 +268,14 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
   	/* TODO do not deform U1[1]? */
   	/* TODO swap loops and parallelise */
   	K = cgetg(nGW*d0+2,t_MAT);
-		worker = strtofunction("PicLift_worker");
+		vFixedParams = cgetg(6,t_VEC);
+		gel(vFixedParams,1) = uv;
+		gel(vFixedParams,2) = AinvB;
+		gel(vFixedParams,3) = CAinv;
+		gel(vFixedParams,4) = T;
+		gel(vFixedParams,5) = pe21;
+		args = cgetg(3,t_VEC);
+		worker = snm_closure(is_entry("PicLift_worker"),vFixedParams);
 		pending = 0;
     i = 1;
 		j = 1;
@@ -277,7 +284,8 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
     {
 			if(k<=nGW*d0)
       { /* GW[i] shifts by p^e1*V0[j] */
-				args = mkvecn(7,gel(V0,j),utoi((i-1)*nV),uv,AinvB,CAinv,T,pe21);
+				gel(args,1) = gel(V0,j);
+				gel(args,2) = utoi((i-1)*nV);
 				mt_queue_submit(&pt,k,args);
 				j++;
 				if(j>d0) {j=1;i++;}
@@ -307,7 +315,8 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 			Clifts = cgetg(g+2,t_MAT);
 			Ulifts = cgetg(g+2,t_VEC);
 			Wlifts = cgetg(g+2,t_VEC);
-  		worker = strtofunction("PicLiftTors_Chart_worker");
+			vFixedParams = cgetg(13,t_VEC);
+			randseed = cgetg(2,t_VEC);
   		av2 = avma;
   		while(1)
   		{
@@ -328,16 +337,28 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 					av2 = avma;
     		}
     		/* Find g+1 lifts in parallel */
+				gel(vFixedParams,1) = J2;
+      	gel(vFixedParams,2) = l;
+      	gel(vFixedParams,3) = U;
+      	gel(vFixedParams,4) = U0;
+      	gel(vFixedParams,5) = sW;
+      	gel(vFixedParams,6) = KM;
+      	gel(vFixedParams,7) = pe1;
+      	gel(vFixedParams,8) = pe21;
+      	gel(vFixedParams,9) = stoi(e21);
+      	gel(vFixedParams,10) = c0;
+      	gel(vFixedParams,11) = utoi(P0);
+      	gel(vFixedParams,12) = P1;
+      	worker = snm_closure(is_entry("PicLiftTors_Chart_worker"),vFixedParams);
     		pending = 0;
     		mt_queue_start(&pt,worker);
     		for(i=1;i<=g+1||pending;i++)
     		{
       		if(i<=g+1)
-      		{
-        		randseed = utoi(pari_rand());
-        		args = mkvecn(13,J2,l,U,U0,sW,KM,pe1,pe21,stoi(e21),c0,utoi(P0),P1,randseed);
-        		mt_queue_submit(&pt,i,args);
-      		}
+					{
+						gel(randseed,1) = utoi(pari_rand());
+						mt_queue_submit(&pt,i,randseed);
+					}
       		else mt_queue_submit(&pt,i,NULL);
       		done = mt_queue_get(&pt,&workid,&pending);
       		if(done)
