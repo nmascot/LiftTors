@@ -71,7 +71,7 @@ mfbestp(f,l,coeffs,pmax)=
 
 mfgalrep(f,l,coeffs,pmax,D,qprec,threadlim)=
 {
-	my(N,k,H,best,p,a,Lp,chi,e,J,CuspsQ,J1,B,matFrob,i,M,WB,cWB,TI,Z,AF,def_threads);
+	my(N,k,H,best,p,a,Lp,chi,e,pe,J,CuspsQ,J1,B,matFrob,i,M,WB,cWB,TI,Z,AF,def_threads);
 	if(threadlim,
 		def_threads = default(nbthreads);
 		if(#threadlim!=4,error("Give 4 thread limits: Jacobian initialisation, generation of points mod p, p-adic lift, and evaluation"))
@@ -81,6 +81,7 @@ mfgalrep(f,l,coeffs,pmax,D,qprec,threadlim)=
 	[H,best] = mfbestp(f,l,coeffs,pmax);
 	[p,a,Lp,chi] = best;
 	e=2^ceil(log((log(2)+2*D*log(10))/log(p))/log(2)); \\ Power of 2 such that sqrt(1/2*p^e)>10^D
+	pe = p^e;
 	[N,k] = mfparams(f)[1..2];
 	if(k>2,N*=l);
 	print("\n--> Initialising modular Jacobian");
@@ -95,15 +96,15 @@ mfgalrep(f,l,coeffs,pmax,D,qprec,threadlim)=
 	while(M!=1,M*=matFrob;i++);
 	print("It has order ",i);
 	[WB,cWB] = TorsSpaceFrobGen(J1,l,B,matFrob);
+	J1 = B = 0;
 	if(threadlim,default(nbthreads,threadlim[3]));
 	print("\n--> Lifting ",#WB," points ",p,"-adically");
 	WB = apply(W->PicLiftTors(J,W,1,l),WB);
 	if(threadlim,default(nbthreads,threadlim[4]));
 	print("\n--> All of T");
-	TI = TorsSpaceFrob(J,WB,cWB,l,matFrob);
-	print("\n--> Evaluation of ",#TI[2]," points");
-	Z = TorsSpaceFrobEval(J,TI,l,2,matFrob);
-	AF = TorsSpaceGetPols(J,Z);
+	Z = TorsSpaceFrobEval(J,WB,cWB,l,matFrob);
+	WB = 0;
+	AF = TorsSpaceGetPols(Z,l,matFrob,JgetFrobMat(J),JgetT(J),pe,p,e);
 	if(threadlim,default(nbthreads,def_threads));
 	AF[1];
 }

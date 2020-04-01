@@ -37,7 +37,5 @@ WB = apply(W->PicLiftTors(J,W,1,l),WB);
 print("\n--> All of T");
 TI = TorsSpaceFrob(J,WB,cWB,l,matFrob);
 print("\n--> Evaluation of ",#TI[2]," points");
-export(M4Q);
-export(PicEval);
 Z = TorsSpaceFrobEval(J,TI,l,2,matFrob);
 AF = TorsSpaceGetPols(J,Z);
