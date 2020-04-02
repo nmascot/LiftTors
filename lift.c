@@ -155,7 +155,7 @@ GEN PicLift_RandLift_U(GEN U, GEN U0, GEN KM, GEN T, GEN p, GEN pe1, GEN pe21, l
 
 GEN PicLiftTors_Chart_worker(GEN randseed, GEN J, GEN l, GEN U, GEN U0, GEN I, GEN KM, GEN pe1, GEN pe21, long e21, GEN c0, ulong P0, GEN P1)
 {
-  pari_sp av = avma;
+  pari_sp av = avma, avU;
 	GEN T,p,pe2;
 	long e2;
 	GEN W,c;
@@ -166,18 +166,20 @@ GEN PicLiftTors_Chart_worker(GEN randseed, GEN J, GEN l, GEN U, GEN U0, GEN I, G
 
 	/* Get a random lift */
 	U = PicLift_RandLift_U(U,U0,KM,T,p,pe1,pe21,e21);
-  W = PicInflate_U(J,U,I);
+  avU = avma;
+	W = PicInflate_U(J,U,I);
+	W = gerepileupto(avU,PicMul(J,W,l,0));
   /* Mul by l, get coordinates, and compare them to those of W0 */
-  c = PicChart(J,PicMul(J,W,l,0),P0,P1);
+  c = PicChart(J,W,P0,P1);
+	c = gerepileupto(avU,c);
   for(i=1;i<=nc;i++) /* The coords are c0 mod pe1 -> divide */
 		gel(c,i) = ZX_Z_divexact(FpX_sub(gel(c,i),gel(c0,i),pe2),pe1);
-  return gerepilecopy(av,mkvecn(3,U,W,c));
+  return gerepilecopy(av,mkvec2(U,c));
 }
 
 GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 {
-	/* TODO reduce mem usage */
-  pari_sp av=avma,av1,av2,av3,avrho;
+  pari_sp av=avma,av1,av2,av3,avrho,avtesttors;
 	GEN T,p,V;
   long efin,e1,e2,e21,efin2;
   GEN pefin,pe1,pe21,pe2,pefin2;
@@ -191,11 +193,12 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
   ulong nGW=2,nV,d0,nc,P0=0;
 	GEN c0=NULL,P1=NULL;
 	int P0_tested=0;
-	GEN Clifts,Ulifts,Wlifts,Ktors;
+	GEN Clifts,Ulifts,Ktors;
 	struct pari_mt pt;
   GEN randseed,vFixedParams,args,worker,done;
   long pending,workid;
   ulong r,i,j,k,n;
+	long testtors;
 
 	JgetTpe(J,&T,&pefin,&p,&efin);
 	if(eini >= efin) return W;
@@ -268,7 +271,6 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 		
   	/* Now deform the w in GW by p^e1*V0. Actually we deform U1 by p^e1*U0. */
   	/* TODO do not deform U1[1]? */
-  	/* TODO swap loops and parallelise */
   	K = cgetg(nGW*d0+2,t_MAT);
 		vFixedParams = cgetg(6,t_VEC);
 		gel(vFixedParams,1) = uv;
@@ -320,7 +322,6 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 			if(DEBUGLEVEL) printf("Lift by chart\n");
 			Clifts = cgetg(g+2,t_MAT);
 			Ulifts = cgetg(g+2,t_VEC);
-			Wlifts = cgetg(g+2,t_VEC);
 			vFixedParams = cgetg(13,t_VEC);
 			randseed = cgetg(2,t_VEC);
   		av2 = av3 = avma;
@@ -370,8 +371,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
       		if(done)
       		{
         		gel(Ulifts,workid) = gel(done,1);
-        		gel(Wlifts,workid) = gel(done,2);
-        		gel(Clifts,workid) = gel(done,3);
+        		gel(Clifts,workid) = gel(done,2);
       		}
     		}
     		mt_queue_end(&pt);
@@ -401,14 +401,16 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 				for(i=1;i<=g+1;i++) gel(Ulifts,i) = FqM_Fq_mul(gel(Ulifts,i),gel(Ktors,i),T,pe2);
         U2 = gel(Ulifts,1);
         for(i=2;i<=g+1;i++) U2 = FpXM_add(U2,gel(Ulifts,i),pe2);
+				U2 = gerepileupto(av3,U2);
 				/* But first check if really l-tors, as the chart might not be injective ! */
     		if(P0_tested == 0)
 				{
 					if(DEBUGLEVEL) pari_printf("Checking %Ps-tors\n",l);
-					for(i=1;i<=g+1;i++) gel(Wlifts,i) = FqM_Fq_mul(gel(Wlifts,i),gel(Ktors,i),T,pe2);
-					W = gel(Wlifts,1);
-  	  		for(i=2;i<=g+1;i++) W = FpXM_add(W,gel(Wlifts,i),pe2);
-					if(!PicIsZero(J2,PicMul(J2,W,l,0)))
+					W = PicInflate_U(J2,U2,NULL);
+					avtesttors = avma;
+					testtors = PicIsZero(J2,PicMul(J2,W,l,0));
+					avma = avtesttors;
+					if(!testtors)
           {
             printf("Not actually l-torsion!!! Changing charts\n");
             P0++;
@@ -416,17 +418,12 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 						av3 = av2;
             continue;
           }
-					// TODO gerepile!!
 					P0_tested = 1;
     		}
 				if(e2 == efin)
 				{ /* Already done ? */
 					if(W == NULL) /* Update W, if not already done, and return it */
-					{
-						for(i=1;i<=g+1;i++) gel(Wlifts,i) = FqM_Fq_mul(gel(Wlifts,i),gel(Ktors,i),T,pe2);
-          	W = gel(Wlifts,1);
-          	for(i=2;i<=g+1;i++) W = FpXM_add(W,gel(Wlifts,i),pe2);
-					}
+						W = PicInflate_U(J2,U2,NULL);
 					return gerepileupto(av,W);
 				}
 				else
