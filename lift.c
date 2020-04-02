@@ -177,7 +177,7 @@ GEN PicLiftTors_Chart_worker(GEN randseed, GEN J, GEN l, GEN U, GEN U0, GEN I, G
 GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 {
 	/* TODO reduce mem usage */
-  pari_sp av=avma,av1,av2;
+  pari_sp av=avma,av1,av2,av3,avrho;
 	GEN T,p,V;
   long efin,e1,e2,e21,efin2;
   GEN pefin,pe1,pe21,pe2,pefin2;
@@ -226,6 +226,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 	av1 = avma; /* Use to collect garbage at each iteration */
 	J1 = PicRed(J,e1);
 	U = PicDeflate_U(J1,W,nGW); /* IGS of W1 // basis of V */
+	U = gerepileupto(av1,U);
 
 	r = 3*d0+1-g; /* Wanted rank of GWV */
 	/* Main loop */
@@ -252,6 +253,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
     	}
   	}
   	
+		avrho = avma;
   	uv = FqM_MinorCompl(GWV,T,p); /* How to split GWV */
   	ABCD = M2ABCD(GWV,uv); /* Splitting */
   	Ainv = ZpXQM_inv(gel(ABCD,1),T,p,e2);
@@ -298,15 +300,19 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
   	gel(K,nGW*d0+1) = mat2col(rho);
   	/* Find a random solution to the inhomogeneous system */
   	KM = matkerpadic(K,T,pe21,p,e21);
+		KM = gerepileupto(avrho,KM);
 		if(DEBUGLEVEL||(lg(KM)==1)) printf("dim ker lift: %ld\n",lg(KM)-1);
 		if(cmpii(pe21,powiu(l,g+1))<=0)
   	{
+			av2 = avma;
     	if(DEBUGLEVEL) printf("Lift by mul\n");
 			U = PicLift_RandLift_U(U,U0,KM,T,p,pe1,pe21,e21);
 			W = PicInflate_U(J2,U,NULL);
+			W = gerepileupto(av2,W);
     	W = PicMul(J2,W,pe21,0); /* Make it l-tors */
 			if(e2==efin) /* Already done ? */
 				return gerepileupto(av,W);
+			W = gerepileupto(av2,W);
 			U = PicDeflate_U(J2,W,nGW); /* Update U -> ready for new iteration */
 		}
 		else
@@ -317,10 +323,10 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 			Wlifts = cgetg(g+2,t_VEC);
 			vFixedParams = cgetg(13,t_VEC);
 			randseed = cgetg(2,t_VEC);
-  		av2 = avma;
+  		av2 = av3 = avma;
   		while(1)
   		{
-				avma = av2;
+				avma = av3;
     		if(c0==NULL) /* Compute coords of 0 if not already done */
     		{
 					if(DEBUGLEVEL) printf("Computing coords of 0\n");
@@ -334,7 +340,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 					c0 = Subspace_normalize(c0,P1,T,pefin,p,efin,1);
 					c0 = mat2col(c0);
 					gerepileall(av2,2,&c0,&P1);
-					av2 = avma;
+					av3 = avma;
     		}
     		/* Find g+1 lifts in parallel */
 				gel(vFixedParams,1) = J2;
@@ -375,11 +381,11 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
     		if(n!=1)
     		{ /* l-tors is étale, so this can only happen if Chart is not diffeo - > change chart */
       		printf("Dim ker tors = %ld, changing charts\n",n);
-					pari_err(e_MISC,"");
       		P0++; /* New chart */
 					printf("P0=%lu\n",P0);
 					P0_tested = 0;
 					c0 = NULL; /* Coords of 0 must be recomputed */
+					av3 = av2;
       		continue; /* Try again with this new chart */
     		}
     		Ktors = gel(Ktors,1);
@@ -407,8 +413,10 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
             printf("Not actually l-torsion!!! Changing charts\n");
             P0++;
             c0 = NULL;
+						av3 = av2;
             continue;
           }
+					// TODO gerepile!!
 					P0_tested = 1;
     		}
 				if(e2 == efin)
