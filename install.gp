@@ -1,5 +1,7 @@
 default(sopath,".:..");
 
+timestr(cput0,wt0)=Str("cpu time ",strtime(getabstime()-cput0),", real time ",strtime(getwalltime()-wt0));
+
 WeiRed(f,h)=
 {
  my(F=f+(2)^2);

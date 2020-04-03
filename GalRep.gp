@@ -84,7 +84,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 	 and if chi is nonzero,
 	 we must have chi || (Lp mod l).*/
 {
-	my([f,g,d0,L,LL,L1,L2,Bad]=C,pe=p^e,d,J,J1,B,matFrob,WB,cWB,Z,AF,F,ZF,M,i,JT,e1=1);
+	my([f,g,d0,L,LL,L1,L2,Bad]=C,pe=p^e,d,J,J1,B,matFrob,WB,cWB,Z,AF,F,ZF,M,i,JT,e1=1,wt0=getwalltime(),cput0=getabstime());
 	/* TODO rescale to remove denoms */
 	L = RR_rescale(L,p);
   LL = RR_rescale(LL,p);
@@ -113,15 +113,15 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 	[WB,cWB] = TorsSpaceFrobGen(J1,l,B,matFrob); \\ Generating set of T under Frob and coordinates of these generators on B
 	J1 = B = 0;
 	while(1,
-		print("\n--> Lifting ",#WB," points ",p,"-adically");
+		print("\n--> Lifting ",#WB," points ",p,"-adically; ",timestr(cput0,wt0));
 		if(#WB > Jgetg(J),
   		my(J=J,e1=e1,l=l); WB = parapply(W->PicLiftTors(J,W,e1,l),WB); \\ More efficient in parallel
 		,
   		WB = apply(W->PicLiftTors(J,W,e1,l),WB); \\ Less efficient in parallel (TODO tune)
 		);
-		print("\n--> All of T");
+		print("\n--> All of T; ",timestr(cput0,wt0));
 		Z = TorsSpaceFrobEval(J,WB,cWB,l,matFrob);
-		print("\n--> Expansion and identification");
+		print("\n--> Expansion and identification; ",timestr(cput0,wt0));
 		JT = JgetT(J);
 		AF = TorsSpaceGetPols(Z,l,matFrob,JgetFrobMat(J),JT,pe,p,e); \\ List of polynomials defining the representation
 		if(AF!=[],break);

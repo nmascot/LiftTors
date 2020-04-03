@@ -35,16 +35,17 @@ mfyt(f,l,coeffs)=
 
 mfbestp(f,l,coeffs,pmax)=
 {
-	my(N,k,eps,P,Phi,yl,tl,o,ZNX,lN,H,listp,qf,best,p,ap,epsp,chi,Lp,Psi,a1,a2,a);
+	my(N,k,eps,P,Phi,yl,tl,o,ZNX,pmin=5,lN,H,listp,qf,best,p,ap,epsp,chi,Lp,Psi,a1,a2,a);
 	[N,k,eps,P,Phi]=mfparams(f);
 	[yl,tl] = mfyt(f,l,coeffs);
 	o = IDpolcyclo(Phi,N);
 	ZNX = znstar(N,1);
 	eps = znchar(f);
+	if(type(pmax)=="t_VEC",[pmin,pmax]=pmax);
 	lN = if(k==2,N,l*N);
 	H = select(h->gcd(lN,h)==1,[1..lN-1]);
 	H = select(h->Mod(h^(k-2),l)*chareval(eps[1],eps[2],h,[tl,o])==1,H);
-	listp = select(p->Mod(l*N,p),primes([5,pmax]));
+	listp = select(p->Mod(l*N,p),primes([pmin,pmax]));
 	print("qexp");
 	qf = mfcoefs(f,pmax);
 	print("Lp");
@@ -71,7 +72,7 @@ mfbestp(f,l,coeffs,pmax)=
 
 mfgalrep(f,l,coeffs,pmax,D,qprec,threadlim)=
 {
-	my(N,k,H,best,p,a,Lp,chi,e,pe,J,CuspsQ,J1,B,matFrob,i,M,WB,cWB,TI,Z,AF,def_threads);
+	my(N,k,H,best,p,a,Lp,chi,e,pe,J,CuspsQ,J1,B,matFrob,i,M,WB,cWB,TI,Z,AF,def_threads,wt0=getwalltime(),cput0=getabstime());
 	if(threadlim,
 		def_threads = default(nbthreads);
 		if(#threadlim!=4,error("Give 4 thread limits: Jacobian initialisation, generation of points mod p, p-adic lift, and evaluation"))
@@ -80,6 +81,7 @@ mfgalrep(f,l,coeffs,pmax,D,qprec,threadlim)=
 	print("--> Finding prime p with small residual degree");
 	[H,best] = mfbestp(f,l,coeffs,pmax);
 	[p,a,Lp,chi] = best;
+	print("Chosen p=",p,", residual degree ",a,"; ",timestr(cput0,wt0));
 	e=2^ceil(log((log(2)+2*D*log(10))/log(p))/log(2)); \\ Power of 2 such that sqrt(1/2*p^e)>10^D
 	pe = p^e;
 	[N,k] = mfparams(f)[1..2];
@@ -87,7 +89,7 @@ mfgalrep(f,l,coeffs,pmax,D,qprec,threadlim)=
 	print("\n--> Initialising modular Jacobian");
 	J=ModJacInit(N,H,p,a,e,qprec);
 	if(threadlim,default(nbthreads,threadlim[2]));
-	print("\n--> Getting basis of T mod ",p);
+	print("\n--> Getting basis of representation space mod ",p,"; ",timestr(cput0,wt0));
 	J1 = PicRed(J,1);
 	[B,matFrob] = TorsBasis(J1,l,Lp,chi); \\ Basis of the mod p^1 space and matrix of Frob_p
 	print("The matrix of Frob is");
@@ -98,12 +100,13 @@ mfgalrep(f,l,coeffs,pmax,D,qprec,threadlim)=
 	[WB,cWB] = TorsSpaceFrobGen(J1,l,B,matFrob);
 	J1 = B = 0;
 	if(threadlim,default(nbthreads,threadlim[3]));
-	print("\n--> Lifting ",#WB," points ",p,"-adically");
+	print("\n--> Lifting ",#WB," points ",p,"-adically; ",timestr(cput0,wt0));
 	WB = apply(W->PicLiftTors(J,W,1,l),WB);
 	if(threadlim,default(nbthreads,threadlim[4]));
-	print("\n--> All of T");
+	print("\n--> All of representation space; ",timestr(cput0,wt0));
 	Z = TorsSpaceFrobEval(J,WB,cWB,l,matFrob);
 	WB = 0;
+	print("\n--> Expansion and identification; ",timestr(cput0,wt0));
 	AF = TorsSpaceGetPols(Z,l,matFrob,JgetFrobMat(J),JgetT(J),pe,p,e);
 	if(threadlim,default(nbthreads,def_threads));
 	AF[1];
