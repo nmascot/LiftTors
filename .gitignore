@@ -2,3 +2,8 @@
 *.so
 *dbg
 David/
+*.aux
+*.log
+*.out
+*.pdf
+*.synctex.gz

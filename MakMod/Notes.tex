@@ -1,0 +1,256 @@
+\documentclass[12pt]{article}
+
+\usepackage[table]{xcolor}
+\usepackage{amsmath, amsthm}
+\usepackage{amsfonts,amssymb}
+\usepackage{hyperref}
+\usepackage{authblk}
+\usepackage[all]{xy}
+\usepackage{enumerate}
+\usepackage{array}
+\usepackage{makecell}
+\usepackage{lscape}
+\usepackage{dsfont}
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\F}{\mathbb{F}}
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\G}{\mathbb{G}}
+
+\newcommand{\M}{\mathcal{M}}
+\renewcommand{\S}{\mathcal{S}}
+\newcommand{\E}{\mathcal{E}}
+
+\renewcommand{\l}{\mathfrak{l}}
+
+\newcommand{\Gal}{\operatorname{Gal}}
+\newcommand{\GQ}{\Gal(\overline \Q / \Q)}
+\newcommand{\GL}{\operatorname{GL}}
+\newcommand{\SL}{\operatorname{SL}}
+\newcommand{\PGL}{\operatorname{PGL}}
+\newcommand{\PSL}{\operatorname{PSL}}
+\newcommand{\GLFl}{\GL_2(\F_\ell)}
+\newcommand{\PGLFl}{\PGL_2(\F_\ell)}
+\newcommand{\PSLFl}{\PSL_2(\F_\ell)}
+\newcommand{\Ker}{\operatorname{Ker}}
+\renewcommand{\Im}{\operatorname{Im}}
+\newcommand{\rev}{\operatorname{rev}}
+\newcommand{\disc}{\operatorname{disc}}
+\newcommand{\Res}{\operatorname{Res}}
+\newcommand{\Aut}{\operatorname{Aut}}
+\newcommand{\Hom}{\operatorname{Hom}}
+\newcommand{\End}{\operatorname{End}}
+\newcommand{\Ext}{\operatorname{Ext}}
+\newcommand{\ab}{\operatorname{ab}}
+\newcommand{\Tra}{\operatorname{Tra}}
+\newcommand{\Inf}{\operatorname{Inf}}
+\newcommand{\ord}{\operatorname{ord}}
+\newcommand{\Frob}{\operatorname{Frob}}
+\newcommand{\sgn}{\operatorname{sgn}}
+\newcommand{\matabcd}{\left( \begin{smallmatrix} a & b \\ c & d \end{smallmatrix} \right)}
+\newcommand{\mact}{\big\vert}
+
+\newcommand{\TableMinPolyVar}{x}
+
+
+\newcommand{\smat}[4]{\left[ \begin{smallmatrix} #1 & #2 \\ #3 & #4 \end{smallmatrix} \right]}
+\newcommand{\cusp}[2]{\left[ \begin{smallmatrix} #1 \\ #2 \end{smallmatrix} \right]}
+\newcommand{\mat}[4]{\left[ \begin{matrix} #1 & #2 \\ #3 & #4 \end{matrix} \right]}
+
+\newtheorem{thm}{Theorem}
+\newtheorem{lem}[thm]{Lemma}
+\theoremstyle{definition}
+\newtheorem{rk}[thm]{Remark}
+%\newtheorem{ex}{Example}[thm] % TODO remove ?
+
+\topmargin -2.5cm
+\textheight 25cm
+\textwidth 15cm
+
+\title{Notes: $p$-adic modular Jacobians via moduli-friendly Eisenstein series}
+\author{Nicolas Mascot}
+
+\begin{document}
+
+Fix $N \in \N$. Want to use Kamal's algos in rep B0.
+
+
+Main idea: fix $E/\Q$, and a naive $\Gamma(N)$-struct (in the sens of Katz76) $\alpha: (\Z/N\Z)^2 \simeq E[N]$. Let $\zeta_N = e_N(\alpha(1,0),\alpha(0,1))$, a prim root. The other structs on $E$ are the $\alpha \circ \gamma$, $\gamma \in \Gamma(N)$ (points $P_\gamma$ in fibre of $X(N) \longrightarrow X(1) \ni [E]$ acting on the \emph{right} on row-vectors $v \in (\Z/N\Z)^2$.
+
+By Kamal, the $f_v : (E,\beta) \mapsto \lambda_{\beta(v)}$ span $\E_1(\Gamma(N))$. If for $P,Q \in E[N]$ distinct and nonzero, we let $\lambda_{P,Q} = $ slope of line joining $P$ and $Q$, then we have $\lambda_{P,Q} = \lambda_P + \lambda_{Q} + \lambda_{R}$ where $P+Q+R=0$. We can thus recover $\lambda_P = \frac1N \sum_{x \bmod N} \lambda_{P,Q+xP}$, so we can evaluate the $f_v$ at the $P_\gamma$. TODO since $\lambda_{P,Q} = -Z_E(P)-Z_E(Q)-Z_E(-P-Q)$, this implies that $\lambda_P$ is proportional to $Z_E(P)$, which in turns implies by DS that up to a mult constant,
+\[ f_v = g_1^v = \left. \begin{array}{cc} \frac12 \frac{1+\zeta^d}{1-\zeta^d}, & c =0 \\ \frac12 - \frac{c}N, & c \neq 0 \end{array} \right\} + \sum_{n \geqslant 1} \left( \sum_{\substack{n=ab \\ a,b \in \Z \\ a \equiv c \bmod N}} \sgn(b) \zeta^{bd} \right) q_N^n \]
+where $v=(c,d)$. 
+
+Up to a mult constant, the value of $f_v$ at the cusp $(c,d)$ of $X(N)$ is $s(c,d) = 1/2 - \{c/N\}$ if $c \not \equiv 0$, and $\frac12 \frac{\zeta_N^d+1}{\zeta_N^d-1}$ if $c \equiv 0$.
+
+The $f_{v} f_{v'}$ span $\M_2(\Gamma(N))$, so for any $\Gamma \supset \Gamma(N)$, the $\sum_{t \in \Gamma / \Gamma(N)} f_{v t } f_{v' t}$ span $\M_2(\Gamma)$, provided that $p \nmid \# \Gamma/\Gamma(N)$ (this will always be the case if $p \nmid \#\SL_2(\Z/N\Z) = \prod_{l^e \Vert N} l^{4e-3} (l-1)(l+1)$).
+
+Note: This is very general and allows one to work with \emph{any} congruence subgroup.
+
+Special case $\Gamma = \Gamma_H(N)$: Can take
+\[ t = \smat{1}{x}{0}{1} \smat{h^{-1}}{*}{N*}{h} \quad (x \bmod N, h \in H) \]
+and it is safe if $p \mid N \#H$, so in particular if $p \nmid N \phi(N)$.
+
+\section{Galois action}
+
+Let $C$ be a curve over $\Q$, $f \in \Q(C)$, and $P \in C(\overline \Q)$; then
+\[ f(P^\sigma) = f(P)^\sigma \]
+for all $\sigma \in \Gal(\overline \Q / \Q)$.
+
+For $v \in (\Z/N\Z)^2$, $v \neq 0$, let $f_v = E_4/E_6*P(v/N)$ as in Shimura71. Then
+\[ F_N = \Q(j,f_v) = \Q(\mu_N)(X(N)). \]
+This comes with an action of $\GL_2(\Z/N\Z)/\pm1$. Let $\tau_x : \zeta_N \mapsto \zeta_N^x \in \Gal(\Q(\mu_N)/\Q)$; then for all $f \in F_N$ and $n \in \N$, we have $a_n(f) \in \Q(\mu_N)$, and in fact
+\[ a_n(f)^{\tau_x} = a_n(f \mact \tau(x)) \]
+where
+\[ \tau(x) = \smat{1}{}{}{x} \in \GL_2(\Z/N\Z); \]
+ineed, this holds for $f=f_v$ by Shimura71.
+
+Let $\Gamma$ have level $N$, and suppose $M \in \SL_2(\Z)$ is such that for all $f \in F_N$, we have
+\[ a_n(f^{\tau_x} \mact M) = a_n(f \mact M)^{\tau_x} \]
+for all $n$ and $x$. In particular, this means that $f$ is defined over $\Q$ iff. the coefficients of the $q$-expansion of $f \mact M$ lie in $\Q$, so that the cusp $M \cdot \infty$ is then a rational point. Then
+\[ a_n(f^{\tau_x} \mact M) = a_n(f \mact M)^{\tau_x} = a_n(f \mact M \tau(x) ), \]
+whence
+\[ f^{\tau_x} = f \mact M \tau(x) M^{-1}. \]
+
+Let now $s = \cusp{a}{c}$ be a cusp; we have $s = \gamma \infty$ for some $\gamma \equiv \smat{a}{*}{c}{*}$. We want to determine $s^{\tau_x}$.
+
+Let $f \in \Q(X(\Gamma))$, so that
+\[ f = f^{\tau_{x^{-1}}} = f \mact M \tau(x^{-1}) M^{-1}. \]
+We have 
+\[ f(s^{\tau_x}) = f(s)^{\tau_x} = (a_0(f \mact \gamma ))^{\tau_x} = a_0(f \mact \gamma \tau(x)) = a_0(f \mact M \tau(x^{-1}) M^{-1} \gamma \tau(x)) \]
+(note that while $f \mact \gamma$ depends of $\gamma$ and not only on $s$, its coefficient $a_0$ only epends on $s$, so this is well-defined).
+Since this holds for all $f$, we deduce that
+\[ s^{\tau_x} = M \tau(x^{-1}) M^{-1} \gamma \tau(x) \infty. \]
+
+Take now $M = S = \smat{0}{-1}{1}{0}$; then since $M \tau(x^{-1}) M^{-1} = \smat{x^{-1}}{}{}{1}$, and as $\gamma \equiv \smat{a}{*}{c}{*}$, we get
+\[ \cusp{a}{c}^{\tau_x} = \cusp{ax^{-1}}{c}. \]
+
+
+
+\subsection{Cusps}
+
+Let $C_n = (\P^1 \times \Z/n\Z) / (\infty,i) \sim (0, i+1)$ be Neron $n$-gon. We have $C_n \supset C_n^{\text{reg}} = \G_m \times \Z/n\Z$, which has
+\[ \End = \left( \begin{matrix} \End \G_m & \Hom(\Z/n\Z,\G_m) \\ \Hom(\G_m, \Z/n\Z) & \End(\Z/n\Z) \end{matrix} \right) =  \left( \begin{matrix} \Z & \mu_n \\ 0 & \Z/n\Z \end{matrix} \right) \]
+acting by 
+\[ \left( \begin{matrix} m & \zeta \\ 0 & j \end{matrix} \right) \left( \begin{matrix} x \\ i \end{matrix} \right)= \left( \begin{matrix} \zeta^i y^m \\ ji \end{matrix} \right),  \]
+whence
+\[ \Aut =  \left( \begin{matrix} \pm1 & \mu_n \\ 0 &( \Z/n\Z )^\times \end{matrix} \right). \]
+The condition $(\infty,i) \sim (0, i+1)$ forces $j=m$, so finally
+\[ \Aut C_n = \pm \left( \begin{matrix} 1 & \mu_n \\ 0 &1 \end{matrix} \right). \]
+
+We can thus define bijection
+\[ \text{Cusps}(\Gamma_1(N)) \longleftrightarrow \{ (c,d) \in \Z/N\Z \times (\Z/(c,N)\Z)^\times \} / \pm 1 \]
+by taking $a/c$ to $\matabcd \in \SL_2(\Z)$, since the others are the $\pm \left( \begin{smallmatrix} a & b-td \\ c & d+tc \end{smallmatrix} \right)$; then $(c,d)$ corresponds to
+\[ \big( C_{N/(c,N)}, (\zeta_N^d, c/(c,N) ) \big). \]
+
+We thus get
+\[ \Frob_p (c,d) = \Frob_p \big( C_{N/(c,N)}, (\zeta_N^d, c/(c,N) ) \big) = \big( C_{N/(c,N)}, (\zeta_N^{pd}, c/(c,N) ) \big) = (c,pd) \]
+so two cusps are in the same Galois orbit iff. they have the same $c$.
+
+Go down to $\Gamma_H$: let $M_s$ be such that $M_s \cdot \infty = s$. Then for $\gamma \equiv \smat{h^{-1}}{x}{}{h}$,
+\[ s \sim \gamma \cdot s = \gamma M_{s} \cdot \infty \]
+so
+\[ \smat{*}{*}{c}{d} \sim \gamma \smat{*}{*}{c}{d} = \smat{*}{*}{hc}{hd} \]
+whence
+\[ \text{Cusps}(\Gamma_H(N)) \longleftrightarrow \{ (c,d) \in \Z/N\Z \times (\Z/(c,N)\Z)^\times \} / H. \]
+
+\subsubsection{Widths}
+
+Suppose $-1 \in H$. The width of $s$ is the min $w$ such that
+\[ M_s \smat{1}{w}{}{1} M_s^{-1} \in \Gamma_H. \]
+For $M_s = \matabcd$, we find
+\[ M_s \smat{1}{w}{}{1} M_s^{-1} = \mat{1-acw}{a^2w}{-c^2w}{1+acw} \]
+so we want $c^2 w \equiv 0$ and $1 \pm acw \in H$ (note that $(1+acw)(1-acw)=1-a^2c^2w^2 \equiv 1$ if $c^2w \equiv 0$, so the $\pm$ does not matter.) Let $g_2 = \gcd(N,c^2)$ and $N_2 = N/g_2$; then $c^2 w \equiv 0$ iff. $N_2 \nmid w$, whence finally
+\[ w = N_2 \min \{ t \ \vert \ 1+acN_2 t \in H \} \]
+
+Thm: $w=N$ iff. $\gcd(c,N)=1$.
+
+Pf: Let $g=\gcd(c,N)$, so that $ g \mid g_2 \mid g^2$. Suppose first that $g>1$; then $g_2>1$ so $N_2<N$. Two cases: if $g < g_2$, then taking $t=g$ we get
+\[ 1+acN_2t = 1+a \frac{c}g N \frac{g^2}{g_2} = 1, \]
+so $t \leqslant g$ and $w \leqslant N_2 g < N_2 g_2 = N$; and if $g=g_2$, then taking $t=1$ we get
+\[ 1+acN_2t = 1+a \frac{c}g N = 1 \]
+so $t=1$ and $w=N_2 < N$. Conversely, if $g=1$, then $g_2=1$, so $N_2=N$ whence $w=N$.
+
+\subsection{Forms}
+
+%On  q-exps:
+%\[ \Frob_p g_1^{(c,d)}(q) = g_1^{(c,pd)}(q) \]
+%so
+%\[ \sigma_x (g_k^v (q) )= g_k^{v B_x} (x) \]
+%where $B_x = \smat{1}{0}{0}{x}$.
+% 
+%Besides $s=(c=1,d=0)$ is def on $\Q$ so $f$ def on $\Q$ iff. $f \vert M (q) \in \Q[[q]]$.
+%
+%So given $v_1,\cdots,v_k$, we define
+%\[ F = \sum_{\substack{x \in (\Z/N\Z)^\times \\ t \in T}} \zeta^x \prod_{j=1}^k g_1^{v_j t \smat{x}{0}{0}{1} } \]
+%\[ = \sum_{\substack{x \in (\Z/N\Z)^\times \\ t \in T}} \zeta^x \prod_{j=1}^k g_1^{v_j  \smat{x}{0}{0}{1} t} \]
+%where the equality follows from the fact that  $\smat{x}{0}{0}{1}$ normalises $T$, and we have
+%\[ F \in M_k(\Gamma;\Q). \]
+%
+%END OLD
+
+Let $G_H = \smat{*}{*}{0}{H} \leqslant \SL_2(\Z/N\Z)/\pm1$; then $\Q(X_H) = F_N^{G_H}$. Thus
+\begin{align*}  & \{ M \in \SL_2(\Z/N\Z)/\pm1 \ \vert \ \forall f \in \Q(X_H), \ f \mact M  \text{ has coefs in } \Q \} \\
+= & \{ M \in \SL_2(\Z/N\Z)/\pm1 \ \vert \ \forall f, \ f \mact G_H = f \Rightarrow \forall x \in (\Z/N\Z)^\times, \ f \mact M = f \mact M \smat{1}{}{}{x} \} \\
+= & \{ M \in \SL_2(\Z/N\Z)/\pm1 \ \vert \ \forall x, M \smat{1}{}{}{x} M^{-1} \in G_H \}. \\
+\end{align*}
+For $M=\matabcd$, this translates into
+\[ \forall x, \ cd(x-1) \equiv 0 \text{ and } ad(x-1)+1 \in H. \]
+
+Conj: the cusps for which there exists such an $M$ are exactly those having width $N$.
+
+Thm: Suppose $H=\pm1$ and $\phi(N) \geqslant 3$. Then $M$ satisfies the above iff $N \mid 2d$.
+
+Proof: In this case $\Q(X_1) = \Q(j,f^{(0,1)})$, so we want $f^{(0,1)}\mact M \smat{1}{}{}{x} = f^{(0,1)}\mact M$, i.e. $(c,dx) \equiv \pm (c,d)$ for all $x \in (Z/N\Z)^\times$. 3 cases:
+
+If $c \not \equiv -c$, then for all $x$, $dx \equiv d$, i.e. $N \mid d(x-1)$. In particular ($x=-1$), $N \mid 2d$. Conversely, assume $N \mid 2d$. If $N$ odd, then $N \mid d$, so $d \equiv 0$, OK. If $N$ even, then $N/2 \mid d$, so $N \mid d(x-1)$ since $(x-1)$ even.
+
+If $c \equiv -c$ but $c \not \equiv 0$, then $N$ is even and $c \equiv N/2$. Then $1 = gcd(c,d,N) = \gcd(d,N/2)$ and $x\pm1$ even. Since $N \mid d(x \pm 1) $, we have $\frac{N}2 \mid d \frac{x \pm 1}2$ so $\frac{N}2 \mid \frac{x \pm 1}2$ so $N \mid (x \pm 1)$ so $x \equiv \pm 1$, absurd since $\phi(N) \geqslant 3$. So this case cannot happen.
+
+Finally, if $c \equiv 0$, then $1=\gcd(d,N)$, so $d(x\pm1) \equiv 0$ implies $x \equiv \pm 1$, so again this case cannot occur.
+
+
+Cor: Suppose $V_2(N) \neq 1$, $H=\pm1$, and $\phi(N) \geqslant 3$. Then the cusps for which there exists such an $M$ are exactly those having width $N$.
+
+Proof: Let $(c,d)$ be a cusp; recall it is also represented by $(c,d_t)$ where $d_t=d+tc$ for all $t$.
+
+If the cusp has width $N$, then $\gcd(c,N)=1$, so we cn choose $t$ so that $d_t \equiv 0$, and then OK.
+
+Conversely, suppose there is such an $M$, i.e. we can choose $t$ so that $N \mid 2 d_t$. Observe that $1 = \gcd(c,d,N) = \gcd(c,d_t,N)$ for all $t$. 3 cases: if $N$ odd, then $N \mid d_t$ so $\gcd(c,N)=1$. If $4 \mid N$, then pick $t$ so that $N \mid 2d_t$, i.e. $\frac{N}2 \mid d_t$; then $1 = \gcd(c,d_t,N) = \gcd(c,N/2)$. Since $N/2$ even, then $\gcd(c,N)=1$ as wanted.
+
+\section{L factor}
+
+\[ L_p\big(X_H(N)\big) = \hspace{-1cm} \prod_{\substack{\chi \bmod G_\Q \\ \chi : (\Z/N\Z)^\times \rightarrow \Q[t]/\Phi_{\ord \chi}(t) \\ \Ker \chi \geqslant H}} \hspace{-1cm} \Res_t\big( \Phi_{\ord \chi}(t),\Res_y(x^2-yx+p\chi(p), \det(y1-T_p \vert_{S_2(N,\chi)}) \big) \]
+
+\section{Torsion basis}
+
+Let $D_1, D_2 \in J[N]$. Then $e_N(D_1,D_2) = f_1(D_2)/f_2(D_1)$, where $(f_i) = N D_i$. As a result, $e_{ab} = e_a^b$ when this makes sense.
+
+Factor $N = \prod_k l_k^{v_k}$, and for each $k$, let $M_k = N/l_k^{v_k}$, $i_k \in \Z/N\Z$ such that $i_k \bmod l_j^{v_j} = \mathds{1}_{j=k}$, $P_k, Q_k \in E[l_k^{v_k}]$, and $z_k = e_{l_k^{v_k}}(P_k,Q_k)$. Set $P = \sum_k P_k$, $Q = \sum_k Q_k$, which are thus $N$-torsion, and $z=e_N(P,Q)$. Then the $i_k$ are idempotent, $\sum_k i_k = 1$, and
+\[ z_k^{M_k} = e_{l_k^{v_k}}(P_k,Q_k)^{M_k} = e_N(P_k,Q_k) = e_N(i_k P, i_k Q) = z ^{i_k^2} = z^{i_k} \]
+so that
+\[ z = \prod_k z_k^{M_k}. \]
+In particular, if $z_k$ is a primitive $l_k^{v_k}$-th root of 1 for each $k$, then $z$ is a primitive $N$-th root of 1, and $(P,Q)$ is a basis of $E[N]$.
+
+We also need the matrix of $\Frob_p$ on $E[N]$. We get it by CRT. Idea: if $R = x P_k + y Q_k \in E[l_k^{v_k}]$, then $e_{l_k^{v_k}}(P_k,R) = z_k^y$ and $e_{l_k^{v_k}}(Q_k,R) = z_k^{-x}$, so the matrix of $\Frob_p$ on $E[l_k^{v_k}]$ is
+\[ \left[ \begin{matrix} \log_{z_k} e_{l_k^{v_k}}(Q_k,P_k^{\Frob_p}) & \log_{z_k} e_{l_k^{v_k}}(Q_k,Q_k^{\Frob_p}) \\ -\log_{z_k} e_{l_k^{v_k}}(P_k,P_k^{\Frob_p}) & -\log_{z_k} e_{l_k^{v_k}}(P_k,Q_k^{\Frob_p}) \end{matrix} \right] \]
+
+\section{Finding a suitable curve}
+
+Let $E/\Q$, $q=p^a$, $N$, $a_p=a_p(E)$. Want $\Frob_q = \Frob_p^a$ trivial on $E[N]$. We can suppose $q \equiv 1 \bmod N$.
+
+Factor $N = \prod l_i^{v_i}$, let $\Delta = \disc(x^2-a_p x+p)=(x-\alpha)(x-\beta)$, $M = \prod_{l_i \nmid \Delta} l_i^{v_i}$. Then $\Frob_p$ semisimple on $E[M]$. Let $M_1 = \prod_{l_i \nmid \Delta} l_i$ the radical of $M$, then the charpoly of $\Frob_q$ is $(x-\alpha^q)(x-\beta^q) \equiv x^2-\nu_d x + 1 \bmod M_1$, so $\Frob_q$ trivial on $E[M_1]$ iff. $\nu_d \equiv 2 \bmod M_1$.
+
+If now $l_i \mid \Delta$, then $\Frob_p$ not semisimple on $E[l_i^{v_i}]$, unique eigenvalue $c = a_p/2 \bmod l_i^{v_i}$, so unipotent iff. $c^d \equiv 1 \bmod l_i^{v_i}$.
+
+If furthermore $l_i^{v_i} \mid d$, then this implies $\Frob_p$ trivial on $E[l_i]^{v_i}$.
+
+Let now $l_i^{v_i}$ such that $l_i \mid \Delta$ or $v_i$; we know $\Frob_p$ unipotent on $E[l_i^{v_i}]$, $D=\psi_{l_i^{v_i}}$. If $D$ not tot split over $\F_q$, then $\Frob_q$ nontrivial on $E[l_i^{v_i}]/\pm1$. Else, if $l_i > 2$, check that $x^3+ax+b$ square in $\F_q$ for each root $x$ of $D$ (for $l_i=2$, this is automatic). 
+
+
+
+\end{document}

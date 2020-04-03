@@ -1,0 +1,7 @@
+* TODO: improve Ml1
+
+* Some E give points of J[l] def over smll field c Fq, why? (E ss?)
+* Test 16 passes with x^2+1, but eval fail with x^2-1
+
+* PicRand, PicRandTors only give pts def over small fields, and Frey-Rueck trivial!
+* E[N] must not be defined over a subfield, else PicRand bad
