@@ -1,6 +1,13 @@
 default(sopath,".:..");
 
-timestr(cput0,wt0)=Str("cpu time ",strtime(getabstime()-cput0),", real time ",strtime(getwalltime()-wt0));
+timestr(~t0)=
+{
+	my(t,s);
+	t = [getabstime(),getwalltime()];
+	s = Str("cpu ",strtime(t[1]-t0[1]),", real ",strtime(t[2]-t0[2]));
+	t0[1] = t[1]; t0[2] = t[2];
+	s;
+}
 
 WeiRed(f,h)=
 {

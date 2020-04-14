@@ -72,24 +72,27 @@ mfbestp(f,l,coeffs,pmax)=
 
 mfgalrep(f,l,coeffs,pmax,D,qprec,threadlim)=
 {
-	my(N,k,H,best,p,a,Lp,chi,e,pe,J,CuspsQ,J1,B,matFrob,i,M,WB,cWB,TI,Z,AF,def_threads,wt0=getwalltime(),cput0=getabstime());
+	my(N,k,H,best,p,a,Lp,chi,e,pe,J,CuspsQ,J1,B,matFrob,i,M,WB,cWB,TI,Z,AF,def_threads,t0);
 	if(threadlim,
 		def_threads = default(nbthreads);
 		if(#threadlim!=4,error("Give 4 thread limits: Jacobian initialisation, generation of points mod p, p-adic lift, and evaluation"))
 	);
 	if(threadlim,default(nbthreads,threadlim[1]));
+	t0 = [getabstime(),getwalltime()];
 	print("--> Finding prime p with small residual degree");
 	[H,best] = mfbestp(f,l,coeffs,pmax);
 	[p,a,Lp,chi] = best;
-	print("Chosen p=",p,", residual degree ",a,"; ",timestr(cput0,wt0));
+	print("Chosen p=",p,", residual degree ",a);
+	print("Time choice p: ",timestr(~t0));
 	e=2^ceil(log((log(2)+2*D*log(10))/log(p))/log(2)); \\ Power of 2 such that sqrt(1/2*p^e)>10^D
 	pe = p^e;
 	[N,k] = mfparams(f)[1..2];
 	if(k>2,N*=l);
 	print("\n--> Initialising modular Jacobian");
 	J=ModJacInit(N,H,p,a,e,qprec);
+	print("Time ModJacInit: ",timestr(~t0));
 	if(threadlim,default(nbthreads,threadlim[2]));
-	print("\n--> Getting basis of representation space mod ",p,"; ",timestr(cput0,wt0));
+	print("\n--> Getting basis of representation space mod ",p);
 	J1 = PicRed(J,1);
 	[B,matFrob] = TorsBasis(J1,l,Lp,chi); \\ Basis of the mod p^1 space and matrix of Frob_p
 	print("The matrix of Frob is");
@@ -98,16 +101,20 @@ mfgalrep(f,l,coeffs,pmax,D,qprec,threadlim)=
 	while(M!=1,M*=matFrob;i++);
 	print("It has order ",i);
 	[WB,cWB] = TorsSpaceFrobGen(J1,l,B,matFrob);
+	print("Time getting basis mod ",p,": ",timestr(~t0));
 	J1 = B = 0;
 	if(threadlim,default(nbthreads,threadlim[3]));
-	print("\n--> Lifting ",#WB," points ",p,"-adically; ",timestr(cput0,wt0));
+	print("\n--> Lifting ",#WB," points ",p,"-adically");
 	WB = apply(W->PicLiftTors(J,W,1,l),WB);
+	print("Time lifting: ",timestr(~t0));
 	if(threadlim,default(nbthreads,threadlim[4]));
-	print("\n--> All of representation space; ",timestr(cput0,wt0));
+	print("\n--> All of representation space");
 	Z = TorsSpaceFrobEval(J,WB,cWB,l,matFrob);
 	WB = 0;
-	print("\n--> Expansion and identification; ",timestr(cput0,wt0));
+	print("Time span and eval: ",timestr(~t0));
+	print("\n--> Expansion and identification");
 	AF = TorsSpaceGetPols(Z,l,matFrob,JgetFrobMat(J),JgetT(J),pe,p,e);
+	print("Time polynomials: ",timestr(~t0));
 	if(threadlim,default(nbthreads,def_threads));
 	AF[1];
 }
