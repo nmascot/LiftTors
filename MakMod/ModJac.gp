@@ -163,7 +163,7 @@ ModJacInit(N,H,p,a,e,qprec)=
 		liftall(V2*MRRsubspace(V2qexps,2*C0+Ei,T,p,e)), \\ TODO: eqns for 2*C0 already satified. Make MRRsubspace more flexible.
 	[E1,E2]);
 	print("M6(GammaH)(-3C0) (dim ",3*d0+1-g,")");
-	V3 = DivAdd1(V2,V1,3*d0+1-g,p,d0,0);
+	V3 = DivAdd1(V2,V1,3*d0+1-g,p,d0,1);
 	print("Eqn mats");
 	V = apply(liftall,[V1,V2,V3]);
 	IU = matindexrank(Mod(liftint(V2),p))[1];
