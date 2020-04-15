@@ -91,6 +91,7 @@ mfgalrep(f,l,coeffs,pmax,D,qprec,threadlim)=
 	print("\n--> Initialising modular Jacobian");
 	J=ModJacInit(N,H,p,a,e,qprec);
 	print("Time ModJacInit: ",timestr(~t0));
+	print("Size J: ",mysize(sizebyte(J)));
 	if(threadlim,default(nbthreads,threadlim[2]));
 	print("\n--> Getting basis of representation space mod ",p);
 	J1 = PicRed(J,1);
@@ -107,6 +108,7 @@ mfgalrep(f,l,coeffs,pmax,D,qprec,threadlim)=
 	print("\n--> Lifting ",#WB," points ",p,"-adically");
 	WB = apply(W->PicLiftTors(J,W,1,l),WB);
 	print("Time lifting: ",timestr(~t0));
+	print("Size W: ",mysize(sizebyte(WB[1])));
 	if(threadlim,default(nbthreads,threadlim[4]));
 	print("\n--> All of representation space");
 	Z = TorsSpaceFrobEval(J,WB,cWB,l,matFrob);

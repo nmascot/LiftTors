@@ -9,6 +9,16 @@ timestr(~t0)=
 	s;
 }
 
+mysize(s,threshold=10^4)=
+{
+	my(u="B");
+	if(s>=threshold,s=round(s/1024);u="kB");
+	if(s>=threshold,s=round(s/1024);u="MB");
+	if(s>=threshold,s=round(s/1024);u="GB");
+	if(s>=threshold,s=round(s/1024);u="TB");
+	Str(s,u);
+}
+
 WeiRed(f,h)=
 {
  my(F=f+(2)^2);
