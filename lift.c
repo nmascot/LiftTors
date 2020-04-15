@@ -155,26 +155,29 @@ GEN PicLift_RandLift_U(GEN U, GEN U0, GEN KM, GEN T, GEN p, GEN pe1, GEN pe21, l
 
 GEN PicLiftTors_Chart_worker(GEN randseed, GEN J, GEN l, GEN U, GEN U0, GEN I, GEN KM, GEN pe1, GEN pe21, long e21, GEN c0, ulong P0, GEN P1)
 {
-  pari_sp av = avma, avU;
+  pari_sp avU;
 	GEN T,p,pe2;
 	long e2;
-	GEN W,c;
+	GEN W,c,res;
   ulong nc,i;
   setrand(randseed);
 	JgetTpe(J,&T,&pe2,&p,&e2);
   nc = lg(c0)-1;
 
+	res = cgetg(3,t_VEC);
 	/* Get a random lift */
-	U = PicLift_RandLift_U(U,U0,KM,T,p,pe1,pe21,e21);
+	gel(res,1) = U = PicLift_RandLift_U(U,U0,KM,T,p,pe1,pe21,e21);
   avU = avma;
 	W = PicInflate_U(J,U,I);
-	W = gerepileupto(avU,PicMul(J,W,l,0));
+	W = PicMul(J,W,l,0);
+	W = gerepileupto(avU,W);
   /* Mul by l, get coordinates, and compare them to those of W0 */
   c = PicChart(J,W,P0,P1);
 	c = gerepileupto(avU,c);
   for(i=1;i<=nc;i++) /* The coords are c0 mod pe1 -> divide */
 		gel(c,i) = ZX_Z_divexact(FpX_sub(gel(c,i),gel(c0,i),pe2),pe1);
-  return gerepilecopy(av,mkvec2(U,c));
+	gel(res,2) = gerepileupto(avU,c);
+	return res;
 }
 
 GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
