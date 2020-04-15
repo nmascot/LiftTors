@@ -79,18 +79,14 @@ RandTorsPt(J,l,a,Lp,Chi,Phi,seed)=
       Psi = centerlift(Psi)
     )
 	);
-  while(1,
-    W = PicRand(J);
-    if(Phi,W = PicFrobPoly(J,W,Psid)); \\ Project in the submodule we work in
-    W = PicMul(J,W,M,0); \\ Project onto l-power part (main bottleneck!)
-    if(Chi,W = PicFrobPoly(J,W,Psi)); \\ Project onto the Chi part
-		[T,o] = TorsOrd(J,W,l);
-    if(o,
-        return([W,o,T,ChiPhi])
-    ,
-      if(default(debug),print("RandTorsPt got zero (Phi=",Phi,"), retrying"));
-    );
-  );
+  W = PicRand(J);
+  if(Phi,W = PicFrobPoly(J,W,Psid)); \\ Project in the submodule we work in
+  W = PicMul(J,W,M,0); \\ Project onto l-power part (main bottleneck!)
+  if(Chi,W = PicFrobPoly(J,W,Psi)); \\ Project onto the Chi part
+	[T,o] = TorsOrd(J,W,l);
+  if(o,return([W,o,T,ChiPhi]));
+  if(default(debug),print("RandTorsPt got zero (Phi=",Phi,")"));
+	return(0);
 }
 
 Tors_TestPt(J,T,l,LinTests,FRparams)=
@@ -223,6 +219,7 @@ TorsBasis(J,l,Lp,chi)=
     print(" Batch of points generated.");
 		\\ Loop through batch
 		for(iBatch=1,nBatch,
+			if(Batch[iBatch]==0,next); \\ Did we unluckily genrate the 0 pt?
 			[W,o,T,B] = Batch[iBatch];
 			print(" Picking point ",iBatch," from batch; its order is ",l,"^",o);
 			while(1,
