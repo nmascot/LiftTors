@@ -283,7 +283,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 		pending = 0;
     i = 1;
 		j = 1;
-		mt_queue_start(&pt,worker);
+		mt_queue_start_lim(&pt,worker,nGW*d0);
 		for(k=1;k<=nGW*d0||pending;k++)
     {
 			if(k<=nGW*d0)
@@ -358,7 +358,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
       	gel(vFixedParams,12) = P1;
       	worker = snm_closure(is_entry("PicLiftTors_Chart_worker"),vFixedParams);
     		pending = 0;
-    		mt_queue_start(&pt,worker);
+    		mt_queue_start_lim(&pt,worker,g+1);
     		for(i=1;i<=g+1||pending;i++)
     		{
       		if(i<=g+1)

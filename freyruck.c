@@ -321,7 +321,7 @@ GEN PicTorsRels(GEN J, GEN Wtors, GEN l, ulong excess)
 	R = cgetg(ntors+1,t_MAT);
 	pending = 0;
 	worker = strtofunction("PicFreyRuckMulti");
-	mt_queue_start(&pt,worker);
+	mt_queue_start_lim(&pt,worker,ntors);
 	for(j=1;j<=ntors||pending;j++)
 	{
 		mt_queue_submit(&pt,j,j<=ntors?mkvecn(6,J,gel(Wtors,j),l,Wtest,W0,C):NULL);

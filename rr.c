@@ -436,7 +436,7 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
 	KV = cgetg(4,t_VEC);
 	E = stoi(e);
 	worker = strtofunction("mateqnpadic");
-  mt_queue_start(&pt,worker);
+  mt_queue_start_lim(&pt,worker,3);
   for(k=1;k<=3||pending;k++)
   {
     mt_queue_submit(&pt,k,k<=3?mkvecn(5,gel(V,k),T,pe,p,E):NULL);
@@ -553,7 +553,7 @@ GEN Jlift(GEN J, ulong e2)
   }
   gel(U,4) = ZpXQM_inv(M,T,p,e2);
 	worker = strtofunction("mateqnpadic");
-  mt_queue_start(&pt,worker);
+  mt_queue_start_lim(&pt,worker,3);
   for(k=1;k<=3||pending;k++)
   {
     mt_queue_submit(&pt,k,k<=3?mkvecn(5,gel(V,k),T,pe2,p,E2):NULL);

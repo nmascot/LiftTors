@@ -169,8 +169,8 @@ GEN TorsSpaceFrobEval(GEN J, GEN gens, GEN cgens, ulong l, GEN matFrob)
 			}
 		}
 		// Execute operations in J in parallel
-		mt_queue_start(&pt,worker);
 		printf("Computing %lu new points\n",ntodo);
+		mt_queue_start_lim(&pt,worker,ntodo);
 	  for(n=1;n<=ntodo||pending;n++)
   	{
 			if(n<=ntodo) mt_queue_submit(&pt,itos(gmael(todo,n,2)),gmael(todo,n,1));
@@ -198,7 +198,7 @@ GEN TorsSpaceFrobEval(GEN J, GEN gens, GEN cgens, ulong l, GEN matFrob)
 	vW = cgetg(2,t_VEC);
 	ZmodF = cgetg(nmodF+1,t_VEC);
 	worker = snm_closure(is_entry("RREval_worker"),vJ);
-	mt_queue_start(&pt,worker);
+	mt_queue_start_lim(&pt,worker,nmodF);
 	for(n=1;n<=nmodF||pending;n++)
 	{
 		if(n<=nmodF)
@@ -375,7 +375,7 @@ GEN AllPols(GEN Z, ulong l, GEN JFrobMat, GEN QqFrobMat, GEN T, GEN pe, GEN p, l
   gel(args,8) = pe;
   npols *= (lF-2)*n12;
   pols = cgetg(npols+1,t_VEC);
-  mt_queue_start(&pt,worker);
+  mt_queue_start_lim(&pt,worker,npols);
   done = NULL;
   for(i=j=m=n=1;i<lF||pending;n++,j++)
   {
