@@ -138,8 +138,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 	J = Z = WB = 0;
 	F = AF[1][3];
 	if(#variables(F)>1,error("F has more than one variable"));
-	ZF = apply(z->Mod(apply(c->c+O(p^e),z),JT),AF[1][1]);
-	[F,ZF];
+	[F,AF[1][1]];
 }
 
 HyperGalRep(f,l,p,e,P1,P2,chi,force_a)=

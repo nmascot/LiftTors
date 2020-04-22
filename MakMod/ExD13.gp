@@ -1,0 +1,12 @@
+read("install.gp");
+
+f = mfDelta();
+X = mfgalrep(f,13,[],1000,50,6);
+\\ Compute Gal rep attached to Delta mod 13
+\\ []: no need to specify which prime above 13 is considered
+\\ 1000: work p-adically, where p<=1000 is chosen by the algorithm
+\\ 50: choose p-adic accuracy so as to be able to identify rationals of height up to 50
+\\ 6: use q-adic precision O(q^6) (technical, governs the number of candidate polynomials to describe the representation)
+X[1]
+
+

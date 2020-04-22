@@ -221,14 +221,19 @@ GEN TorsSpaceFrobEval(GEN J, GEN gens, GEN cgens, ulong l, GEN matFrob)
 
 GEN PolExpID(GEN Z, GEN T, GEN pe) /* bestappr of prod(x-z), z in Z */
 {
-  pari_sp av = avma;
-  GEN f,a;
+  pari_sp av;
+  GEN res,f;
+	res = cgetg(4,t_VEC);
+	av = avma;
   f = FqV_roots_to_pol(Z,T,pe,0);
   if(poldegree(f,varn(T))>0) pari_err(e_MISC,"Irrational coefficient: %Ps",f);
   f = simplify_shallow(f);
   f = gmodulo(f,pe);
-  a = bestappr(f,NULL);
-  return gerepilecopy(av,mkvecn(3,Z,f,a));
+	f = gerepileupto(av,f);
+	gel(res,2) = f;
+	gel(res,3) = bestappr(f,NULL);
+	gel(res,1) = gmodulo(gmodulo(Z,T),pe);
+	return res;
 }
 
 GEN OnePol(GEN N, GEN D, GEN ImodF, GEN Jfrobmat, ulong l, GEN QqFrobMat, GEN T, GEN pe)

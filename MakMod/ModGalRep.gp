@@ -118,5 +118,6 @@ mfgalrep(f,l,coeffs,pmax,D,qprec,threadlim)=
 	AF = TorsSpaceGetPols(Z,l,matFrob,JgetFrobMat(J),JgetT(J),pe,p,e);
 	print("Time polynomials: ",timestr(~t0));
 	if(threadlim,default(nbthreads,def_threads));
-	AF[1];
+	AF = AF[1];
+	[AF[3],AF[1]];
 }
