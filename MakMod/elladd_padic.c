@@ -2,10 +2,11 @@
 
 GEN elladd_padic(GEN a4, GEN P, GEN Q, GEN T, GEN pe, GEN p, long e)
 {
-	pari_sp av = avma;
+	pari_sp av = avma, av0;
 	GEN P0,xP,yP,xQ,yQ,dx,dy,l,m,xR,yR,R;
 	
 	P0 = mkvec(gen_0); /* [0] */
+	av0 = avma;
 	if(gequal(P,P0))
 	{
 		avma = av;
@@ -26,7 +27,10 @@ GEN elladd_padic(GEN a4, GEN P, GEN Q, GEN T, GEN pe, GEN p, long e)
 		if(gequal(FpX_red(xP,pe),FpX_red(xQ,pe))==0)
 			pari_err(e_IMPL,"case P!=Q but P=Q mod p");
 		if(gequal0(FpX_red(ZX_add(yP,yQ),pe)))
-			return gerepileupto(av,P0);
+		{
+			avma = av0;
+			return P0;
+		}
 		dx = ZX_Z_mul(yP,gen_2);
 		dy = Fq_sqr(xP,T,pe);
 		dy = ZX_Z_mul(dy,utoi(3));
