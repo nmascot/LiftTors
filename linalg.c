@@ -263,34 +263,43 @@ GEN ZpXQMinv(GEN A, GEN T, GEN pe, GEN p, long e)
 			gel(col,i+n) = i==k? Fq1 : Fq0;
 		}
 		/* Col is now vcat Ak,Ik */
+		/* The last k cols of B are known */
+		/* Upper part of B is UT1, lower part is LT */
+		/* Reduce Ck uing Cj for j=n..k+1 */
+		/* Actually only need coeffs for i<k and i>=n+k */
 		for(j=n;j>k;j--)
 		{
-			l = FpX_neg(gel(col,I[j]),pe);
+			l = Fq_red(ZX_neg(gel(col,I[j])),T,pe);
 			/* Ck += l*Cj */
-			/* TODO some coefs are already know */
-			for(i=1;i<=2*n;i++)
-			{
+			for(i=1;i<=j;i++)
+				gel(col,I[i]) = ZX_add(gel(col,I[i]),ZX_mul(l,gcoeff(B,I[i],j)));
+			for(i=j;i<=n;i++)
+				gel(col,I[i]) = Fq0;
+			for(i=n+j;i<=2*n;i++)
 				gel(col,i) = ZX_add(gel(col,i),ZX_mul(l,gcoeff(B,i,j)));
-			}
 		/* TODO gerepile possible ici */
 		}
 		for(i=1;i<=2*n;i++) gel(col,i) = Fq_red(gel(col,i),T,pe);
 		/* Now coefs k+1..n of col are 0 */
+		/* Find pivot above k (hopefully k) */
 		if(ZX_is0mod(gel(col,I[k]),p))
 		{
 			for(i=1;i<k;i++)
 				if(ZX_is0mod(gel(col,I[i]),p)==0) break;
 			j = I[k]; I[k] = I[i]; I[i] = j;
 		}
+		/* Divide by pivot */
 		l = ZpXQ_inv(gel(col,I[k]),T,p,e);
 		col2 = cgetg(2*n+1,t_COL);
 		for(i=1;i<k;i++) gel(col2,I[i]) = Fq_mul(gel(col,I[i]),l,T,pe);
 		gel(col2,I[k]) = Fq1;
-		for(i=k+1;i<=n;i++) gel(col2,I[i]) = Fq0; /* TODO are there more zeros? */
-		for(i=1;i<=n;i++) gel(col2,i+n) = Fq_mul(gel(col,i+n),l,T,pe);
+		for(i=k+1;i<=n;i++) gel(col2,I[i]) = Fq0;
+		for(i=n+1;i<n+k;i++) gel(col2,i) = Fq0;
+		for(i=n+k;i<=2*n;i++) gel(col2,i) = Fq_mul(gel(col,i),l,T,pe);
 		gel(B,k) = gerepileupto(avk,col2);
 	}
 	/* Phase 2 : to 1 form */
+	/* Upper B is UT1, imagine we reduce it to 1 but do not actually do it */
 	for(k=2;k<=n;k++)
 	{
 		avk = avma;
@@ -299,10 +308,8 @@ GEN ZpXQMinv(GEN A, GEN T, GEN pe, GEN p, long e)
 		{
 			l = FpX_neg(gel(col,I[j]),pe);
 			/* Ck += l*Cj */
-			/* TODO some already known */
-			gel(col,I[j]) = Fq0;
 			for(i=n+1;i<=2*n;i++) gel(col,i) = ZX_add(gel(col,i),ZX_mul(l,gcoeff(B,i,j)));
-			/* TODO grepile possible ici */
+			/* TODO gerepile possible ici */
 		}
 		for(i=n+1;i<=2*n;i++) gel(col,i) = Fq_red(gel(col,i),T,pe);
 		gel(B,k) = gerepilecopy(avk,col);
