@@ -237,6 +237,85 @@ GEN Hsort(GEN A, GEN p)
 	return A;
 }
 
+GEN ZpXQMinv(GEN A, GEN T, GEN pe, GEN p, long e)
+{
+	pari_sp av = avma, avk;
+	ulong n,i,j,k;
+	GEN B,col,l,col2;
+	GEN I;
+	GEN Fq0,Fq1;
+
+	n = lg(A)-1;
+	I = cgetg(n,t_VECSMALL); /* Vector of permutation of rows */
+	for(i=1;i<=n;i++) I[i] = i;
+	Fq0 = GetFq0(T);
+	Fq1 = GetFq1(T);
+	B = cgetg(n+1,t_MAT);
+	/* Phase 1: to U1 form */
+	for(k=n;k;k--)
+	{
+		avk = avma;
+		col = cgetg(2*n+1,t_COL);
+		/* Cols n to k+1 processed, now do col k */
+		for(i=1;i<=n;i++)
+		{
+			gel(col,i) = gcoeff(A,i,k);
+			gel(col,i+n) = i==k? Fq1 : Fq0;
+		}
+		/* Col is now vcat Ak,Ik */
+		for(j=n;j>k;j--)
+		{
+			l = FpX_neg(gel(col,I[j]),pe);
+			/* Ck += l*Cj */
+			/* TODO some coefs are already know */
+			for(i=1;i<=2*n;i++)
+			{
+				gel(col,i) = ZX_add(gel(col,i),ZX_mul(l,gcoeff(B,i,j)));
+			}
+		/* TODO gerepile possible ici */
+		}
+		for(i=1;i<=2*n;i++) gel(col,i) = Fq_red(gel(col,i),T,pe);
+		/* Now coefs k+1..n of col are 0 */
+		if(ZX_is0mod(gel(col,I[k]),p))
+		{
+			for(i=1;i<k;i++)
+				if(ZX_is0mod(gel(col,I[i]),p)==0) break;
+			j = I[k]; I[k] = I[i]; I[i] = j;
+		}
+		l = ZpXQ_inv(gel(col,I[k]),T,p,e);
+		col2 = cgetg(2*n+1,t_COL);
+		for(i=1;i<k;i++) gel(col2,I[i]) = Fq_mul(gel(col,I[i]),l,T,pe);
+		gel(col2,I[k]) = Fq1;
+		for(i=k+1;i<=n;i++) gel(col2,I[i]) = Fq0; /* TODO are there more zeros? */
+		for(i=1;i<=n;i++) gel(col2,i+n) = Fq_mul(gel(col,i+n),l,T,pe);
+		gel(B,k) = gerepileupto(avk,col2);
+	}
+	/* Phase 2 : to 1 form */
+	for(k=2;k<=n;k++)
+	{
+		avk = avma;
+		col = gel(B,k);
+		for(j=1;j<k;j++)
+		{
+			l = FpX_neg(gel(col,I[j]),pe);
+			/* Ck += l*Cj */
+			/* TODO some already known */
+			gel(col,I[j]) = Fq0;
+			for(i=n+1;i<=2*n;i++) gel(col,i) = ZX_add(gel(col,i),ZX_mul(l,gcoeff(B,i,j)));
+			/* TODO grepile possible ici */
+		}
+		for(i=n+1;i<=2*n;i++) gel(col,i) = Fq_red(gel(col,i),T,pe);
+		gel(B,k) = gerepilecopy(avk,col);
+	}
+	/* End */
+	for(k=1;k<=n;k++)
+	{
+		for(i=1;i<=n;i++) gcoeff(B,i,I[k]) = gcoeff(B,i+n,k);
+		setlg(gel(B,I[k]),n+1);
+	}
+	return gerepilecopy(av,B);
+}
+
 GEN matkerpadic_safe(GEN A, GEN T, GEN p, long e)
 {
   pari_sp av = avma;
@@ -270,7 +349,7 @@ GEN matkerpadic(GEN A, GEN T, GEN pe, GEN p, long e)
 		gel(A1,j) = cgetg(r+1,t_COL);
 		for(i=1;i<=r;i++) gcoeff(A1,i,j) = gcoeff(A,I[i],P[j]);
 	}
-	B = gerepileupto(av1,ZpXQM_inv(A1,T,p,e));
+	B = gerepileupto(av1,ZpXQMinv(A1,T,pe,p,e));
 	A2 = cgetg(n-r+1,t_MAT); /* Other block */
 	for(j=1;j<=n-r;j++)
   {
