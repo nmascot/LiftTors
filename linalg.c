@@ -273,23 +273,28 @@ GEN ZpXQMinv(GEN A, GEN T, GEN pe, GEN p, long e)
 			/* Ck += l*Cj */
 			for(i=1;i<=j;i++)
 				gel(col,I[i]) = ZX_add(gel(col,I[i]),ZX_mul(l,gcoeff(B,I[i],j)));
+			/* Useless
 			for(i=j;i<=n;i++)
-				gel(col,I[i]) = Fq0;
+				gel(col,I[i]) = Fq0; */
 			for(i=n+j;i<=2*n;i++)
 				gel(col,i) = ZX_add(gel(col,i),ZX_mul(l,gcoeff(B,i,j)));
 		/* TODO gerepile possible ici */
 		}
-		for(i=1;i<=2*n;i++) gel(col,i) = Fq_red(gel(col,i),T,pe);
+		for(i=1;i<=k;i++) gel(col,I[i]) = Fq_red(gel(col,I[i]),T,pe);
+		for(i=n+k+1;i<=2*n;i++) gel(col,i) = Fq_red(gel(col,i),T,pe);
 		/* Now coefs k+1..n of col are 0 */
 		/* Find pivot above k (hopefully k) */
-		if(ZX_is0mod(gel(col,I[k]),p))
+		for(i=k;i;i--)
 		{
-			for(i=1;i<k;i++)
-				if(ZX_is0mod(gel(col,I[i]),p)==0) break;
+			l = gel(col,I[i]);
+			if(ZX_is0mod(l,p)==0) break;
+		}
+		if(i!=k)
+		{
 			j = I[k]; I[k] = I[i]; I[i] = j;
 		}
 		/* Divide by pivot */
-		l = ZpXQ_inv(gel(col,I[k]),T,p,e);
+		l = ZpXQ_inv(l,T,p,e);
 		col2 = cgetg(2*n+1,t_COL);
 		for(i=1;i<k;i++) gel(col2,I[i]) = Fq_mul(gel(col,I[i]),l,T,pe);
 		gel(col2,I[k]) = Fq1;
