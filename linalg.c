@@ -241,7 +241,7 @@ GEN ZpXQMinv(GEN A, GEN T, GEN pe, GEN p, long e)
 {
 	pari_sp av = avma, avk;
 	ulong n,i,j,k;
-	GEN B,col,l,col2;
+	GEN B,col,l,col2,C;
 	GEN I;
 	GEN Fq0,Fq1;
 
@@ -279,6 +279,7 @@ GEN ZpXQMinv(GEN A, GEN T, GEN pe, GEN p, long e)
 			for(i=n+j;i<=2*n;i++)
 				gel(col,i) = ZX_add(gel(col,i),ZX_mul(l,gcoeff(B,i,j)));
 		/* TODO gerepile possible ici */
+			col = gerepileupto(avk,col);
 		}
 		for(i=1;i<=k;i++) gel(col,I[i]) = Fq_red(gel(col,I[i]),T,pe);
 		for(i=n+k+1;i<=2*n;i++) gel(col,i) = Fq_red(gel(col,i),T,pe);
@@ -305,27 +306,33 @@ GEN ZpXQMinv(GEN A, GEN T, GEN pe, GEN p, long e)
 	}
 	/* Phase 2 : to 1 form */
 	/* Upper B is UT1, imagine we reduce it to 1 but do not actually do it */
+	/* Then the inverse is lower B with cols permuted by I */
+	C = cgetg(n+1,t_MAT);
+	gel(C,I[1]) = cgetg(n+1,t_COL);
+	for(i=1;i<=n;i++)
+		gcoeff(C,i,I[1]) = gcoeff(B,i+n,1);
 	for(k=2;k<=n;k++)
 	{
 		avk = avma;
-		col = gel(B,k);
+		col = cgetg(n+1,t_COL);
+		for(i=1;i<=n;i++)
+			gel(col,i) = gcoeff(B,i+n,k);
 		for(j=1;j<k;j++)
 		{
-			l = FpX_neg(gel(col,I[j]),pe);
+			l = FpX_neg(gcoeff(B,I[j],k),pe);
 			/* Ck += l*Cj */
-			for(i=n+1;i<=2*n;i++) gel(col,i) = ZX_add(gel(col,i),ZX_mul(l,gcoeff(B,i,j)));
+			for(i=1;i<=n;i++) gel(col,i) = ZX_add(gel(col,i),ZX_mul(l,gcoeff(C,i,I[j])));
 			/* TODO gerepile possible ici */
+			col = gerepileupto(avk,col);
 		}
-		for(i=n+1;i<=2*n;i++) gel(col,i) = Fq_red(gel(col,i),T,pe);
-		gel(B,k) = gerepilecopy(avk,col);
+		col2 = cgetg(n+1,t_COL);
+		for(i=1;i<=n;i++) gel(col2,i) = Fq_red(gel(col,i),T,pe);
+		gel(C,I[k]) = gerepileupto(avk,col2);
 	}
-	/* End */
-	for(k=1;k<=n;k++)
-	{
-		for(i=1;i<=n;i++) gcoeff(B,i,I[k]) = gcoeff(B,i+n,k);
-		setlg(gel(B,I[k]),n+1);
-	}
-	return gerepilecopy(av,B);
+	/* Ensure C is suitable for gerepile */
+	for(i=1;i<=n;i++)
+    gcoeff(C,i,I[1]) = gcopy(gcoeff(C,i,I[1]));
+	return gerepileupto(av,C);
 }
 
 GEN matkerpadic_safe(GEN A, GEN T, GEN p, long e)
@@ -339,7 +346,7 @@ GEN matkerpadic_safe(GEN A, GEN T, GEN p, long e)
 }
 
 GEN matkerpadic(GEN A, GEN T, GEN pe, GEN p, long e)
-{ /* Assumes good red, i.e. the rank does not recreae mod p */
+{ /* Assumes good red, i.e. the rank does not decrease mod p */
 	pari_sp av = avma, av1;
 	GEN IJ,I,J,J1,P,A1,A2,B,K;
 	ulong n,r,i,j;
@@ -384,7 +391,7 @@ GEN matkerpadic(GEN A, GEN T, GEN pe, GEN p, long e)
 }
 
 GEN mateqnpadic(GEN A, GEN T, GEN pe, GEN p, long e)
-{ /* Assumes good red, i.e. the rank does not recreae mod p */
+{ /* Assumes good red, i.e. the rank does not decrease mod p */
 	pari_sp av = avma, av1;
 	GEN IJ,I,J,I1,P,A1,A2,B,E;
 	ulong n,r,i,j;
