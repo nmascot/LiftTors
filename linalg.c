@@ -69,9 +69,7 @@ GEN FpXM_add(GEN A, GEN B, GEN p)
   {
     gel(C,j) = cgetg(m+1,t_COL);
     for(i=1;i<=m;i++)
-    {
       gcoeff(C,i,j) = FpX_add(gcoeff(A,i,j),gcoeff(B,i,j),p);
-    }
   }
   return C;
 }
@@ -86,9 +84,37 @@ GEN FpXM_sub(GEN A, GEN B, GEN p)
   {
     gel(C,j) = cgetg(m+1,t_COL);
     for(i=1;i<=m;i++)
-    {
       gcoeff(C,i,j) = FpX_sub(gcoeff(A,i,j),gcoeff(B,i,j),p);
-    }
+  }
+  return C;
+}
+
+GEN ZXM_add(GEN A, GEN B)
+{
+  long m,n,i,j;
+  GEN C;
+  RgM_dimensions(A,&m,&n);
+  C = cgetg(n+1,t_MAT);
+  for(j=1;j<=n;j++)
+  {
+    gel(C,j) = cgetg(m+1,t_COL);
+    for(i=1;i<=m;i++)
+      gcoeff(C,i,j) = ZX_add(gcoeff(A,i,j),gcoeff(B,i,j));
+  }
+  return C;
+}
+
+GEN ZXM_sub(GEN A, GEN B)
+{
+  long m,n,i,j;
+  GEN C;
+  RgM_dimensions(A,&m,&n);
+  C = cgetg(n+1,t_MAT);
+  for(j=1;j<=n;j++)
+  {
+    gel(C,j) = cgetg(m+1,t_COL);
+    for(i=1;i<=m;i++)
+      gcoeff(C,i,j) = ZX_sub(gcoeff(A,i,j),gcoeff(B,i,j));
   }
   return C;
 }
@@ -155,6 +181,25 @@ GEN FpXC_sub(GEN A, GEN B, GEN p)
 	return C;
 }
 
+GEN ZXC_add(GEN A, GEN B)
+{
+  ulong n = lg(A),i;
+  GEN C;
+  C = cgetg(n,t_COL);
+  for(i=1;i<n;i++) gel(C,i) = ZX_add(gel(A,i),gel(B,i));
+  return C;
+}
+
+GEN ZXC_sub(GEN A, GEN B)
+{
+  ulong n = lg(A),i;
+  GEN C;
+  C = cgetg(n,t_COL);
+  for(i=1;i<n;i++) gel(C,i) = ZX_sub(gel(A,i),gel(B,i));
+  return C;
+}
+
+
 GEN RandVec_1(GEN A, GEN pe)
 {
   pari_sp av = avma;
@@ -173,8 +218,8 @@ GEN RandVec_1(GEN A, GEN pe)
 				}
 				else
 				{
-					if(random_Fl(2)) v = FpXC_sub(v,gel(A,j),pe);
-					else v = FpXC_add(v,gel(A,j),pe);
+					if(random_Fl(2)) v = ZXC_sub(v,gel(A,j));
+					else v = ZXC_add(v,gel(A,j));
 				}
     	}
   	}

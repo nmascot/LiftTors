@@ -7,6 +7,8 @@ long ZX_is0mod(GEN,GEN);
 GEN FpXM_red(GEN,GEN);
 GEN FpXM_add(GEN,GEN,GEN);
 GEN FpXM_sub(GEN,GEN,GEN);
+GEN ZXM_add(GEN,GEN);
+GEN ZXM_sub(GEN,GEN);
 GEN FqV_Fq_mul(GEN,GEN,GEN,GEN);
 GEN FqM_Fq_mul(GEN,GEN,GEN,GEN);
 GEN ZXM_Z_mul(GEN,GEN);

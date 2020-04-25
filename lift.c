@@ -106,10 +106,10 @@ GEN PicLift_worker(GEN V0j, ulong shift, GEN uv, GEN AinvB, GEN CAinv, GEN T, GE
 	pari_sp av = avma; /* TODO save mem? */
 	GEN abcd,drho;
 	abcd = M2ABCD_1block(V0j,0,shift,uv); /* Split */
-  drho = FpXM_sub(FqM_mul(gel(abcd,1),AinvB,T,pe21),gel(abcd,2),pe21); /* aA^-1B-b */
+  drho = ZXM_sub(FqM_mul(gel(abcd,1),AinvB,T,pe21),gel(abcd,2)); /* aA^-1B-b */
 	drho = FqM_mul(CAinv,drho,T,pe21); /* CA^-1aA^-1B - CA^-1b */
-	drho = FpXM_add(gel(abcd,4),drho,pe21); /* d + CA^-1aA^-1B - CA^-1b */
-	drho = FpXM_sub(drho,FqM_mul(gel(abcd,3),AinvB,T,pe21),pe21); /* d + CA^-1aA^-1B - CA^-1b - cA^-1B */
+	drho = ZXM_add(gel(abcd,4),drho); /* d + CA^-1aA^-1B - CA^-1b */
+	drho = ZXM_sub(drho,FqM_mul(gel(abcd,3),AinvB,T,pe21)); /* d + CA^-1aA^-1B - CA^-1b - cA^-1B */
 	drho = mat2col(drho);
 	return gerepilecopy(av,drho);
 }
@@ -395,7 +395,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
     		red = gel(Ktors,1);
     		for(i=2;i<=g+1;i++)
     		{
-      		red = FpX_add(red,gel(Ktors,i),pe2);
+      		red = ZX_add(red,gel(Ktors,i));
     		}
     		if(ZX_is0mod(red,p)) /* TODO can this happen ? why, or why not ? */
 				{	printf("Sum of Ktors is zero!\n"); continue;}
