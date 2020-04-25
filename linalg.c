@@ -323,7 +323,6 @@ GEN ZpXQMinv(GEN A, GEN T, GEN pe, GEN p, long e)
 				gel(col,I[i]) = Fq0; */
 			for(i=n+j;i<=2*n;i++)
 				gel(col,i) = ZX_add(gel(col,i),ZX_mul(l,gcoeff(B,i,j)));
-		/* TODO gerepile possible ici */
 			col = gerepileupto(avk,col);
 		}
 		for(i=1;i<=k;i++) gel(col,I[i]) = Fq_red(gel(col,I[i]),T,pe);
@@ -366,8 +365,7 @@ GEN ZpXQMinv(GEN A, GEN T, GEN pe, GEN p, long e)
 		{
 			l = FpX_neg(gcoeff(B,I[j],k),pe);
 			/* Ck += l*Cj */
-			for(i=1;i<=n;i++) gel(col,i) = ZX_add(gel(col,i),ZX_mul(l,gcoeff(C,i,I[j])));
-			/* TODO gerepile possible ici */
+			for(i=(k==2?j:1);i<=n;i++) gel(col,i) = ZX_add(gel(col,i),ZX_mul(l,gcoeff(C,i,I[j])));
 			col = gerepileupto(avk,col);
 		}
 		col2 = cgetg(n+1,t_COL);
@@ -428,7 +426,8 @@ GEN matkerpadic(GEN A, GEN T, GEN pe, GEN p, long e)
 	for(j=1;j<=n-r;j++)
 	{
 		gel(K,j) = cgetg(n+1,t_COL);
-		for(i=1;i<=r;i++) gcoeff(K,P[i],j) = gcoeff(B,i,j);
+		for(i=1;i<=r;i++)
+			gcoeff(K,P[i],j) = gcoeff(B,i,j);
 		for(i=r+1;i<=n;i++)
 			gcoeff(K,P[i],j) = j+r==i?Fqm1:Fq0;
 	}
@@ -472,11 +471,7 @@ GEN mateqnpadic(GEN A, GEN T, GEN pe, GEN p, long e)
   Fqm1 = Z2Fq(gen_m1,T);
   E = cgetg(n+1,t_MAT);
   for(j=1;j<=r;j++)
-  {
-    gel(E,P[j]) = cgetg(n-r+1,t_COL);
-		for(i=1;i<=n-r;i++)
-			gcoeff(E,i,P[j]) = gcoeff(B,i,j);
-	}
+    gel(E,P[j]) = gel(B,j);
 	for(j=r+1;j<=n;j++)
 	{
 		gel(E,P[j]) = cgetg(n-r+1,t_COL);
