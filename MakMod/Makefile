@@ -13,7 +13,7 @@
 #
 
 # change this TARGET to compile your own programs
-PARIDIR = /home/nicolas/pari/
+PARIDIR = $(HOME)/pari/
 SHELL  = /bin/sh
 
 DBGFLAGS   = -g -Wall
