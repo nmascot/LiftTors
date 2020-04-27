@@ -104,7 +104,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 	J=PicInit(f,g,d0,[L,LL,L1,L2],Bad,p,a,e);
 	J1 = PicRed(J,1); \\ Reduction mod p
 	[B,matFrob] = TorsBasis(J1,l,Lp,chi); \\ Basis of the mod p^1 space and matrix of Frob_p
-	print("The matrix of Frob is");
+	print("The matrix of Frob_",p," is");
 	printp(centerlift(matfrobenius(Mod(matFrob,l))));
 	i=1;M=Mod(matFrob,l);
 	while(M!=1,M*=matFrob;i++);
@@ -114,7 +114,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 	print("Time getting basis of T mod ",p,": ",timestr(~t0));
 	J1 = B = 0;
 	while(1,
-		print("\n--> Lifting ",#WB," points ",p,"-adically");
+		print("\n--> Lifting ",#WB," points ",p,"-adically, target O(",p,"^",e,")");
 		if(#WB > Jgetg(J),
   		my(J=J,e1=e1,l=l); WB = parapply(W->PicLiftTors(J,W,e1,l),WB); \\ More efficient in parallel
 		,

@@ -96,7 +96,7 @@ mfgalrep(f,l,coeffs,pmax,D,qprec,threadlim)=
 	print("\n--> Getting basis of representation space mod ",p);
 	J1 = PicRed(J,1);
 	[B,matFrob] = TorsBasis(J1,l,Lp,chi); \\ Basis of the mod p^1 space and matrix of Frob_p
-	print("The matrix of Frob is");
+	print("The matrix of Frob_",p," is");
 	printp(centerlift(matfrobenius(Mod(matFrob,l))));
 	i=1;M=Mod(matFrob,l);
 	while(M!=1,M*=matFrob;i++);
@@ -105,7 +105,7 @@ mfgalrep(f,l,coeffs,pmax,D,qprec,threadlim)=
 	print("Time getting basis mod ",p,": ",timestr(~t0));
 	J1 = B = 0;
 	if(threadlim,default(nbthreads,threadlim[3]));
-	print("\n--> Lifting ",#WB," points ",p,"-adically");
+	print("\n--> Lifting ",#WB," points ",p,"-adically, target O(",p,"^",e,")");
 	WB = apply(W->PicLiftTors(J,W,1,l),WB);
 	print("Time lifting: ",timestr(~t0));
 	print("Size W: ",mysize(sizebyte(WB[1])));

@@ -29,10 +29,10 @@ ModJacInit(N,H,p,a,e,qprec)=
 	);
 	tMFrobE = mattranspose(MFrobE);
 	T = zN.mod;
-	print("\nE:y²=x³+",E.a4,"x+",E.a6," with accuracy O(",p,"^",e,") and residual degree a=",a);
+	print("E:y²=x³+",E.a4,"x+",E.a6," with accuracy O(",p,"^",e,") and residual degree a=",a);
 	for(i=1,a,
     if(MFrobE^i==1,
-      print("MFrobE has order ",i,"\n");
+      print("MFrobE has order ",i);
       break
     )
   );
@@ -65,7 +65,7 @@ ModJacInit(N,H,p,a,e,qprec)=
 	nCusps = #Cusps;
 	print(nCusps," cusps");
 	CuspsGalDegs = apply(o->#o,CuspsGal);
-	print("Degrees of Galois orbits: ",CuspsGalDegs);
+	print("Degrees of Galois orbits of cusps: ",CuspsGalDegs);
 	CuspQexp=vector(nCusps); \\ Vec of bits
 	for(i=1,#CuspsQexp_list,CuspQexp[CuspsQexp_list[i]]=1);
 	d = g+nCusps-1; \\ dim M2(GammaH(N))
