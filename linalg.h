@@ -1,5 +1,6 @@
 #include<pari/pari.h>
 
+GEN GetFq0(GEN);
 GEN GetFq1(GEN);
 GEN Z2Fq(GEN n, GEN T);
 long ZX_is0mod(GEN,GEN);
