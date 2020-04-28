@@ -6,7 +6,6 @@ install("ZpXQM_inv","GGGL");
 
 read("../install.gp");
 install("ZpXQ_FrobMat","GGLG",,"libpic.so");
-install("matkerpadic_safe","GGGL",,"liblinalg.so");
 
 install("ZNnorm","uLU","ZNnorm","libzn.so");
 install("ZNneg","uLU","ZNneg","libzn.so");

@@ -64,15 +64,16 @@ Divo2Div(Do,Orbs,tags,n)=
   D;
 }
 
-MRRsubspace(M4qexps,D,T,p,e)=
+MRRsubspace(M4qexps,D,B,T,pe,p,e)=
 {
   my(K,i=1,nD=vecsum(D),ncusps=#D);
+	if(B==0,B=vector(ncusps));
   K = matrix(nD,#M4qexps[1]);
   for(s=1,ncusps,
     for(j=1,D[s],
-      K[i,]=liftall(M4qexps[s][j,]);
+      K[i,]=liftall(M4qexps[s][j+B[s],]);
       i++;
     )
   );
-  matkerpadic_safe(K,T,p,e);
+  matkerpadic(K,T,pe,p,e);
 }

@@ -89,7 +89,7 @@ mfgalrep(f,l,coeffs,pmax,D,qprec,threadlim)=
 	[N,k] = mfparams(f)[1..2];
 	if(k>2,N*=l);
 	print("\n--> Initialising modular Jacobian");
-	J=ModJacInit(N,H,p,a,e,qprec);
+	J=ModJacInit(N,H,p,a,e,qprec,Lp);
 	print("Time ModJacInit: ",timestr(~t0));
 	print("Size J: ",mysize(sizebyte(J)));
 	if(threadlim,default(nbthreads,threadlim[2]));
