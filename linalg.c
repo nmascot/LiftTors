@@ -458,7 +458,7 @@ GEN mateqnpadic(GEN A, GEN T, GEN pe, GEN p, long e)
     gel(A1,j) = cgetg(r+1,t_COL);
     for(i=1;i<=r;i++) gcoeff(A1,i,j) = gcoeff(A,P[i],J[j]);
 	}
-	B = gerepileupto(av1,ZpXQM_inv(A1,T,p,e));
+	B = gerepileupto(av1,ZpXQMinv(A1,T,pe,p,e));
 	A2 = cgetg(r+1,t_MAT); /* Other block */
   for(j=1;j<=r;j++)
   {
@@ -480,7 +480,7 @@ GEN mateqnpadic(GEN A, GEN T, GEN pe, GEN p, long e)
   return gerepilecopy(av,E);
 }
 
-GEN matF(GEN A, GEN T, GEN p, long e)
+GEN matF(GEN A, GEN T, GEN pe, GEN p, long e)
 {
 	pari_sp av = avma;
 	GEN B;
@@ -495,7 +495,7 @@ GEN matF(GEN A, GEN T, GEN p, long e)
 		gel(B,j) = gel(A,j);
 	}
 	/* invert */
-	B = ZpXQM_inv(B,T,p,e);
+	B = ZpXQMinv(B,T,pe,p,e);
 	/* return the first #A rows */
 	n = lg(B);
 	for(j=1;j<n;j++)
@@ -672,7 +672,7 @@ GEN Subspace_normalize(GEN V, GEN I, GEN T, GEN pe, GEN p, long e, long drop)
 		for(i=1;i<n;i++)
 			gcoeff(P,i,j) = gcoeff(V,I[i],j);
 	}
-	P = ZpXQM_inv(P,T,p,e);
+	P = ZpXQMinv(P,T,pe,p,e);
 	V = FqM_mul(V,P,T,pe);
 	if(drop)
 	{

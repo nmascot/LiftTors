@@ -364,7 +364,7 @@ GEN RREvalInit(GEN L, GEN vars, GEN Z, GEN V2, GEN T, GEN p, long e, GEN pe)
 		for(i=1;i<nV2;i++)
 			gcoeff(M,i,j) = gcoeff(V2,I[i],j);
 	}
-	gel(res,4) = ZpXQM_inv(M,T,p,e);
+	gel(res,4) = ZpXQMinv(M,T,pe,p,e);
   return gerepilecopy(av,res);
 }
 
@@ -551,7 +551,7 @@ GEN Jlift(GEN J, ulong e2)
     for(i=1;i<nV2;i++)
       gcoeff(M,i,j) = gcoeff(V2,I[i],j);
   }
-  gel(U,4) = ZpXQM_inv(M,T,p,e2);
+  gel(U,4) = ZpXQMinv(M,T,pe2,p,e2);
 	worker = strtofunction("mateqnpadic");
   mt_queue_start_lim(&pt,worker,3);
   for(k=1;k<=3||pending;k++)

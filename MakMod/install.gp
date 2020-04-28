@@ -2,7 +2,6 @@ default(path,".:..:~:~/gp");
 
 install("ZpXQ_inv","GGGL");
 install("ZpXQ_div","GGGGGL");
-install("ZpXQM_inv","GGGL");
 
 read("../install.gp");
 install("ZpXQ_FrobMat","GGLG",,"libpic.so");

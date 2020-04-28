@@ -30,6 +30,7 @@ install("PicInflate_U","GG",,"liblift.so");
 install("PicMember","lGG",,"libpic.so");
 
 
+install("ZpXQMinv","GGGGL",,"liblinalg.so");
 install("matkerpadic","GGGGL",,"liblinalg.so");
 install("mateqnpadic","GGGGL",,"liblinalg.so");
 install("VecSmallCompl","GU","VecSmallCompl","liblinalg.so");

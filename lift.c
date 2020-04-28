@@ -262,7 +262,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 		avrho = avma;
   	uv = FqM_MinorCompl(GWV,T,p); /* How to split GWV */
   	ABCD = M2ABCD(GWV,uv); /* Splitting */
-  	Ainv = ZpXQM_inv(gel(ABCD,1),T,p,e2);
+  	Ainv = ZpXQMinv(gel(ABCD,1),T,pe2,p,e2);
   	CAinv = FqM_mul(gel(ABCD,3),Ainv,T,pe2);
   	AinvB = FqM_mul(Ainv,gel(ABCD,2),T,pe2);
   	rho = FqM_mul(CAinv,gel(ABCD,2),T,pe2);
