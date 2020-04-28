@@ -59,7 +59,6 @@ ModJacInit(N,H,p,a,e,qprec)=
 	for(x=1,N,for(y=1,N-1,listput(todo,[[x,y],[1,0]]))); \\ P=alpha(x,y), y!=0 -> Q=alpha(1,0)
 	done = parapply(X->l1(EN,X[1],X[2],T,pe,p,e),Vec(todo));
 	for(i=1,#todo,[x,y]=todo[i][1];Ml1[x,y]=done[i]); 
-	Ml1 = Mod(Mod(Ml1,T),pe);
 	\\ Find a basis for M2(GammaH(N))
 	[Cusps,CuspsGal,CuspsQexp_list,CuspsMats,CuspsWidths,CuspTags] = GammaHCusps(N,Hlist);
 	nCusps = #Cusps;
@@ -72,47 +71,26 @@ ModJacInit(N,H,p,a,e,qprec)=
 	[Pts,PtTags] = ANH(N,Hlist); \\ List of vectors (c,d) mod N,H
 	nPts = #Pts;
 	print(nPts," points on the fibre of X_H(N) -> X(1)");
-	print("M2(GammaH) (dim ",d,")");
+	print1("M2(GammaH) (dim ",d,")");
   PtsFrob = Vecsmall(apply(P->GetCoef(PtTags,liftint(P*tMFrobE)),Pts)); \\ Frob([c,d]) = [c,d]*(t^MFrobE)
 	MPts = apply(s->BotToSL2(s,N),Pts); \\ Matrices having these bottom rows
 	\\ P_g = P_g' on X_H(N) <=> g,g' have same bottom row mod H
 	d1=min(ceil(4*d/3),#Pts); \\ # gens
 	TH = GammaHmodN(N,Hlist1); \\ elts of SL2(Z) representing GammaH mod N,+-1
 	while(1,
-		print("Attempt");
 		\\ Take d1 forms in M2(Gamma(N))
 		M2gens=vector(d1,j,[Pts[1+random(#Pts)],Pts[1+random(#Pts)]]);
 		\\ of the form E_1^v * E_1^w
-		M2=matconcat(
-			parapply(
-				vw->apply(MP->
-					sum(i=1,#TH,
-						GetCoef(Ml1,vw[1]*TH[i]*MP)*GetCoef(Ml1,vw[2]*TH[i]*MP)
-					)
-				,MPts)~
-			,M2gens)
-		);
-    /* DEBUG */
-		/*printf("Checking M2 qexps");
-		KM2 = Mod(Mod(matkerpadic(liftall(M2),T,pe,p,e),T),pe);
-		qprec = 20; \\ TODO adjust
-		for(s=1,nCusps,
-    	M2qexps = matrix(qprec,d1);
-    	[M,w] = GammaHCuspData(Cusps[s],N,Hlist);
-    	for(j=1,d1,
-      	M2qexps[,j] = Mod(Mod(TrE2qexp(M2gens[j],N,TH,M,w,zNpows,qprec,T,pe,p,e)~,T),pe)
-    	);
-    	if(M2qexps*KM2!=0,error("qexp BAD!!!!"),print("Cusp ",s," OK"))
-		);*/
+		M2 = M2mat(M2gens,Ml1,TH,MPts,T,pe);
+		M2 = Mod(M2,T);
   	\\ See if we span all of M2(GammaH) by checking full rank
-		print("linalg");
-  	B=matindexrank(Mod(liftint(M2),p))[2]; \\ working mod p for efficiency
+		B=matindexrank(Mod(M2,p))[2]; \\ working mod p for efficiency
   	if(#B>d,error("Bug M2(GammaH)")); \\ Not supposed to happen
   	if(#B==d,break); \\ This is what we want
   	print("Retrying: the products of Eis series of wt 1 span a subspace of dim ",#B," out of ",d)
 	);
 	\\ Extract basis
-	M2 = vecextract(M2,B);
+	M2 = Mod(vecextract(M2,B),pe);
 	M2gens = vecextract(M2gens,B);
 	\\ Prepare divisors to know min qprec
 	\\ Prune: M2 -> S2(3 cusps) = M2(-C0)
