@@ -1,8 +1,5 @@
 default(path,".:..:~:~/gp");
 
-install("ZpXQ_inv","GGGL");
-install("ZpXQ_div","GGGGGL");
-
 read("../install.gp");
 install("ZpXQ_FrobMat","GGLG",,"libpic.so");
 
@@ -13,7 +10,6 @@ install("l1","GGGGGGL","l1","libmodjac.so");
 install("M2_worker","GGGGGG",,"libmodjac.so");
 install("M2mat","GGGGGG",,"libmodjac.so");
 install("elladd_padic","GGGGGGL","elladd_padic","libelladd_padic.so");
-install("E1qexp","GUGUGGGL","CE1qexp","libqexp.so");
 install("TrE2qexp","GUGGUGUGGGL","TrE2qexp","libqexp.so");
 
 read("ModGalRep.gp");
