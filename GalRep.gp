@@ -111,7 +111,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 	print("It has order ",i);
 	if(i<a,warning("Therefore working in degree a=",a," is not optimal. Consider restarting the computation while forcing a=",i,"."));
 	[WB,cWB] = TorsSpaceFrobGen(J1,l,B,matFrob); \\ Generating set of T under Frob and coordinates of these generators on B
-	print("Time getting basis of T mod ",p,": ",timestr(~t0));
+	print("Time getting basis of T over F_",p,": ",timestr(~t0));
 	J1 = B = 0;
 	while(1,
 		print("\n--> Lifting ",#WB," points ",p,"-adically, target O(",p,"^",e,")");

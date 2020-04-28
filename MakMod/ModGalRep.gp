@@ -93,7 +93,7 @@ mfgalrep(f,l,coeffs,pmax,D,qprec,threadlim)=
 	print("Time ModJacInit: ",timestr(~t0));
 	print("Size J: ",mysize(sizebyte(J)));
 	if(threadlim,default(nbthreads,threadlim[2]));
-	print("\n--> Getting basis of representation space mod ",p);
+	print("\n--> Getting basis of representation space over F_",p);
 	J1 = PicRed(J,1);
 	[B,matFrob] = TorsBasis(J1,l,Lp,chi); \\ Basis of the mod p^1 space and matrix of Frob_p
 	print("The matrix of Frob_",p," is");
@@ -102,7 +102,7 @@ mfgalrep(f,l,coeffs,pmax,D,qprec,threadlim)=
 	while(M!=1,M*=matFrob;i++);
 	print("It has order ",i);
 	[WB,cWB] = TorsSpaceFrobGen(J1,l,B,matFrob);
-	print("Time getting basis mod ",p,": ",timestr(~t0));
+	print("Time getting basis over F_",p,": ",timestr(~t0));
 	J1 = B = 0;
 	if(threadlim,default(nbthreads,threadlim[3]));
 	print("\n--> Lifting ",#WB," points ",p,"-adically, target O(",p,"^",e,")");
