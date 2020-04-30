@@ -2,7 +2,7 @@
 
 Esplit(p,N,d)= \\ Look for an ell. curve / Fp such tht E[N] splits over Fq, q=p^d.
 {
-  my(q=p^d,q2=(q-1)/2,T=ffinit(p,d,'t),a,b,E,ap,X,g,M,L,V,l,v,lv,c,D,faM,M1);
+  my(q=p^d,q2=(q-1)/2,T=ffinit(p,d,'t),a,b,E,ap,nud,X,g,M,L,V,l,v,lv,c,D,faM,M1);
   if(Mod(p^d,N)!=1,error("Impossible by Weil pairing"));
 	/*m = valuation(N,2);
 	M = N/2^m;*/
@@ -17,6 +17,8 @@ Esplit(p,N,d)= \\ Look for an ell. curve / Fp such tht E[N] splits over Fq, q=p^
 		);
     E=ellinit([a,b]);
 		ap = ellap(E);
+		nud = polsym(Mod('x^2-ap*'x+p,N),d)[d+1];
+		if(Mod(q+1-nud,N^2),next); \\ Must have N² | #E
 		g=gcd(ap^2-4*p,N);
 		L=factor(g)[,1]; \\ Primes l s.t. Frob_p not 1/2simple on l-tors
 		V=apply(l->valuation(N,l),L); \\ Multiplicities in N
@@ -25,26 +27,23 @@ Esplit(p,N,d)= \\ Look for an ell. curve / Fp such tht E[N] splits over Fq, q=p^
 		M1 = prod(i=1,#faM~,faM[i,1]); \\ Radical of M
 		if(M1>1,
       if(default(debug),print("Checking Frob^",d," trivial on E[",M1,"]"));
-			if(polsym(Mod('x^2-ap*'x+p,M1),d)[d+1]!=2, \\ Check if Frob^d=1 on E[M] by testing a^d+b^d==2
+			if(Mod(nud,M1)!=2, \\ Check if Frob^d=1 on E[M] by testing a^d+b^d==2
         if(default(debug),print("Frob^",d," not trivial on E[",M1,"]"));
         next
       )
 		);
-		for(i=1,#L, \\ Check if Frob^d unipotent on E[l^v]
+		for(i=1,#L, \\ Check if Frob^d unipotent on E[l]
 			l=L[i];
-			v=V[i];
-			if(default(debug),print("Checking Frob^",d," unipotent on E[",l,"^",v,"]"));
-			lv=l^v;
-			if(l!=2,
-				c=ap/Mod(2,lv); \\ Frob = c*unipotent on E[l^v]
-				if(c^d!=1, \\ Check if Frob^d unipotent on E[l^v]
-					if(default(debug),print("Frob^",d," not unipotent on E[",l,"^",v,"]"));
-					next(2)
-				);
+			if(l==2,next);
+			if(default(debug),print("Checking Frob^",d," unipotent on E[",l,"]"));
+			\\c=ap/Mod(2,lv); \\ Frob = c*unipotent on E[l]
+			if(Mod(ap,l)^a!=Mod(2,l)^a, \\ Check if Frob^d unipotent on E[l]
+				if(default(debug),print("Frob^",d," not unipotent on E[",l,"^",v,"]"));
+				next(2)
 			);
 		);
 		L = matconcat([L,V]); \\ facto prod l_i^v_i
-		L = select(t->Mod(d,t[1]^t[2]),L~)~; \\ d kill unipotents if l_i^v_i | d
+		L = select(t->Mod(d,t[1]^t[2]),L~)~; \\ d kills unipotents if l_i^v_i | d
 		faM = select(t->t[2]>1,faM~)~; \\ Only keep repeated factors
 		\\ So now Frob^d unipotent on E[l^v] for [l,v] in L,
 		\\ and Frob^d trivial on E[l] but maybe not E[l^v] for [l,v] in faM
