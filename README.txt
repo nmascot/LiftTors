@@ -18,6 +18,6 @@ This package is provided in the hope it will be useful, but comes without any gu
 Nicolas Mascot, September 1, 2018
 
 
-Update: This package now contains new experimental code to compute Galois representations attached to modular forms, cf. the MakMod/ subdirectory and the examples Ex16.gp, ExD13.gp, ExD17.gp and ExD19.gp there. See my preprint "Moduli-friendly Eisenstein series over the p-adics and the computation of modular Galois representations" for a description the algorithm.
+Update: This package now contains new experimental code to compute Galois representations attached to modular forms, cf. the MakMod/ subdirectory and the examples Ex16.gp, ExD13.gp, ExD17.gp, and ExD19.gp there. See my preprint "Moduli-friendly Eisenstein series over the p-adics and the computation of modular Galois representations" (arXiv 2004.14683) for a description the algorithm.
 
 Nicolas Mascot, April 30, 2020
