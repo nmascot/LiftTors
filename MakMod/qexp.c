@@ -7,7 +7,7 @@ GEN E1qexp(GEN v, ulong N, GEN zpows, ulong B, GEN T, GEN pe, GEN p, long e)
 	GEN E,Fq0,a0,zd;
 	ulong a,b,c,d,m,n;
 
-	if(B==0) return cgetg(t_VEC,1);
+	if(B==0) return cgetg(1,t_VEC);
 
 	Fq0 = mkpoln(0);
 	setvarn(Fq0,varn(T));
