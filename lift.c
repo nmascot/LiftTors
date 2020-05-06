@@ -201,7 +201,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
   GEN randseed,vFixedParams,args,worker,done;
   long pending,workid;
   ulong r,i,j,k,n;
-	long testtors;
+	ulong testtors;
 
 	JgetTpe(J,&T,&pefin,&p,&efin);
 	if(eini >= efin) return W;
@@ -411,9 +411,9 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 					if(DEBUGLEVEL) pari_printf("Checking %Ps-tors\n",l);
 					W = PicInflate_U(J2,U2,NULL);
 					avtesttors = avma;
-					testtors = PicIsZero(J2,PicMul(J2,W,l,0));
+					testtors = PicIsZero_val(J2,PicMul(J2,W,l,0));
 					avma = avtesttors;
-					if(!testtors)
+					if(testtors<e2)
           {
             printf("Not actually l-torsion!!! Changing charts\n");
             P0++;

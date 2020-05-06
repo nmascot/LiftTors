@@ -248,11 +248,11 @@ GEN DivSub(GEN WA, GEN WB, GEN KV, ulong d, GEN T, GEN p, long e, GEN pe, ulong 
 	}
 }
 
-GEN DivSub_safe(GEN WA, GEN WB, GEN KV, GEN T, GEN p, long e, GEN pe)
-{
+ulong DivSub_dimval(GEN WA, GEN WB, long dim, GEN KV, GEN T, GEN p, long e, GEN pe)
+{ /* Finds the highest p-adic accuracy at which DivSub(WA,WB) has dimension dim */
 	pari_sp av = avma;
-  unsigned long nZ,P,nE,E,nV,nA,nB,n;
-  GEN KB,K,res;
+  ulong nZ,P,nE,E,nV,nA,nB,n,res;
+  GEN KB,K,L;
   nZ = lg(KV);
   nV = lg(gel(KV,1))-1;
   KB = mateqnpadic(WB,T,pe,p,e);
@@ -278,8 +278,23 @@ GEN DivSub_safe(GEN WA, GEN WB, GEN KV, GEN T, GEN p, long e, GEN pe)
         gcoeff(K,nV+(n-1)*nB+E,P) = Fq_mul(gcoeff(WA,P,n),gcoeff(KB,E,P),T,pe);
     }
   }
-  res = matkerpadic_safe(K,T,p,e);
-  return gerepileupto(av,res);
+  L = matkerpadic(K,T,pe,p,e);
+	/* Is L even of the right dim mop p ? */
+	if(lg(L)-1 != dim)
+	{
+		avma = av;
+		return 0;
+	}
+	/* return vp(K*L) */
+	L = FqM_mul(K,L,T,pe);
+	if(gequal0(L))
+	{
+		avma = av;
+		return (ulong)e;
+	}
+	res = gvaluation(L,p);
+	avma = av;
+  return res;
 }
 
 GEN PicNeg(GEN J, GEN W, long flag)
@@ -314,26 +329,23 @@ GEN PicNeg(GEN J, GEN W, long flag)
   }
 }
 
-long PicMember(GEN J, GEN W)
+ulong PicMember_val(GEN J, GEN W)
 {
 	pari_sp av = avma;
-	GEN T,pe,p,w,V,wV,KV,W2;
+	GEN T,pe,p,w,V,wV,KV;
 	long e;
-	ulong nW;
-	long res;
+	ulong res;
 
 	JgetTpe(J,&T,&pe,&p,&e);
 	V = JgetV(J,2);
 	KV = JgetKV(J,2);
-	nW = lg(W)-1;
 
 	do
 		w = RandVec_1(W,pe);
 	while(gequal0(w));
 	wV = DivMul(w,V,T,pe);
 
-	W2 = DivSub_safe(W,wV,KV,T,p,e,pe);
-	res = (lg(W2)-1==nW?1:0);
+	res = DivSub_dimval(W,wV,lg(W)-1,KV,T,p,e,pe);
 	avma = av;
 	return res;
 }
@@ -524,11 +536,12 @@ GEN PicFrobPoly(GEN J, GEN W, GEN F)
 	return gerepileupto(av,res);
 }
 
-long PicEq(GEN J, GEN WA, GEN WB)
+ulong PicEq_val(GEN J, GEN WA, GEN WB)
 {
 	pari_sp av = avma;
-	long e,r;
-	GEN s,sWB,K,KV,T,p,pe;
+	long e;
+	GEN s,sWB,KV,T,p,pe;
+	ulong r;
 
 	JgetTpe(J,&T,&pe,&p,&e);
 	KV = JgetKV(J,2);
@@ -539,24 +552,23 @@ long PicEq(GEN J, GEN WA, GEN WB)
 	sWB = DivMul(s,WB,T,pe);
 	/* Find { v in V | v*WA c s*WB } = L(2D0-B-A1) */
 	/* This space is nontrivial iff. A~B */
-	K = DivSub_safe(WA,sWB,KV,T,p,e,pe);
-	r = lg(K)-1;
+	r = DivSub_dimval(WA,sWB,1,KV,T,p,e,pe);
 	avma = av;
 	return r;
 }
 
-long PicIsZero(GEN J, GEN W)
+ulong PicIsZero_val(GEN J, GEN W)
 {
 	pari_sp av = avma;
-	long r,e;
-	GEN K,V1,KV1,T,p,pe;
+	long e;
+	GEN V1,KV1,T,p,pe;
+	ulong r;
 
 	JgetTpe(J,&T,&pe,&p,&e);
 	V1 = JgetV(J,1);
 	KV1 = JgetKV(J,1);
 
-	K = DivSub_safe(V1,W,KV1,T,p,e,pe);
-	r = lg(K)-1;
+	r = DivSub_dimval(V1,W,1,KV1,T,p,e,pe);
 	avma = av;
 	return r;
 }

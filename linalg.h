@@ -14,7 +14,6 @@ GEN FqM_Fq_mul(GEN,GEN,GEN,GEN);
 GEN ZXM_Z_mul(GEN,GEN);
 GEN RandVec_1(GEN A,GEN pe);
 GEN RandVec_padic(GEN,GEN,GEN,GEN);
-GEN matkerpadic_safe(GEN A, GEN T, GEN p, long e);
 GEN ZpXQMinv(GEN A, GEN T, GEN pe, GEN p, long e);
 GEN matkerpadic(GEN A, GEN T, GEN pe, GEN p, long e);
 GEN mateqnpadic(GEN A, GEN T, GEN pe, GEN p, long e);

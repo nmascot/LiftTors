@@ -36,7 +36,7 @@ mordroot(f,p)=
 	N;
 }
 
-PicIsTorsion(J,W,N)=PicIsZero(J,PicFrobPoly(J,W,N)); \\ For debugging purposes. N can be an integer or a polynomial.
+PicIsTorsion_val(J,W,N)=PicIsZero_val(J,PicFrobPoly(J,W,N)); \\ For debugging purposes. N can be an integer or a polynomial.
 
 TorsSpaceGetPols(Z,l,JFrobMat,QqFrobMat,T,pe,p,e)=
 \\ Given a vector Z of evaluations of the points of a submodule T of J[l],

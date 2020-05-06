@@ -26,7 +26,7 @@ TorsOrd(J,W,l)=
   my(v=0,lW);
   v = 0;
   lW = W;
-  while(!PicIsZero(J,lW),
+  while(PicIsZero_val(J,lW)<Jgete(J),
     v += 1;
     W = lW;
     lW = PicMul(J,W,l,0)
@@ -123,7 +123,7 @@ Tors_UpdateLinTests(J,BT,Tnew,l,LinTests,R,FRparams)=
 	);
 	rel = KR2[,1];
 	print(" Found pseudo-relation: ",rel);
-	if(PicIsZero(J,PicLC(J,rel,BT2)),
+	if(PicIsZero_val(J,PicLC(J,rel,BT2))==Jgete(J),
 		print(" It actually holds.");
 		return([0,rel])
 	);

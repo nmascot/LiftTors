@@ -27,7 +27,7 @@ WeiRed(f,h)=
 
 install("PicDeflate_U","GGL",,"liblift.so");
 install("PicInflate_U","GG",,"liblift.so");
-install("PicMember","lGG",,"libpic.so");
+install("PicMember_val","uGG",,"libpic.so");
 
 
 install("ZpXQMinv","GGGGL",,"liblinalg.so");
@@ -55,8 +55,8 @@ install("PicNeg","GG","PicNeg","libpic.so");
 install("PicMul","GGGL","PicMul","libpic.so");
 install("PicFrob","GG","PicFrob","libpic.so");
 install("PicFrobPoly","GGG","PicFrobPoly","libpic.so");
-install("PicEq","lGGG","PicEq","libpic.so");
-install("PicIsZero","lGG","PicIsZero","libpic.so");
+install("PicEq_val","uGGG",,"libpic.so");
+install("PicIsZero_val","uGG",,"libpic.so");
 install("PicChart","GGU","PicChart","libpic.so");
 install("PicRand0","G","PicRand","libpic.so");
 

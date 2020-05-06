@@ -253,35 +253,6 @@ GEN RandVec_padic(GEN A, GEN T, GEN p, GEN pe)
 	return v;
 }
 
-GEN Hsort(GEN A, GEN p)
-{
-	ulong off=0,i=1,j=1,n,m,all0=1;
-	n = lg(A);
-	for(j=1;j<n;j++)
-	{
-		all0 = 1;							
-		m = lg(gel(A,j));
-		for(i=1;i<m;i++)
-		{
-			if(!ZX_is0mod(gcoeff(A,i,j),p))
-			{
-				all0 = 0;
-				break;
-			}
-		}
-		if(all0 == 1)
-		{
-			off++;
-		}
-		else
-		{
-			gel(A,j-off) = gel(A,j);
-		}
-	}
-	setlg(A,n-off);
-	return A;
-}
-
 GEN ZpXQMinv(GEN A, GEN T, GEN pe, GEN p, long e)
 {
 	pari_sp av = avma, avk;
@@ -376,16 +347,6 @@ GEN ZpXQMinv(GEN A, GEN T, GEN pe, GEN p, long e)
 	for(i=1;i<=n;i++)
     gcoeff(C,i,I[1]) = gcopy(gcoeff(C,i,I[1]));
 	return gerepileupto(av,C);
-}
-
-GEN matkerpadic_safe(GEN A, GEN T, GEN p, long e)
-{
-  pari_sp av = avma;
-	GEN K;
-  if(e==1) return FqM_ker(A,T,p);
-  K = ZpXQM_ker(A,T,p,e,NULL);
-  K = Hsort(K,p);
-  return gerepilecopy(av,K);
 }
 
 GEN matkerpadic(GEN A, GEN T, GEN pe, GEN p, long e)
