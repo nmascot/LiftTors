@@ -41,7 +41,7 @@ mfbestp(f,l,coeffs,pmax)=
 	o = IDpolcyclo(Phi,N);
 	ZNX = znstar(N,1);
 	eps = znchar(f);
-	if(type(pmax)=="t_VEC",[pmin,pmax]=pmax);
+	if(type(pmax)=="t_VEC",[pmin,pmax]=pmax;pmin=max(5,pmin));
 	lN = if(k==2,N,l*N);
 	H = select(h->gcd(lN,h)==1,[1..lN-1]);
 	H = select(h->Mod(h^(k-2),l)*chareval(eps[1],eps[2],h,[tl,o])==1,H);
@@ -50,6 +50,7 @@ mfbestp(f,l,coeffs,pmax)=
 	qf = mfcoefs(f,pmax);
 	print("Lp");
 	Lp = LMod_multi(lN,H,listp);
+	if(Lp[1]==1,error("The representation is a power of the cyclotomic character"));
 	best = [];
 	for(i=1,#listp,
 		p = listp[i];

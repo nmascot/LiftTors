@@ -37,7 +37,7 @@ Esplit(p,N,d)= \\ Look for an ell. curve / Fp such tht E[N] splits over Fq, q=p^
 			if(l==2,next);
 			if(default(debug),print("Checking Frob^",d," unipotent on E[",l,"]"));
 			\\c=ap/Mod(2,lv); \\ Frob = c*unipotent on E[l]
-			if(Mod(ap,l)^a!=Mod(2,l)^a, \\ Check if Frob^d unipotent on E[l]
+			if(Mod(ap,l)^d!=Mod(2,l)^d, \\ Check if Frob^d unipotent on E[l]
 				if(default(debug),print("Frob^",d," not unipotent on E[",l,"^",v,"]"));
 				next(2)
 			);

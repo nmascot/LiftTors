@@ -31,10 +31,11 @@ ModJacInit(N,H,p,a,e,qprec,Lp)=
   \\ Get data about fibre
   [Pts,PtTags] = ANH(N,Hlist); \\ List of vectors (c,d) mod N,H
   nPts = #Pts;
-  print(nPts," points on the fibre of X_H(N) -> X(1)");
+  print(nPts," points on the fibre of X_H(",N,") -> X(1)");
 	MPts = apply(s->BotToSL2(s,N),Pts); \\ Matrices having these bottom rows
 	\\ P_g = P_g' on X_H(N) <=> g,g' have same bottom row mod H
 	\\ Get a curve E and a basis of E[N]
+	print("Finding elliptic curve E such that E[",N,"] is defined over GF(",p,"^",a,")");
 	[E,P0,Q0,zN,MFrobE] = EBasis(N,p,a,e);
 	T = zN.mod;
   print("E:y²=x³+",E.a4,"x+",E.a6," with accuracy O(",p,"^",e,") and residual degree a=",a);
@@ -88,7 +89,8 @@ ModJacInit(N,H,p,a,e,qprec,Lp)=
 		B=matindexrank(Mod(M2,p))[2]; \\ working mod p for efficiency
   	if(#B>d,error("Bug M2(GammaH)")); \\ Not supposed to happen
   	if(#B==d,break); \\ This is what we want
-  	print("Retrying: the products of Eis series of wt 1 span a subspace of dim ",#B," out of ",d)
+  	print("Retrying: the products of Eis series of wt 1 span a subspace of dim ",#B," out of ",d);
+		d1 += d-#B;
 	);
 	\\ Extract basis
 	M2 = Mod(vecextract(M2,B),pe);
