@@ -1,15 +1,6 @@
 read("GalRep.gp");
 read("ModJac.gp");
 
-IDpolcyclo(Phi,N)=
-{
-	my(var=variable(Phi));
-	fordiv(eulerphi(N),d,
-		if(eulerphi(d)!=poldegree(Phi),next);
-		if(Phi == polcyclo(d,var),return(d))
-	);
-}
-
 mfyt(f,l,coeffs)=
 {
 	my(N,k,eps,P,Phi,z,tz,Z,T,Y,L);
@@ -38,13 +29,12 @@ mfbestp(f,l,coeffs,pmax)=
 	my(N,k,eps,P,Phi,yl,tl,o,ZNX,pmin=5,lN,H,listp,qf,best,p,ap,epsp,chi,Lp,Psi,a1,a2,a);
 	[N,k,eps,P,Phi]=mfparams(f);
 	[yl,tl] = mfyt(f,l,coeffs);
-	o = IDpolcyclo(Phi,N);
-	ZNX = znstar(N,1);
-	eps = znchar(f);
+	[ZNX,eps] = znchar(f);
+	o = charorder(ZNX,eps);
 	if(type(pmax)=="t_VEC",[pmin,pmax]=pmax;pmin=max(5,pmin));
 	lN = if(k==2,N,l*N);
 	H = select(h->gcd(lN,h)==1,[1..lN-1]);
-	H = select(h->Mod(h^(k-2),l)*chareval(eps[1],eps[2],h,[tl,o])==1,H);
+	H = select(h->Mod(h^(k-2),l)*chareval(ZNX,eps,h,[tl,o])==1,H);
 	listp = select(p->Mod(l*N,p),primes([pmin,pmax]));
 	print("qexp");
 	qf = mfcoefs(f,pmax);
@@ -56,7 +46,7 @@ mfbestp(f,l,coeffs,pmax)=
 		p = listp[i];
 		if(Mod(l*N,p)==0,next);
 		ap = subst(subst(liftall(qf[p+1]),'t,tl),'y,yl);
-		epsp = chareval(eps[1],eps[2],p,[tl,o]);
+		epsp = chareval(ZNX,eps,p,[tl,o]);
 		chi = 'x^2-ap*'x+p^(k-1)*epsp;
 		Psi = Mod(Lp[i],l)/chi;
 		if(poldegree(denominator(Psi)),error("Bug in charpoly"));
