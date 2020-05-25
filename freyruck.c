@@ -59,7 +59,10 @@ GEN detratio(GEN K, GEN T, GEN p, long e, GEN pe)
 	}
 	if(e==1)
 		return gerepileupto(av,Fq_div(FqM_det(K2,T,p),FqM_det(K1,T,p),T,p));
-	return gerepileupto(av,Fq_mul(ZpXQM_det(K2,T,p,e),ZpXQ_inv(ZpXQM_det(K1,T,p,e),T,p,e),T,pe));
+	/* TODO? */
+	pari_err(e_IMPL,"case e>1");
+	/* return gerepileupto(av,Fq_mul(ZpXQM_det(K2,T,p,e),ZpXQ_inv(ZpXQM_det(K1,T,p,e),T,p,e),T,pe));*/
+	return NULL;
 }
 
 GEN PicNorm(GEN J, GEN F1, GEN F2, GEN WE, ulong n)
