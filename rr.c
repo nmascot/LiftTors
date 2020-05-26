@@ -372,8 +372,9 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
 {
 	pari_sp avP,av = avma;
   int newpt;
+	long t;
   ulong nZ,n,cyc_top,i;
-  GEN vars,pe,t,T,FrobMat,Z,Zp,P,Pp,Q,FrobCyc,x,y,V1,V2,V3,W0,V,KV,U,J;
+  GEN vars,pe,T,FrobMat,Z,Zp,P,Pp,Q,FrobCyc,x,y,V1,V2,V3,W0,V,KV,U,J;
 	struct pari_mt pt;
 	GEN worker,done,E;
 	long workid,pending,k;
@@ -381,8 +382,9 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
 	vars = variables_vecsmall(f);
 	nZ = 5*d0+1;
 
-	t = varlower("t",vars[2]);
-  T = liftint(ffinit(p,a,varn(t)));
+	t = fetch_var();
+	name_var(t,"t");
+  T = liftint(ffinit(p,a,t));
   pe = powis(p,e);
   FrobMat = ZpXQ_FrobMat(T,p,e,pe);
 
