@@ -138,7 +138,7 @@ GEN PicFreyRuckMulti1(GEN J, GEN Wtors, GEN l, GEN Wtest, GEN W0, GEN F1, GEN F2
 	
 	/*printf("FR1\n");*/
 	JgetTpe(J,&T,&pe,&p,&e);
-	Fq1 = GetFq1(T);
+	Fq1 = pol_1(varn(T));
 	V1 = JgetV(J,1);
 	KV1 = JgetKV(J,1);
 	nC = lg(C);

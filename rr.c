@@ -30,20 +30,20 @@
 GEN EvalRatMod(GEN F, long var, GEN x, GEN T, GEN p, long e, GEN pe) /* /!\ Not memory-clean */
 {
 	GEN N,D;
-	if(typ(F)==t_INT) return Z2Fq(F,T);
-	if(typ(F)==t_FRAC) return Z2Fq(Fp_div(gel(F,1),gel(F,2),pe),T);
+	if(typ(F)==t_INT) return scalarpol(F,varn(T));
+	if(typ(F)==t_FRAC) return scalarpol(Fp_div(gel(F,1),gel(F,2),pe),varn(T));
 	if(varn(F)==varn(T)) return F;
 	if(gvar(F)!=var) pari_err(e_MISC,"Bad var 1 in %Ps",F);
 	if(typ(F)==t_POL)
 	{
 		N = liftall(poleval(F,gmodulo(gmodulo(x,T),pe)));
-		if(typ(N)==t_INT) N=Z2Fq(N,T);
+		if(typ(N)==t_INT) N=scalarpol(N,varn(T));
 		return N;
 	}
 	N = liftall(poleval(gel(F,1),gmodulo(gmodulo(x,T),pe)));
-	if(typ(N)==t_INT) N=Z2Fq(N,T);
+	if(typ(N)==t_INT) N=scalarpol(N,varn(T));
 	D = liftall(poleval(gel(F,2),gmodulo(gmodulo(x,T),pe)));
-	if(typ(D)==t_INT) D=Z2Fq(D,T);
+	if(typ(D)==t_INT) D=scalarpol(D,varn(T));
 	N = ZpXQ_div(N,D,T,pe,p,e);
 	return N;
 }
@@ -55,14 +55,14 @@ GEN FnEvalAt(GEN F, GEN P, GEN vars, GEN T, GEN p, long e/*GEN E*/, GEN pe)
 	GEN N,D,Fy;
 	long /*e = itos(E),*/d;
 	ulong i;
-	if(typ(F)==t_INT) return Z2Fq(F,T);
-	if(typ(F)==t_FRAC) return Z2Fq(Fp_div(gel(F,1),gel(F,2),pe),T);
+	if(typ(F)==t_INT) return scalarpol(F,varn(T));
+	if(typ(F)==t_FRAC) return scalarpol(Fp_div(gel(F,1),gel(F,2),pe),varn(T));
 	if(typ(F)==t_RFRAC)
 	{
 		N = FnEvalAt(gel(F,1),P,vars,T,p,e,pe);
-		if(typ(N)==t_INT) N=Z2Fq(N,T);
+		if(typ(N)==t_INT) N=scalarpol(N,varn(T));
 		D = FnEvalAt(gel(F,2),P,vars,T,p,e,pe);
-		if(typ(D)==t_INT) D=Z2Fq(D,T);
+		if(typ(D)==t_INT) D=scalarpol(D,varn(T));
 		return gerepileupto(av,ZpXQ_div(N,D,T,pe,p,e));
 	}
 	if(gvar(F)==vars[2]) return liftall(poleval(F,gmodulo(gmodulo(gel(P,2),T),pe)));

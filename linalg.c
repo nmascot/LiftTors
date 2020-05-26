@@ -1,35 +1,5 @@
 #include<linalg.h>
 
-GEN GetFq1(GEN T)
-{
-	GEN Fq1;
-	Fq1 = mkpoln(1,gen_1);
-	Fq1[1] = 0;
-	setsigne(Fq1,1);
-  setvarn(Fq1,varn(T));
-	return Fq1;
-}
-
-GEN GetFq0(GEN T)
-{
-  GEN Fq0;
-  Fq0 = mkpoln(0);
-	Fq0[1] = 0;
-	setsigne(Fq0,0);
-  setvarn(Fq0,varn(T));
-  return Fq0;
-}
-
-GEN Z2Fq(GEN x, GEN T)
-{
-	if(gequal0(x)) return GetFq0(T);
-  GEN y = mkpoln(1,x);
-	y[1] = 0;
-  setsigne(y,1);
-  setvarn(y,varn(T));
-  return y;
-}
-
 long ZX_is0mod(GEN x, GEN p)
 {
 	pari_sp av = avma;
@@ -264,8 +234,8 @@ GEN ZpXQMinv(GEN A, GEN T, GEN pe, GEN p, long e)
 	n = lg(A)-1;
 	I = cgetg(n,t_VECSMALL); /* Vector of permutation of rows */
 	for(i=1;i<=n;i++) I[i] = i;
-	Fq0 = GetFq0(T);
-	Fq1 = GetFq1(T);
+	Fq0 = pol_0(varn(T));
+	Fq1 = pol_1(varn(T));
 	B = cgetg(n+1,t_MAT);
 	/* Phase 1: to U1 form */
 	for(k=n;k;k--)
@@ -381,8 +351,8 @@ GEN matkerpadic(GEN A, GEN T, GEN pe, GEN p, long e)
   }
 	/* K = vcat of A1^-1*A2, -Id_{n-r}, with perm P^-1 of rows */
 	B = gerepileupto(av1,FqM_mul(B,A2,T,pe));
-	Fq0 = GetFq0(T);
-	Fqm1 = Z2Fq(gen_m1,T);
+	Fq0 = pol_0(varn(T));
+	Fqm1 = scalarpol(gen_m1,varn(T));
 	K = cgetg(n-r+1,t_MAT);
 	for(j=1;j<=n-r;j++)
 	{
@@ -428,8 +398,8 @@ GEN mateqnpadic(GEN A, GEN T, GEN pe, GEN p, long e)
   }
 	/* E = hcat of A2*A1^-1, -Id_{n-r}, with perm P^-1 of cols*/
   B = gerepileupto(av1,FqM_mul(A2,B,T,pe));
-  Fq0 = GetFq0(T);
-  Fqm1 = Z2Fq(gen_m1,T);
+  Fq0 = pol_0(varn(T));
+  Fqm1 = scalarpol(gen_m1,varn(T));
   E = cgetg(n+1,t_MAT);
   for(j=1;j<=r;j++)
     gel(E,P[j]) = gel(B,j);
