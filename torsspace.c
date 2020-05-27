@@ -225,7 +225,6 @@ GEN PolExpID(GEN Z, GEN T, GEN pe) /* bestappr of prod(x-z), z in Z */
   GEN res,f;
 	res = cgetg(4,t_VEC);
 	av = avma;
-	/*printf("var %ld, prio %ld\n",varn(T),varpriority[varn(T)]);*/
   f = FqV_roots_to_pol(Z,T,pe,0);
   if(poldegree(f,varn(T))>0) pari_err(e_MISC,"Irrational coefficient: %Ps",f);
   f = simplify_shallow(f);
