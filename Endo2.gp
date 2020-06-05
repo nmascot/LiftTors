@@ -21,3 +21,8 @@ P1 = [-2,Mod(10*w,w^2+10)];
 P2 = [-3,Mod(10*w,w^2+10)];
 
 X=HyperGalRep_Endo(f,l,p,a,e,[Ap,Bp],P0p,P1,P2,EndoPol);
+
+F=X[1]; \\ Poly of degree l²-1 ncoding linear representation
+G=ProjPol(X[2],l,2,1)[1]; \\ Poly of degree l+1 encoding projective representation
+G=polredbest(G) \\ Nicer version (would be too slow with F)
+

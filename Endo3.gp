@@ -27,4 +27,8 @@ P1 = [0,0];
 P2 = [1,0];
 
 X=HyperGalRep_Endo(f,l,p,a,e,AB,P0,P1,P2,EndoPol);
-print(X[1]);
+
+F=X[1]; \\ Poly of degree l²-1 ncoding linear representation
+G=ProjPol(X[2],l,2,1)[1]; \\ Poly of degree l+1 encoding projective representation
+G=polredbest(G) \\ Nicer version (would be too slow with F)
+
