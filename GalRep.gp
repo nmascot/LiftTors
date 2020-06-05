@@ -235,3 +235,68 @@ SmoothBestp(f0,D,l,pmax)=
 	a = vecmin(A,&i);
 	[P[i],a];
 }
+
+HyperGalRep_Endo(f,l,p,a,e,AB,P0,P1,P2,Epol)=
+{
+	my(pe=p^e,e1=1,t0,Lp,C,Cf,g,do,L,LL,L1,L2,Bad,J,J1,B1,M,E,ImEE,K,K1,K2,matFrob,i,B,WB,cWB,Z,JT,AF,F);
+	t0 = [getabstime(),getwalltime()];
+  print("Working over unramified extension of Q_",p," of degree ",a," with accuracy O(",p,"^",e")");
+	Lp = hyperellcharpoly(Mod(f,p)); \\ Local L factor of the curve at p, needed to know the number of points on the Jacobian mod p
+	\\ Initialisation of J
+	C = Hyper2RR(f,P1,P2);
+	C = concat(C,['y]);
+	[Cf,g,d0,L,LL,L1,L2,Bad]=C;
+	Bad *= lcm(apply(S->lcm(apply(f->denominator(content(f)),S)),[L,L1,L2]));
+	J=PicInit(Cf,g,d0,[L,LL,L1,L2],Bad,p,a,e);
+  print("Time initialising Jacobian: ",timestr(~t0));
+	print("Getting basis of J[",l,"]");
+	J1 = PicRed(J,1);
+	\\ Basis of J[l] and matrix of Frob and of Endo on J[l]
+	[B1,M,E]=TorsBasis_Endo(J1,l,Lp,AB,P0);
+	if(Epol,E=subst(Epol,'x,E));
+	ImE = matimage(E);
+	print("Projection on piece T of J[",l,"] of dimension ",#ImE);
+	\\ Get matrix of Frob on subspace
+	K=matker(matconcat([ImE,M*ImE]));
+	K1=K[1..#ImE,];K2=K[1+#ImE..2*#ImE,];matFrob=-K1*K2^(-1);
+	print("The matrix of Frob_",p," is");
+  printp(centerlift(matfrobenius(matFrob)));
+  i=1;M=matFrob;
+  while(M!=1,M*=matFrob;i++);
+  print("It has order ",i);
+  if(i<a,warning("Therefore working in degree a=",a," is not optimal. Consider restarting the computation while forcing a=",i,"."));
+  matFrob = liftall(matFrob);
+	B = vector(#ImE,j,PicLC(J1,centerlift(ImE[,j]),B1));
+	[WB,cWB] = TorsSpaceFrobGen(J1,l,B,matFrob); \\ Generating set of T under Frob and coordinates of these generators on B
+  print("Time getting basis of T over F_",p,": ",timestr(~t0));
+  J1 = B = 0;
+	my(Z,JT,AF,F);
+  while(1,
+    print("\n--> Lifting ",#WB," points ",p,"-adically, target O(",p,"^",e,")");
+    if(#WB > Jgetg(J),
+      my(J=J,e1=e1,l=l); WB = parapply(W->PicLiftTors(J,W,e1,l),WB); \\ More efficient in parallel
+    ,
+      WB = apply(W->PicLiftTors(J,W,e1,l),WB); \\ Less efficient in parallel (TODO tune)
+    );
+    print("Time lifting: ",timestr(~t0));
+    print("\n--> All of T");
+    Z = TorsSpaceFrobEval(J,WB,cWB,l,matFrob);
+    print("Time span and eval: ",timestr(~t0));
+    print("\n--> Expansion and identification");
+    JT = JgetT(J);
+    AF = TorsSpaceGetPols(Z,l,matFrob,JgetFrobMat(J),JT,pe,p,e); \\ List of polynomials defining the representation
+    print("Time polynomials: ",timestr(~t0));
+    if(AF!=[],break);
+    e1=e;
+    e*=2;
+    pe = pe^2;
+    warning("Could not identify any squarefree polynomial. Increasing p-adic accuracy: ",O(p^e),".");
+    J = Jlift(J,e);
+  );
+  J = Z = WB = 0;
+  F = AF[1][3];
+  if(#variables(F)>1,error("F has more than one variable"));
+  [F,AF[1][1]];
+}
+
+

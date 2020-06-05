@@ -289,7 +289,7 @@ TorsBasis(J,l,Lp,chi)=
 	);
 }
 
-TorsBasis_Endo(J,l,Lp,EA,EB,P0)=
+TorsBasis_Endo(J,l,Lp,EAB,P0)=
 {
   /* Computes a basis B of J[l]
 		 matrix E of endo described by A,B
@@ -315,7 +315,7 @@ TorsBasis_Endo(J,l,Lp,EA,EB,P0)=
 	while(r<d,
 		r++;
 		print("Attempting to increase rank to ",r, " of ",d);
-		[W,TW] = RandTorsPtEndo(J,EA,EB,l,P0); \\ TODO pass Lp
+		[W,TW] = RandTorsPtEndo(J,EAB,l,P0); \\ TODO pass Lp
 		/* Tors_UpdateLinTests(J,BT,Tnew,l,LinTests,R,FRparams)=
 			BT contains d=#BT pts of J[l]
      	Tnew pt of J[l]

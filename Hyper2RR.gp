@@ -55,9 +55,9 @@ RREval(J,L)=
   liftall(Mod(Mod(W,p),T));
 }
 
-MakIn2(J,A,B)=
+MakIn2(J,AB)=
 { \\ [{A,y-B}-OO] in Makdisi form
-  my(x='x,y='y,W1,W2);
+  my(x='x,y='y,[A,B]=AB,W1,W2);
   \\ V2 = M2 = L(2D0) = L(6OO)
   W1=RREval(J,[A,x*A,x^2*A,y-B,x*(y-B)]); \\ {A,y-B}+2*OO
   W2=RREval(J,[1,x,x^2,x^3,y]); \\ 3*OO
@@ -138,20 +138,19 @@ RandPtFromC(J,l,P0)=
   [Q,M,W];
 }
 
-ApplyEndo(J,A,B,P,M)=
+ApplyEndo(J,AB,P,M)=
 { \\ Apply endo to M*[P-P0]
-  my(AP,BP,W);
-  AP = subst(subst(A,'u,P[1]),'v,P[2]);
-  BP = subst(subst(B,'u,P[1]),'v,P[2]);
-  W = MakIn2(J,AP,BP);
+  my(ABP,W);
+  ABP = subst(subst(AB,'u,P[1]),'v,P[2]);
+  W = MakIn2(J,ABP);
   PicMul(J,W,M,2);
 }
 
-RandTorsPtEndo(J,A,B,l,P0)=
+RandTorsPtEndo(J,AB,l,P0)=
 {
 	my(P,M,W,TW);
 	[P,M,W] = RandPtFromC(J,l,P0);
-	TW = ApplyEndo(J,A,B,P,M);
+	TW = ApplyEndo(J,AB,P,M);
 	[W,TW];
 }
 
