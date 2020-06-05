@@ -67,6 +67,7 @@ install("Jgetpe","G","Jgetpe","libpic.so");
 install("Jgetp","G","Jgetp","libpic.so");
 install("Jgete","lG","Jgete","libpic.so");
 install("JgetFrobMat","G","JgetFrobMat","libpic.so");
+install("JgetZ","G","JgetZ","libpic.so");
 install("Frob","GGGG","Frob","libpic.so");
 
 install("PicLift_worker","GUGGGGG",,"liblift.so");

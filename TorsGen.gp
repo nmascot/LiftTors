@@ -288,3 +288,62 @@ TorsBasis(J,l,Lp,chi)=
 		)
 	);
 }
+
+TorsBasis_Endo(J,l,Lp,EA,EB,P0)=
+{
+  /* Computes a basis B of J[l]
+		 matrix E of endo described by A,B
+     and matrix M of Frob w.r.t B
+		 returns the vector [B,M,E]
+  */
+	\\ TODO optimise : parallel, Frob, etc.
+	my(a,d,B,TB,LinTests,R,matFrob,matEndo,AddC,W0,z,FRparams,r,W,TW,res);
+  a = poldegree(JgetT(J)); \\ work over Fq=Fp[t]/T, q=p^a
+  d = poldegree(Lp); \\ dim T
+  B = vector(d); \\ list of l-tors pts, of the from M*[P-P0]
+	TB = vector(d); \\ their images by the endo
+  LinTests = vector(d,i,PicChord(J,PicRand(J),PicRand(J),1)); \\ list of pts to pair l-tors with
+  R = matrix(d,0); \\ matrix of pairings
+  matFrob = Mod(matrix(d,d),l);
+  matEndo = Mod(matrix(d,d),l);
+  AddC = AddChain(l,0);
+  W0 = JgetW0(J);
+  W0 = PicChord(J,W0,W0,1); \\ Non-trivial origin, needed for pairings
+  z = Fq_zeta_l(JgetT(J),Jgetp(J),l); \\ primitive l-th root of 1, to linearize parings
+  FRparams = [AddC,W0,z];
+  r = 0; \\ dim of l-tors obtained so far
+	while(r<d,
+		r++;
+		print("Attempting to increase rank to ",r, " of ",d);
+		[W,TW] = RandTorsPtEndo(J,EA,EB,l,P0); \\ TODO pass Lp
+		/* Tors_UpdateLinTests(J,BT,Tnew,l,LinTests,R,FRparams)=
+			BT contains d=#BT pts of J[l]
+     	Tnew pt of J[l]
+     	Assume that the matrix R = <BT[j]|LinTests[i]> has rank d. (H)
+     	If Tnew is indep of BT, return [1,[LinTests,R']]
+     	where R' of rank d+1
+     	(may require modifying LinTests).
+     	Else, return [0, coords of Tnew on BT].
+  	*/
+    res = Tors_UpdateLinTests(J,B[1..r-1],W,l,LinTests,R,FRparams);
+    if(res[1]==0, \\ Linear dependency
+			print("Unfortunately, the rank did not increase wth this point. Retrying.");
+			r--;
+		,
+			B[r] = W;
+			TB[r] = TW;
+			[LinTests,R] = res[2]
+		)
+	);
+	\\ So now we have a basis B and its image TB by endo
+	\\ and a nonsingular matrix R of pairings of B with Lintests
+	\\ Now we can compute the matrix of Frob and that of Endo
+	\\ Using: Tors_TestPt(J,T,l,LinTests,FRparams)
+	R1 = Mod(R,l)^(-1);
+	for(j=1,d,
+		matFrob[,j] = R1*Tors_TestPt(J,PicFrob(J,B[j]),l,LinTests,FRparams);
+		matEndo[,j] = R1*Tors_TestPt(J,TB[j],l,LinTests,FRparams)
+	);
+	[B,matFrob,matEndo];
+}
+
