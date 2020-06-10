@@ -42,7 +42,7 @@ GEN M2_worker(GEN vw, GEN Ml1, GEN TH, GEN Mpts, GEN T, GEN pe)
 	for(s=1;s<nZ;s++)
 	{
 		avs = avma;
-		Cs = GetFq0(T);
+		Cs = pol_0(varn(T));
 		for(h=1;h<nTH;h++)
 		{
 			M = ZM_mul(gel(TH,h),gel(Mpts,s));
