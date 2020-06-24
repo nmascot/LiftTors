@@ -12,7 +12,7 @@ ModJacInit(N,H,p,a,e,qprec,Lp)=
 	my(d,d1,Pts,nPts,PtTags,MPts);
 	my(E1o,E2o,E1,E2,C0o,C0,Emax);
 	my(M2,M2gens,v,w,M,sprec,M2qexps,B,d0,U0,V1,V2,V3,V2gens,V1qexps,V2qexps,U1,U2,KV,f2,W0);
-	my(IU,MU);
+	my(M4Q,IU,MU);
 	\\ Get H and H/+-1
   [Hlist,Hlist1] = GetHlist(N,H);
   if(Mod(6*N*#Hlist,p)==0,error("Bad p"));
