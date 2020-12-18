@@ -19,10 +19,11 @@ Structure of a Jacobian:
 13: EvalData [U1,U2,I,M]: pair of subspaces Ui of the form V2(-E) with E effective of degree d0-g, used for construction of eval map, then vecsmall I of row indices, and matrix M such that v in V should be taken to M*(v_I) for evaluation  
 14: If B=O_X(D0), vector Z of points at which the sections are evaluated; else []
 15: FrobCyc, permutation describing the action of Frob on Z
+16: AutsCyc, vector of permutations describing the action of Auts on Z
 
 Note: usually, B=O_X(D0), in which case W0=V1=L(D0).
 Note: if either of f, one of the RR spaces L(...), or Z are not available, then the p-adic accuracy cannot be increased.
-Note: if accuracy is increased, assume that in 13, the block froms by the I-rows of V2 is invertible, and that M is the inverse of that block.
+Note: if accuracy is increased, assume that in 13, the block formed by the I-rows of V2 is invertible, and that M is the inverse of that block.
 */
 
 GEN Jgetf(GEN J) {return gel(J,1);}
@@ -42,6 +43,7 @@ GEN JgetW0(GEN J) {return gel(J,12);}
 GEN JgetEvalData(GEN J) {return gel(J,13);}
 GEN JgetZ(GEN J) {return gel(J,14);}
 GEN JgetFrobCyc(GEN J) {return gel(J,15);}
+GEN JgetAutsCyc(GEN J) {return gel(J,16);}
 
 void JgetTpe(GEN J, GEN* T, GEN* pe, GEN* p, long* e)
 {
@@ -80,6 +82,7 @@ GEN PicRed(GEN J, ulong e)
 	gmael(Je,13,4) = FpXM_red(gmael(J,13,4),pe);
 	gel(Je,14) = FpXT_red(JgetZ(J),pe);
 	gel(Je,15) = gcopy(JgetFrobCyc(J));
+	gel(Je,16) = gcopy(JgetAutsCyc(J));
 	return gerepileupto(av,Je);
 }
 
@@ -299,6 +302,7 @@ ulong DivSub_dimval(GEN WA, GEN WB, long dim, GEN KV, GEN T, GEN p, long e, GEN 
 
 GEN PicNeg(GEN J, GEN W, long flag)
 { /* flag: 1: choose s randomly, 2: also return s */
+	/* TODO use auts when possible */
   pari_sp av = avma;
   GEN s,sV,WN,res;
   GEN V,KV,T,p,pe;
@@ -534,6 +538,28 @@ GEN PicFrobPoly(GEN J, GEN W, GEN F)
 		res = PicChord(J,res,PicMul(J,FW,n,2),0);
 	}
 	return gerepileupto(av,res);
+}
+
+GEN PicAut(GEN J, GEN W, ulong nAut)
+{ /* TODO allow multiples */
+  GEN W2,Cyc;
+  ulong i,j,nW,nZ;
+
+  Cyc = gel(JgetAutsCyc(J),nAut);
+  nW = lg(W);
+  nZ = lg(JgetZ(J));
+
+  W2 = cgetg(nW,t_MAT);
+  for(j=1;j<nW;j++)
+  {
+    gel(W2,j) = cgetg(nZ,t_COL);
+    for(i=1;i<nZ;i++)
+    {
+      gcoeff(W2,Cyc[i],j) = gcopy(gcoeff(W,i,j));
+    }
+  }
+
+  return W2;
 }
 
 ulong PicEq_val(GEN J, GEN WA, GEN WB)

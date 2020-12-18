@@ -6,7 +6,7 @@ HyperRR(n,g,u,v)=
 }
 
 Hyper2RR(f0,P1,P2)= /* y^2=f0(x). P1,P2 rat pts, not conjugate by hyper invol. */
-{
+{ /* TODO allow extra auts */
 	my([x1,y1]=P1,[x2,y2]=P2,f,h,g,d0,L,LL,L1,L2);
 	f = subst(f0,variable(f0),'x);
 	if(!PtIsOnHyperCurve(f,P1),error("The point ",P1," is not on this hyperelliptic curve."));
@@ -41,5 +41,5 @@ Hyper2RR(f0,P1,P2)= /* y^2=f0(x). P1,P2 rat pts, not conjugate by hyper invol. *
 		L1=HyperRR(3*g/2+2,g,('x-x1)*('x-x2),(y2-y1)/(x2-x1)*'x+(y1*x2-y2*x1)/(x2-x1));
 		L2=HyperRR(3*g/2+1,g,1,0)
 	);
-	[y^2-f,g,d0,L,LL,L1,L2];
+	[y^2-f,[],g,d0,L,LL,L1,L2]; \\ TODO auts
 }

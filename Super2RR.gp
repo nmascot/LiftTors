@@ -26,5 +26,5 @@ Super2RR(f0,m,P)= \\ y^m = f(x), requies d,m coprime and f sqfree
 	L2 = LSuper(d0+g+1,d,m);
 	E2 = subst(subst(L2,'x,P[1]),'y,P[2]);
 	L2 = L2*matker(Mat(E2));
-	[y^m-f,g,d0,L,LL,L1,L2];
+	[y^m-f,[],g,d0,L,LL,L1,L2]; \\ TODO auts
 }

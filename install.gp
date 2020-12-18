@@ -42,7 +42,7 @@ install("AddChain","GL","AddChain","libexp.so");
 install("PlaneZeta","GU","PlaneZeta","libzeta.so");
 install("SuperZeta","GUU","SuperZeta","libzeta.so");
 
-install("RRInit","GUUGGGUL","PicInit","librr.so");
+install("RRInit","GGUUGGGUL","PicInit","librr.so");
 install("RREval","GG","PicEval","librr.so");
 install("RREval_worker","GG",,"librr.so");
 install("Jlift","GU",,"librr.so");
@@ -55,6 +55,7 @@ install("PicNeg","GG","PicNeg","libpic.so");
 install("PicMul","GGGL","PicMul","libpic.so");
 install("PicFrob","GG","PicFrob","libpic.so");
 install("PicFrobPoly","GGG","PicFrobPoly","libpic.so");
+install("PicAut","GGU","PicAut","libpic.so");
 install("PicEq_val","uGGG",,"libpic.so");
 install("PicIsZero_val","uGG",,"libpic.so");
 install("PicChart","GGU","PicChart","libpic.so");

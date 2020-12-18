@@ -84,7 +84,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 	 and if chi is nonzero,
 	 we must have chi || (Lp mod l).*/
 {
-	my([f,g,d0,L,LL,L1,L2,Bad]=C,pe=p^e,d,J,J1,B,matFrob,WB,cWB,Z,AF,F,ZF,M,i,JT,e1=1,t0);
+	my([f,Auts,g,d0,L,LL,L1,L2,Bad]=C,pe=p^e,d,J,J1,B,matFrob,WB,cWB,Z,AF,F,ZF,M,i,JT,e1=1,t0);
 	t0 = [getabstime(),getwalltime()];
 	L = RR_rescale(L,p);
   LL = RR_rescale(LL,p);
@@ -101,7 +101,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 		a = if(force_a,force_a,mordroot(Lp,l))
 	);
 	print("Working with q=",p,"^",a);
-	J=PicInit(f,g,d0,[L,LL,L1,L2],Bad,p,a,e);
+	J=PicInit(f,Auts,g,d0,[L,LL,L1,L2],Bad,p,a,e);
 	J1 = PicRed(J,1); \\ Reduction mod p
 	[B,matFrob] = TorsBasis(J1,l,Lp,chi); \\ Basis of the mod p^1 space and matrix of Frob_p
 	print("The matrix of Frob_",p," is");

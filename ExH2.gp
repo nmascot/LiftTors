@@ -1,5 +1,6 @@
 read("install.gp");
 read("GalRep.gp");
+\\ TODO add and use Auts
 l=3;
 read("H2/vap.gp");
 p=11;
@@ -32,7 +33,7 @@ Li = [L1,L2];
 Bad2 = lcm(apply(S->lcm(apply(f->denominator(content(f)),S)),[L,L1,L2]));
 Bad *= Bad2;
 
-J=PicInit(f,g,d0,L,LL,Bad,p,a,e);
+J=PicInit(f,[],g,d0,L,LL,Bad,p,a,e);
 U=PicEvalInit(J,Li);
 J1 = PicRed(J,1); \\ Reduction mod p
 

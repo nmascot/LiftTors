@@ -368,19 +368,148 @@ GEN RREvalInit(GEN L, GEN vars, GEN Z, GEN V2, GEN T, GEN p, long e, GEN pe)
   return gerepilecopy(av,res);
 }
 
-GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
+ulong FindMod(GEN P, GEN Z, ulong n, GEN p, int check)
+{ /* Finds 1<=i<=n such that P = Z[i], else returns 0 */
+  pari_sp av = avma;
+  ulong i;
+  GEN Pp;
+  if(n==0) return 0; /* Empty list */
+  Pp = FpXV_red(P,p);
+  for(i=1;i<=n;i++)
+  {
+    if(gequal(Pp,FpXV_red(gel(Z,i),p)))
+    {
+      if(check && !gequal(P,gel(Z,i))) pari_err(e_MISC,"Points agree mod p but not mod pe");
+      avma = av;
+      return i;
+    }
+  }
+  avma = av;
+  return 0;
+}
+
+GEN ApplyAut(GEN aut, GEN P, GEN vars, GEN T, GEN pe, GEN p, long e)
+{ /* aut = [X,Y,Z] function of x,y. Return [X/Z,Y/Z]. */
+  pari_sp av = avma;
+  GEN a,b,c,Q;
+  a = FnEvalAt(gel(aut,1),P,vars,T,p,e,pe);
+  b = FnEvalAt(gel(aut,2),P,vars,T,p,e,pe);
+  c = FnEvalAt(gel(aut,3),P,vars,T,p,e,pe);
+  c = ZpXQ_inv(c,T,p,e);
+  Q = cgetg(3,t_VEC);
+  gel(Q,1) = FpXQ_mul(a,c,T,pe);
+  gel(Q,2) = FpXQ_mul(b,c,T,pe);
+  return gerepileupto(av,Q);
+}
+
+GEN ApplyFrob(GEN P, GEN FrobMat, GEN T, GEN pe)
 {
-	pari_sp avP,av = avma;
-  int newpt;
+  pari_sp av = avma;
+  GEN Q;
+  Q = cgetg(3,t_VEC);
+  gel(Q,1) = Frob(gel(P,1),FrobMat,T,pe);
+  gel(Q,2) = Frob(gel(P,2),FrobMat,T,pe);
+  return gerepileupto(av,Q);
+}
+
+GEN VecExtend(GEN V)
+{ /* Doubles length, leaves second half uninitialised */
+  ulong n = lg(V),i;
+  GEN V2;
+  V2 = cgetg(2*n,t_VEC);
+  for(i=1;i<n;i++) gel(V2,i) = gel(V,i);
+  return V2;
+}
+
+GEN VecSmallExtend(GEN V)
+{ /* Doubles length, leaves second half uninitialised */
+  ulong n = lg(V),i;
+  GEN V2;
+  V2 = cgetg(2*n,t_VECSMALL);
+  for(i=1;i<n;i++) V2[i] = V[i];
+  return V2;
+}
+
+GEN AutFrobClosure(GEN P, GEN Auts, GEN vars, GEN FrobMat, GEN T, GEN pe, GEN p, long e)
+{ /* Orbit of point P under Frob and Auts, and induced permutations */
+  pari_sp av = avma;
+  GEN OP,sFrob,sAuts,res;
+  ulong nAuts,nO,nmax;
+  ulong i,j,k,m,n;
+
+  OP = cgetg(2,t_VEC); /* Orbit of P, will grow as needed */
+  gel(OP,1) = P;
+  nO = 1; /* Size of orbit */
+  sFrob = cgetg(2,t_VECSMALL); /* Perm nduced by Frob, will grow as needed */
+  sFrob[1] = 0;
+  nAuts = lg(Auts);
+  sAuts = cgetg(nAuts,t_VEC); /* Perms induced by Auts, will grow as needed */
+  for(i=1;i<nAuts;i++)
+  {
+    gel(sAuts,i) = cgetg(2,t_VECSMALL);
+    gel(sAuts,i)[1] = 0;
+  }
+	/* A 0 in a permutation means we do not know yet the image by the permutation */
+  nmax = 2; /* Current size of vectors. If size nO of orbit reaches this, the vectors must grow! */
+
+  for(n=1;n<=nO;n++)
+  {
+    /* Do we know what happens to OP[n] for all auts? */
+    for(i=0;i<nAuts;i++) /* i=0: Frob. i>0: Auts[i] */
+    {
+      if(gel(i?gel(sAuts,i):sFrob,n)==0)
+      { /* We do not know, let's find out. */
+        m = n; /* Index of the point we are following */
+        P = gel(OP,m);
+        for(;;)
+        {
+					/* Apply aut to P */
+          if(i) P = ApplyAut(gel(Auts,i),P,vars,T,pe,p,e);
+          else P = ApplyFrob(P,FrobMat,T,pe);
+					/* Is the result a point we already know? */
+          k = FindMod(P,OP,nO,p,1);
+          if(k)
+          { /* We're back to a pt we know, stop search */
+            (i?gel(sAuts,i):sFrob)[m] = k;
+            break;
+          }
+          /* This is a new pt. Add it to orbit and create placeholders for its transfos */
+          nO++;
+          (i?gel(sAuts,i):sFrob)[m] = nO;
+          if(nO==nmax) /* Must extend all vectors */
+          {
+            nmax*=2;
+            OP = VecExtend(OP);
+            sFrob = VecSmallExtend(sFrob);
+            for(j=1;j<nAuts;j++) gel(sAuts,j) = VecSmallExtend(gel(sAuts,j));
+          }
+          gel(OP,nO)=P;
+          m = nO;
+          sFrob[nO]=0;
+          for(j=1;j<nAuts;j++) gel(sAuts,j)[nO]=0;
+        }
+      }
+    }
+  }
+  setlg(OP,nO+1);
+  setlg(sFrob,nO+1);
+  for(i=1;i<nAuts;i++) setlg(gel(sAuts,i),nO+1);
+  res = mkvecn(3,OP,sFrob,sAuts);
+  return gerepilecopy(av,res);
+}
+
+GEN RRInit(GEN f, GEN Auts, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
+{
+	pari_sp av = avma;
 	long t;
-  ulong nZ,n,cyc_top,i;
-  GEN vars,pe,T,FrobMat,Z,Zp,P,Pp,Q,FrobCyc,x,y,V1,V2,V3,W0,V,KV,U,J;
+  ulong nZ,nAuts,n,nOP,m,i;
+  GEN vars,pe,T,FrobMat,Z,P,FrobCyc,AutsCyc,OP,V1,V2,V3,W0,V,KV,U,J;
 	struct pari_mt pt;
 	GEN worker,done,E;
 	long workid,pending,k;
 
 	vars = variables_vecsmall(f);
-	nZ = 5*d0+1;
+	nZ = 5*d0+1; /* min required #pts */
 
 	t = fetch_var();
 	name_var(t,"t");
@@ -389,44 +518,42 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
   FrobMat = ZpXQ_FrobMat(T,p,e,pe);
 
 	if(DEBUGLEVEL) printf("PicInit: Finding points\n");
-  n = 0;
-  Z = cgetg(nZ+a,t_VEC);
-  Zp = cgetg(nZ+a,t_VEC);
-  /* TODO sort Zp -> quasilin complexity */
-  FrobCyc = cgetg(nZ+a,t_VECSMALL);
+  n = 0; /* current #pts */
+	Z = cgetg(1,t_VEC); /* list of pts */
+	/* Initialise empty cycles */
+  FrobCyc = cgetg(1,t_VECSMALL);
+	nAuts = lg(Auts);
+  AutsCyc = cgetg(nAuts,t_VEC);
+  for(i=1;i<nAuts;i++)
+    gel(AutsCyc,i) = cgetg(1,t_VECSMALL);
+	/* Loop until we have enough pts */
   while(n<nZ)
   {
-    avP = avma;
+    /* Get new point */
     P = CurveRandPt(f,T,p,e,bad);
-    /* Already have it ? */
-    Pp = FpXV_red(P,p);
-    newpt = 1;
-    for(i=1;i<=n;i++)
+    /* Is it new mod p ? */
+    if(FindMod(P,Z,n,p,0)) continue;
+    if(DEBUGLEVEL) printf("Got new pt\n");
+    /* Compute closure under Frob and Auts */
+    OP = AutFrobClosure(P,Auts,vars,FrobMat,T,pe,p,e);
+    nOP = lg(gel(OP,1))-1; /* # new pts */
+    if(DEBUGLEVEL) printf("Got closure of size %lu\n",nOP);
+    /* Add new pts */
+    Z = gconcat(Z,gel(OP,1));
+    /* Shift permutation describing Frob and Auts */
+    for(m=1;m<=nOP;m++)
     {
-      if(gequal(Pp,gel(Zp,i)))
-      {
-        newpt = 0;
-        avma = avP;
-        break;
-      }
+      gel(OP,2)[m] += n;
+      for(i=1;i<nAuts;i++)
+        gmael(OP,3,i)[m] += n;
     }
-    if(newpt == 0) continue;
-    Q = P;
-    cyc_top = n+1;
-    do
-    {
-			n++;
-			FrobCyc[n] = n+1;
-      gel(Z,n) = Q;
-      gel(Zp,n) = FpXV_red(Q,p);
-      x = Frob(gel(Q,1),FrobMat,T,pe);
-      y = Frob(gel(Q,2),FrobMat,T,pe);
-      Q = mkvec2(x,y);
-    } while(!gequal(Q,P));
-		FrobCyc[n] = cyc_top;
+    /* Add these permutaton data */
+    FrobCyc = gconcat(FrobCyc,gel(OP,2));
+    for(i=1;i<nAuts;i++)
+      gel(AutsCyc,i) = gconcat(gel(AutsCyc,1),gmael(OP,3,i));
+    /* Update # pts */
+    n += nOP;
   }
-  setlg(Z,n+1);
-  setlg(FrobCyc,n+1);
 
 	if(DEBUGLEVEL) printf("PicInit: Evaluating rational functions\n");
 	V1 = FnsEvalAt_Rescale(gel(L,1),Z,vars,T,p,e,pe);
@@ -448,7 +575,7 @@ GEN RRInit(GEN f, ulong g, ulong d0, GEN L, GEN bad, GEN p, ulong a, long e)
   mt_queue_end(&pt);
 	if(DEBUGLEVEL) printf("PicInit: Constructing evaluation maps\n");
 	U = RREvalInit(L,vars,Z,V2,T,p,e,pe);
-  J = mkvecn(lgJ,f,stoi(g),stoi(d0),L,T,p,stoi(e),pe,FrobMat,V,KV,W0,U,Z,FrobCyc);
+  J = mkvecn(lgJ,f,stoi(g),stoi(d0),L,T,p,stoi(e),pe,FrobMat,V,KV,W0,U,Z,FrobCyc,AutsCyc);
 	return gerepilecopy(av,J);
 }
 
@@ -569,6 +696,7 @@ GEN Jlift(GEN J, ulong e2)
   gel(J2,13) = U;
   gel(J2,14) = Z2;
   gel(J2,15) = JgetFrobCyc(J);
+  gel(J2,16) = JgetAutsCyc(J);
   return gerepilecopy(av,J2);
 }
 
