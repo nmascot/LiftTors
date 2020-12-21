@@ -170,3 +170,15 @@ ModJacInit(N,H,p,a,e,qprec,Lp)=
 	FrobMat = ZpXQ_FrobMat(T,p,e,pe);
 	[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[[U1],[U2],IU,MU],[],PtsFrob,[PermDiamp]];
 }
+
+PicTp(J,W)=
+{ /* Action of Tp on ModJac (p = the prime s.t. we work p-adically) */
+  my(a,W1,W2); /* TODO optimise */
+  a = poldegree(JgetT(J));
+  W1 = PicFrob(J,W);
+  W2 = PicMul(J,W,p,2);
+  for(i=1,a-1,W2=PicFrob(J,W2)); /* TODO implement FrobInv */
+  W2 = PicAut(J,W2,1);
+  PicAdd(J,W1,W2);
+}
+
