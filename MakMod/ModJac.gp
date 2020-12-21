@@ -158,5 +158,5 @@ ModJacInit(N,H,p,a,e,qprec,Lp)=
 	for(i=1,#f2,W0[i,] *= f2[i]);
 	W0 = liftall(W0);
 	FrobMat = ZpXQ_FrobMat(T,p,e,pe);
-	[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[[U1],[U2],IU,MU],[],PtsFrob];
+	[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[[U1],[U2],IU,MU],[],PtsFrob,[]]; \\ TODO diamonds?
 }
