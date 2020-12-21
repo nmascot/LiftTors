@@ -9,7 +9,7 @@ ModJacInit(N,H,p,a,e,qprec,Lp)=
 	my(Hlist,Hlist1,TH);
 	my(g,Cusps,nCusps,CuspsGal,CuspsGalDegs,CuspTags,CuspQexp,CuspsQexp_list);
 	my(E,P0,Q0,zN,zNpows,MFrobE,tMFrobE,T,pe=p^e,EN,todo,done,x,y,Ml1);
-	my(d,d1,Pts,nPts,PtTags,MPts);
+	my(d,d1,Pts,nPts,PtTags,MPts,PermDiamp);
 	my(E1o,E2o,E1,E2,C0o,C0,Emax);
 	my(M2,M2gens,v,w,M,sprec,M2qexps,B,d0,U0,V1,V2,V3,V2gens,V1qexps,V2qexps,U1,U2,KV,f2,W0);
 	my(M4Q,IU,MU);
@@ -29,9 +29,10 @@ ModJacInit(N,H,p,a,e,qprec,Lp)=
   CuspQexp=vector(nCusps); \\ Vec of bits: can we have rational q-exps at this cusp?
   for(i=1,#CuspsQexp_list,CuspQexp[CuspsQexp_list[i]]=1);
   \\ Get data about fibre
-  [Pts,PtTags] = ANH(N,Hlist); \\ List of vectors (c,d) mod N,H
+  [Pts,PtTags] = ANH(N,Hlist); \\ List of vectors (c,d) mod N,H. Represents fibre XH->X(1).
   nPts = #Pts;
   print(nPts," points on the fibre of X_H(",N,") -> X(1)");
+	PermDiamp = Vecsmall(apply(v->GetCoef(PtTags,p*v),Pts)); \\ Perm of fibre induced by <p>
 	MPts = apply(s->BotToSL2(s,N),Pts); \\ Matrices having these bottom rows
 	\\ P_g = P_g' on X_H(N) <=> g,g' have same bottom row mod H
 	\\ Get a curve E and a basis of E[N]
@@ -167,5 +168,5 @@ ModJacInit(N,H,p,a,e,qprec,Lp)=
 	for(i=1,#f2,W0[i,] *= f2[i]);
 	W0 = liftall(W0);
 	FrobMat = ZpXQ_FrobMat(T,p,e,pe);
-	[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[[U1],[U2],IU,MU],[],PtsFrob,[]]; \\ TODO diamonds?
+	[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[[U1],[U2],IU,MU],[],PtsFrob,[PermDiamp]];
 }
