@@ -95,11 +95,17 @@ ModJacInit(N,H,p,a,e,qprec,Lp)=
 	\\ Extract basis
 	M2 = Mod(vecextract(M2,B),pe);
 	M2gens = vecextract(M2gens,B);
-	\\ Prepare divisors to know min qprec
+	\\ TODO
+	/*\\ Prepare divisors to know min qprec
 	\\ Prune: M2 -> S2(3 cusps) = M2(-C0)
   d0 = 2*g+1;
   C0o = BalancedDiv(nCusps-3,CuspsGalDegs);
-  C0 = Divo2Div(C0o,CuspsGal,CuspTags,nCusps);
+  C0 = Divo2Div(C0o,CuspsGal,CuspTags,nCusps);*/
+	\\TODO
+	d0 = 2*g-2+nCusps;
+	V1 = M2;
+	C0 = vector(nCusps); \\ 0 divisor
+	\\ end TODO
 	\\ Evaluation
 	E1o = BalancedDiv(d0-g,CuspsGalDegs); \\ d0-g = g+1
   E2o = DivPerturb(E1o,CuspsGalDegs);
@@ -121,13 +127,15 @@ ModJacInit(N,H,p,a,e,qprec,Lp)=
 			,M2gens)
 		)
 	);
-	print("\nPruning: dim ",d-vecsum(C0),"; eval on ",5*d0+1," pts");
+	\\ TODO
+	V1qexps = M2qexps;
+	/*print("\nPruning: dim ",d-vecsum(C0),"; eval on ",5*d0+1," pts");
 	\\ Prune: M2 -> S2(3 cusps) = M2(-C0)
 	U0 = MRRsubspace(M2qexps,C0,0,T,pe,p,e);
 	V1qexps = parapply(page->page*U0,M2qexps);
 	\\ Prune more: no need to evaluate at that many points
 	[PtsFrob,Pts] = SubPerm(PtsFrob,5*d0+1);
-	V1 = vecextract(M2,Pts,vector(#M2,i,i))*U0;
+	V1 = vecextract(M2,Pts,vector(#M2,i,i))*U0;*/ \\ End TODO
 	d = 2*d0+1-g;
 	print("M4(GammaH)(-2C0) (dim ",d,")");
 	[V2,V2gens] = DivAdd1(V1,V1,2*d0+1-g,p,d0,1);
@@ -144,13 +152,14 @@ ModJacInit(N,H,p,a,e,qprec,Lp)=
 	[E1,E2]);
 	print("M6(GammaH)(-3C0) (dim ",3*d0+1-g,")");
 	V3 = DivAdd1(V2,V1,3*d0+1-g,p,ceil(3*d0/2),0);
-	print("Eqn mats");
 	V = apply(liftall,[V1,V2,V3]);
-	IU = matindexrank(Mod(liftint(V2),p))[1];
-	MU = vecextract(V2,IU,"..");
-	MU = ZpXQMinv(liftall(MU),T,pe,p,e);
-	M4Q = apply(i->V2qexps[i][1+2*C0[i]..#V2qexps[i]~,],CuspsQexp_list)~;
-	MU = liftall(matconcat(M4Q)*MU);
+	print("Eval data");
+	IU = matindexrank(Mod(liftint(V2),p))[1]; \\ rows of V2 forming invertible block
+	MU = vecextract(V2,IU,".."); \\ this invertible block
+	MU = ZpXQMinv(liftall(MU),T,pe,p,e); \\ inverse
+	M4Q = apply(i->V2qexps[i][1+2*C0[i]..#V2qexps[i]~,],CuspsQexp_list)~; \\ q-exps of forms in V2 used for eval
+	MU = liftall(matconcat(M4Q)*MU); \\ apply this change of basis
+	print("Eqn mats");
 	KV = parapply(x->mateqnpadic(x,T,pe,p,e),V);
 	\\ W0 = f*M2 c M4, f in M2
 	f2 = V1[,1];
