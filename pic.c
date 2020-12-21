@@ -543,17 +543,16 @@ GEN PicFrobPoly(GEN J, GEN W, GEN F)
 GEN PicAut(GEN J, GEN W, ulong nAut)
 { /* TODO allow multiples */
   GEN W2,Cyc;
-  ulong i,j,nW,nZ;
+  long i,j,nW,nZ;
 
   Cyc = gel(JgetAutsCyc(J),nAut);
-  nW = lg(W);
-  nZ = lg(JgetZ(J));
+	RgM_dimensions(W,&nZ,&nW);
 
-  W2 = cgetg(nW,t_MAT);
-  for(j=1;j<nW;j++)
+  W2 = cgetg(nW+1,t_MAT);
+  for(j=1;j<=nW;j++)
   {
-    gel(W2,j) = cgetg(nZ,t_COL);
-    for(i=1;i<nZ;i++)
+    gel(W2,j) = cgetg(nZ+1,t_COL);
+    for(i=1;i<=nZ;i++)
     {
       gcoeff(W2,Cyc[i],j) = gcopy(gcoeff(W,i,j));
     }
