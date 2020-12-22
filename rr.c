@@ -440,7 +440,7 @@ GEN AutFrobClosure(GEN P, GEN Auts, GEN vars, GEN FrobMat, GEN T, GEN pe, GEN p,
   OP = cgetg(2,t_VEC); /* Orbit of P, will grow as needed */
   gel(OP,1) = P;
   nO = 1; /* Size of orbit */
-  sFrob = cgetg(2,t_VECSMALL); /* Perm nduced by Frob, will grow as needed */
+  sFrob = cgetg(2,t_VECSMALL); /* Perm induced by Frob, will grow as needed */
   sFrob[1] = 0;
   nAuts = lg(Auts);
   sAuts = cgetg(nAuts,t_VEC); /* Perms induced by Auts, will grow as needed */
