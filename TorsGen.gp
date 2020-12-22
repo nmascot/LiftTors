@@ -79,7 +79,7 @@ RandTorsPt(J,l,a,Lp,Chi,Phi,seed)=
       Psi = centerlift(Psi)
     )
 	);
-  W = PicRand(J);
+  W = PicRand(J,0);
   if(Phi,W = PicFrobPoly(J,W,Psid)); \\ Project in the submodule we work in
   W = PicMul(J,W,M,0); \\ Project onto l-power part (main bottleneck!)
   if(Chi,W = PicFrobPoly(J,W,Psi)); \\ Project onto the Chi part
@@ -132,7 +132,7 @@ Tors_UpdateLinTests(J,BT,Tnew,l,LinTests,R,FRparams)=
   \\ Find a new one, and replace one the appropriate old one with it
   print("  Changing linear tests so that we don't get a false positive again.");
   until(Mod(Rnew*rel,l), \\ loop until new pairing breaks pseudo-relation
-		NewTest = PicChord(J,PicRand(J),PicRand(J),1);
+		NewTest = PicChord(J,PicRand(J,0),PicRand(J,0),1);
 		Rnew = parapply(T->Tors_TestPt(J,T,l,[NewTest],FRparams)[1],BT2);
 		if(default(debug),print("  New test gives parings ",Rnew));
 	);
@@ -173,12 +173,15 @@ GuessColFromCharpoly(A,chi)=
 }
 	
 
-TorsBasis(J,l,Lp,chi)=
+TorsBasis(J,l,Lp,chi,GetPairings)=
 {
 	/* Computes a basis B of the subspace T of J[l] on which Frob acts with charpoly chi
 		 Assumes Lp = charpoly(Frob|J), so chi | Lp
 		 If chi==0, then we take T=J[l]
 		 Also computes the matrix M of Frob w.r.t B, and returns the vector [B,M]
+		 If GetPairings=1, returns [B,M,WT,R], where WT is a list of dim T points on J,
+		 and R is the matrix of pairings <B_j,WT_i>,
+		 which is square and guaranted to be nonsingular.
 	*/
 	my(a,d,Phi,BW,Bo,BT,LinTests,R,matFrob,ddC,W0,z,FRparams,r,iPhi,nBatch,UsedPhi,Batch);
 	my(W,o,T,B,iFrob,res,rel,m,S,M);
@@ -192,7 +195,7 @@ TorsBasis(J,l,Lp,chi)=
 	BW = vector(d); \\ list of l-power tors pts
   Bo = vector(d); \\ list of exponents of orders
   BT = vector(d); \\ list of l-tors pts
-	LinTests = vector(d,i,PicChord(J,PicRand(J),PicRand(J),1)); \\ list of pts to pair l-tors with
+	LinTests = parvector(d,i,PicChord(J,PicRand(J,i+random()),PicRand(J,i+d+random()),1)); \\ list of pts to pair l-tors with
 	R = matrix(d,0); \\ matrix of pairings
 	matFrob = Mod(matrix(d,d),l);
 	AddC = AddChain(l,0);
@@ -258,7 +261,7 @@ TorsBasis(J,l,Lp,chi)=
 							rel = rel[,1];
 							for(i=1,d,matFrob[i,d] = -rel[i]/rel[d+1])
 						);	
-						return([BT,matFrob]);
+						return(if(GetPairings,[BT,matFrob,LinTests,R],[BT,matFrob]));
 					);
 					\\ Apply Frob and start over
 					print(" Applying Frobenius");

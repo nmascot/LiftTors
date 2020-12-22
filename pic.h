@@ -40,6 +40,6 @@ GEN PicFrobPoly(GEN J, GEN W, GEN F);
 GEN PicAut(GEN J, GEN W, ulong n);
 ulong PicEq_val(GEN J, GEN WA, GEN WB);
 ulong PicIsZero_val(GEN J, GEN W);
-GEN PicRand0(GEN J);
+GEN PicRand0(GEN J, GEN randseed);
 
 GEN PicChart(GEN J, GEN W, ulong P0, GEN P1);

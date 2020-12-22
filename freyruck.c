@@ -320,7 +320,7 @@ GEN PicTorsRels(GEN J, GEN Wtors, GEN l, ulong excess)
 	ntors = lg(Wtors)-1;
 	ntest = ntors+excess;
 	Wtest = cgetg(ntest+1,t_VEC);
-	for(i=1;i<=ntest;i++) gel(Wtest,i) = PicChord(J,PicRand0(J),PicRand0(J),1); /* TODO sufficient? */
+	for(i=1;i<=ntest;i++) gel(Wtest,i) = PicChord(J,PicRand0(J,NULL),PicRand0(J,NULL),1); /* TODO sufficient? */
 	R = cgetg(ntors+1,t_MAT);
 	pending = 0;
 	worker = strtofunction("PicFreyRuckMulti");

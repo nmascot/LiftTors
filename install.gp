@@ -59,7 +59,7 @@ install("PicAut","GGU","PicAut","libpic.so");
 install("PicEq_val","uGGG",,"libpic.so");
 install("PicIsZero_val","uGG",,"libpic.so");
 install("PicChart","GGU","PicChart","libpic.so");
-install("PicRand0","G","PicRand","libpic.so");
+install("PicRand0","GG","PicRand","libpic.so");
 
 install("JgetW0","G","JgetW0","libpic.so");
 install("Jgetg","lG","Jgetg","libpic.so");

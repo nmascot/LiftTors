@@ -668,7 +668,7 @@ GEN rand_subset(ulong n, ulong r)
 	return S;
 }
 
-GEN PicRand0(GEN J)
+GEN PicRand0(GEN J, GEN randseed)
 {
 	pari_sp av = avma;
 	ulong d0,nZ,nV;
@@ -676,6 +676,9 @@ GEN PicRand0(GEN J)
 	long e;
 	GEN T,p,pe,V;
 	GEN S,col,K;
+
+	if(randseed && !gequal0(randseed))
+		setrand(randseed);
 
 	d0 = Jgetd0(J);
 	JgetTpe(J,&T,&pe,&p,&e);
