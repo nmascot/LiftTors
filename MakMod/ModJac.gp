@@ -4,15 +4,15 @@ read("GammaH.gp");
 read("Perms.gp");
 read("Div.gp");
 
-ModJacInit(N,H,p,a,e,qprec,Lp)=
+ModJacInit(N,H,p,a,e,qprec,Lp,UseTp)=
 { \\ J_H(N) over Zq/p^e, q=p^a
 	my(Hlist,Hlist1,TH);
-	my(g,Cusps,nCusps,CuspsGal,CuspsGalDegs,CuspTags,CuspQexp,CuspsQexp_list);
+	my(g,Cusps,nCusps,CuspsGal,CuspsGalDegs,CuspTags,CuspQexp,CuspsQexp_list,CuspsGalDiamp,CuspsGalDiampDegs);
 	my(E,P0,Q0,zN,zNpows,MFrobE,tMFrobE,T,pe=p^e,EN,todo,done,x,y,Ml1);
-	my(d,d1,Pts,nPts,PtTags,MPts,PermDiamp);
+	my(d,d1,Pts,nPts,PtTags,MPts,PtsFrob,PtsDiamp,Perms);
 	my(E1o,E2o,E1,E2,C0o,C0,Emax);
 	my(M2,M2gens,v,w,M,sprec,M2qexps,B,d0,U0,V1,V2,V3,V2gens,V1qexps,V2qexps,U1,U2,KV,f2,W0);
-	my(M4Q,IU,MU);
+	my(M4Q,IU,MU,Auts);
 	\\ Get H and H/+-1
   [Hlist,Hlist1] = GetHlist(N,H);
   if(Mod(6*N*#Hlist,p)==0,error("Bad p"));
@@ -22,17 +22,24 @@ ModJacInit(N,H,p,a,e,qprec,Lp)=
   print("Genus ",g);
 	\\ Get data about cusps
 	[Cusps,CuspsGal,CuspsQexp_list,CuspsMats,CuspsWidths,CuspTags] = GammaHCusps(N,Hlist);
-  nCusps = #Cusps;
+	nCusps = #Cusps;
   print(nCusps," cusps");
   CuspsGalDegs = apply(o->#o,CuspsGal);
   print("Degrees of Galois orbits of cusps: ",CuspsGalDegs);
+  if(UseTp,
+		CuspsGalDiamp = GammaHCusps_GalDiam_orbits(p,Cusps,CuspsGal,CuspTags);
+		CuspsGalDiampDegs = apply(o->#o,CuspsGalDiamp);
+  	print("Degrees of Galois,<p> orbits of cusps: ",CuspsGalDiampDegs)
+	);
   CuspQexp=vector(nCusps); \\ Vec of bits: can we have rational q-exps at this cusp?
   for(i=1,#CuspsQexp_list,CuspQexp[CuspsQexp_list[i]]=1);
   \\ Get data about fibre
   [Pts,PtTags] = ANH(N,Hlist); \\ List of vectors (c,d) mod N,H. Represents fibre XH->X(1).
   nPts = #Pts;
   print(nPts," points on the fibre of X_H(",N,") -> X(1)");
-	PermDiamp = Vecsmall(apply(v->GetCoef(PtTags,p*v),Pts)); \\ Perm of fibre induced by <p>
+	if(UseTp,
+		PtsDiamp = Vecsmall(apply(v->GetCoef(PtTags,p*v),Pts)) \\ Perm of fibre induced by <p>
+	);
 	MPts = apply(s->BotToSL2(s,N),Pts); \\ Matrices having these bottom rows
 	\\ P_g = P_g' on X_H(N) <=> g,g' have same bottom row mod H
 	\\ Get a curve E and a basis of E[N]
@@ -97,18 +104,20 @@ ModJacInit(N,H,p,a,e,qprec,Lp)=
 	M2 = Mod(vecextract(M2,B),pe);
 	M2gens = vecextract(M2gens,B);
 	\\ TODO
-	/*\\ Prepare divisors to know min qprec
+	\\ Prepare divisors to know min qprec
 	\\ Prune: M2 -> S2(3 cusps) = M2(-C0)
-  d0 = 2*g+1;
-  C0o = BalancedDiv(nCusps-3,CuspsGalDegs);
-  C0 = Divo2Div(C0o,CuspsGal,CuspTags,nCusps);*/
-	\\TODO
-	d0 = 2*g-2+nCusps;
-	V1 = M2;
-	C0 = vector(nCusps); \\ 0 divisor
-	\\ end TODO
+	\\ TODO sort
+	if(UseTp,
+  	C0o = BalancedDivInf(nCusps-3,CuspsGalDiampDegs);
+  	C0 = Divo2Div(C0o,CuspsGalDiamp,CuspTags,nCusps);
+		print("Wanted deg C0=",nCusps-3,", got ",vecsum(C0))
+	,
+		C0o = BalancedDiv(nCusps-3,CuspsGalDegs);
+    C0 = Divo2Div(C0o,CuspsGal,CuspTags,nCusps)
+	);
+	d0 = 2*g-2+nCusps-vecsum(C0);
 	\\ Evaluation
-	E1o = BalancedDiv(d0-g,CuspsGalDegs); \\ d0-g = g+1
+	E1o = BalancedDiv(d0-g,CuspsGalDegs);
   E2o = DivPerturb(E1o,CuspsGalDegs);
   E1 = Divo2Div(E1o,CuspsGal,CuspTags,nCusps);
   E2 = Divo2Div(E2o,CuspsGal,CuspTags,nCusps);
@@ -128,15 +137,20 @@ ModJacInit(N,H,p,a,e,qprec,Lp)=
 			,M2gens)
 		)
 	);
-	\\ TODO
-	V1qexps = M2qexps;
-	/*print("\nPruning: dim ",d-vecsum(C0),"; eval on ",5*d0+1," pts");
-	\\ Prune: M2 -> S2(3 cusps) = M2(-C0)
+	print("\nPruning: dim ",d-vecsum(C0),"; eval on >=",5*d0+1," pts");
+	\\ Prune: M2 -> S2(>=3 cusps) = M2(-C0)
 	U0 = MRRsubspace(M2qexps,C0,0,T,pe,p,e);
 	V1qexps = parapply(page->page*U0,M2qexps);
 	\\ Prune more: no need to evaluate at that many points
-	[PtsFrob,Pts] = SubPerm(PtsFrob,5*d0+1);
-	V1 = vecextract(M2,Pts,vector(#M2,i,i))*U0;*/ \\ End TODO
+	if(UseTp,
+		[Pts,Perms] = SubPerm_multi([PtsFrob,PtsDiamp],5*d0+1);
+		[PtsFrob,PtsDiamp] = Perms;
+	,
+		[Pts,Perms] = SubPerm_multi([PtsFrob],5*d0+1);
+    [PtsFrob] = Perms
+	);
+	print("Wanted nZ=",5*d0+1,", got ",#Pts);
+	V1 = vecextract(M2,Pts,vector(#M2,i,i))*U0;
 	d = 2*d0+1-g;
 	print("M4(GammaH)(-2C0) (dim ",d,")");
 	[V2,V2gens] = DivAdd1(V1,V1,2*d0+1-g,p,d0,1);
@@ -168,12 +182,16 @@ ModJacInit(N,H,p,a,e,qprec,Lp)=
 	for(i=1,#f2,W0[i,] *= f2[i]);
 	W0 = liftall(W0);
 	FrobMat = ZpXQ_FrobMat(T,p,e,pe);
-	[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[[U1],[U2],IU,MU],[],PtsFrob,[PermDiamp]];
+	Auts=if(UseTp,[PtsDiamp],[]);
+	[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[[U1],[U2],IU,MU],[],PtsFrob,Auts];
 }
 
 PicTp(J,W)=
 { /* Action of Tp on ModJac (p = the prime s.t. we work p-adically) */
   my(a,W1,W2); /* TODO optimise */
+	if(JgeAutsCyc(J)==[],
+		error("This Jacobian does not contain the extra data required to compute the action of Tp. Pass UseTp=1 to ModJacInit().")
+	);
   a = poldegree(JgetT(J));
   W1 = PicFrob(J,W);
   W2 = PicMul(J,W,p,2);

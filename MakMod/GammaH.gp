@@ -98,6 +98,28 @@ GammaHCusps(N,Hlist)= \\ Reps (c,d) of all cusps of GammaH, plus data to find re
 	[Vec(Cusps),vecsort(Vec(CuspsGal),x->#x,4),Vec(Qqexp),Vec(Mats),Vec(Widths),tag];
 }
 
+GammaHCusps_GalDiam_orbits(y,Cusps,CuspsGal,tags)=
+{ \\ Orbits of cusps under GalQ and <y>
+	Diam = vector(#CuspsGal); \\ Perm induced by <y> on CuspsGal
+	for(i=1,#CuspsGal,
+		c = CuspsGal[i][1]; \\ take a cusps in Gal orbit
+		c = Cusps[GetCoef(tags,y*c)]; \\ apply <y> to it
+		for(j=1,#CuspsGal, \\ Find its orbit
+			C=CuspsGal[j];
+			for(k=1,#C,
+				if(C[k]==c,
+					Diam[i]=j;
+					next(3)
+				)
+			)
+		)
+	);
+	\\ Decomp into cycles, and merge corresponding Gal orbits
+	print(Diam);
+	print(CycleDecomp(Diam));
+	apply(x->concat(apply(y->CuspsGal[y],Vec(x))),CycleDecomp(Diam));
+}
+
 GammaHmodN(N,Hlist)= \\ reps of Gamma_H(N) / Gamma(N) in SL2(Z)
 {
 	my(nH=#Hlist,G=vector(nH*N),i=1,Mh);

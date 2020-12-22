@@ -31,54 +31,11 @@ PermRecomp(s)=
 	Vecsmall(P);
 }
 
-SubPerm(s,M)=
-{ \\ Perm [s[i]] acting on 1..N, M<=N -> [t[i]], T
-	\\ T subset (possibly reordered) of 1..N stable under s, #T>=M but close, t perm induced on T
-	my(N,c,nc,L,l,r,t,T,d,m=0);
-	N = #s;
-	c = CycleDecomp(s); \\ Cycle decomp
-	L = apply(x->#x,c); \\ Length of cycles
-	r = vecsort(L,,5); \\ Permutation sorting L
-	nc = #c; \\ # of cycles
-	c = List(vector(nc,i,c[r[i]])); \\ Sort c and L
-	L = List(vector(nc,i,L[r[i]])); \\ so that L decreasing
-	T = List();
-	t = List();
-	while(m<M, \\ m=#T
-		for(i=1,nc, \\ Look for the largest cycle we can throw in
-			l = L[i];
-			if(l+m<=M, \\ Does this cycle fit?
-				d = c[i];
-				listpop(c,i);
-				listpop(L,i);
-				nc--;
-				for(j=1,l-1,
-					listput(T,d[j]);
-					listput(t,m+j+1);
-				);
-				listput(T,d[l]);
-				listput(t,m+1);
-				m+=l;
-				next(2);
-			)
-		);
-		\\ No cycle fits, so we have to exceed M
-		d = c[nc];
-    for(j=1,l-1,
-      listput(T,d[j]);
-      listput(t,m+j+1);
-    );
-    listput(T,d[l]);
-    listput(t,m+1);
-    m+=l;
-	);
-	[Vecsmall(t),Vecsmall(T)];
-}
-
 SubPerm_multi(S,M)=
-{ \\ Perms S=[s[i]] acting on 1..N, M<=N -> [t[i]], T
-  \\ T subset (possibly reordered) of 1..N stable under S, #T>=M but close, t perm induced on T
-	my(N,Orbs,seen,iseen,P,Orb,SOrb,nOrb,n,m,find,Sub,SubS,l);
+{ /* Perms S=[s[i]] acting on 1..N, M<=N -> [T,ST]
+   T subset (possibly reordered) of 1..N stable under S and with #T>=M but close, 
+	ST perms induced by S on T */
+	my(nS=#S,N,Orbs,seen,iseen,P,Orb,SOrb,nOrb,n,m,find,Sub,SubS,l);
 	N = #S[1];
 	seen = vector(N);
 	iseen = 0;
@@ -93,7 +50,7 @@ SubPerm_multi(S,M)=
 		nOrb=1;
 		n=1;
 		while(n<=nOrb, \\ Loop over orbit
-			for(i=1,#S, \\ for each perm
+			for(i=1,nS, \\ for each perm
 				if(SOrb[i][n]==0, \\ do we know what happens to this point by this perm?
 					m=n; \\ No. Then let us see.
 					P=Orb[m]; \\ This point
@@ -127,12 +84,12 @@ SubPerm_multi(S,M)=
 	\\ Now select orbits to form subset of size >=M
 	m=0;
 	Sub=[];
-	SubS=vector(#S,i,[]);
+	SubS=vector(nS,i,[]);
 	for(n=1,#Orbs,
 		l=#Orbs[n][1]; \\ Size of orbit
 		if(m+l<=M, \\ does it fit?
 			Sub=concat(Sub,Orbs[n][1]);
-			for(i=1,#S,
+			for(i=1,nS,
 				SubS[i] = concat(SubS[i],apply(x->x+m,Orbs[n][2][i]))
 			);
 			Orbs[n]=0; \\ Mark as used
@@ -146,7 +103,7 @@ SubPerm_multi(S,M)=
 		if(Orbs[n]==0,next);
 		l=#Orbs[n][1]; \\ Size of orbit
     Sub=concat(Sub,Orbs[n][1]);
-    for(i=1,#S,
+    for(i=1,nS,
     	SubS[i] = concat(SubS[i],apply(x->x+m,Orbs[n][2][i]))
     );
     Orbs[n]=0; \\ Mark as used

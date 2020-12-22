@@ -19,7 +19,7 @@ DivAdd1(A,B,dimres,p,excess,flag)=
 }
 
 BalancedDiv(d,degs)=
-{ /* Let degs = [a1,..,an]. Find balanced b1,..,bn such that sum ai*bi = d. */
+{ /* Let degs = [a1,..,an]. Find balanced b1,..,bn such that sum ai*bi = d. Loops forever if no solution! */
   my(n=#degs,s=vecsum(degs),D,q);
   q = d\s;
   d -= q*s;
@@ -32,6 +32,21 @@ BalancedDiv(d,degs)=
     	)
 		)
 	);
+  D;
+}
+
+BalancedDivInf(d,degs)= \\ TODO sort, or improve
+{ /* Let degs = [a1,..,an]. Find balanced b1,..,bn such that sum ai*bi <= d, not too far. */
+  my(n=#degs,s=vecsum(degs),D,q);
+  q = d\s;
+  d -= q*s;
+  D = vector(n,i,q);
+  for(i=1,n,
+    if(d>=degs[i],
+      d -= degs[i];
+      D[i] +=1
+    )
+  );
   D;
 }
 
