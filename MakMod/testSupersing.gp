@@ -6,7 +6,7 @@ read("install.gp");
 S = mfinit([5,6],0); \\ Level 7, weight 8
 f = mfeigenbasis(S)[1]; \\ Has a companion mod 13
 print(Ser(mfcoefs(f,5),'q)); \\ Display q-exp
-X = mfgalrep(f,13,[],300,50,3);
+X = mfgalrep(f,13,[],300,50,3,1);
 \\ Compute Gal rep attached to f mod 13
 \\ []: no need to specify which prime above 13 is considered
 \\ 300: work p-adically, where p<=300 is chosen by the algorithm

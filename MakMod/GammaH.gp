@@ -115,8 +115,6 @@ GammaHCusps_GalDiam_orbits(y,Cusps,CuspsGal,tags)=
 		)
 	);
 	\\ Decomp into cycles, and merge corresponding Gal orbits
-	print(Diam);
-	print(CycleDecomp(Diam));
 	apply(x->concat(apply(y->CuspsGal[y],Vec(x))),CycleDecomp(Diam));
 }
 

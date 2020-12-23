@@ -38,14 +38,13 @@ LMod(N,H,p)=
 }
 
 LMod_multi(N,H,plist)=
-{ /* Local factor Lp of the modular curve X_H(N) */
-  my(x='x,y='y,t='t,np=#plist,L,sort,sort1,P,L1,G,GChi,chi,S,d,o,Z,z,Tp,ep,p);
-	L = vector(np,i,1);
+{ /* Local factor Lp of the modular curve X_H(N) and matrix of Tp */
+  my(x='x,y='y,t='t,np=#plist,L,sort,sort1,P,L1,G,GChi,chi,S,d,o,Z,z,ep,p,Tp,MZ,X);
+	L = vector(np,i,[1,[]]);
 	sort = vecsort(plist,,5);
 	sort1 = vector(np);
 	for(i=1,np,sort1[sort[i]]=i);
 	P = vector(np,i,plist[sort[i]]);
-	\\ TODO sort by decr p
   G = znstar(N,1); \\ (Z/NZ)*
   GChi = apply(c->znchar([G,c])[2],chargalois(G)); \\ Galois orbits of chars, old and new
   if(H==0,
@@ -72,12 +71,19 @@ LMod_multi(N,H,plist)=
     if(default(debug),print("Char ",chi," , order ",o," , dim ",d));
     Z = polcyclo(o,t);
     z = Mod(t,Z);
+		MZ = matcompanion(Z);
 		parfor(j=1,np,
 			p = P[j];
-			polresultant(Z,
-				liftpol(polresultant(charpoly(mfheckemat(S,p),y),x^2-y*x+p*chareval(G,chi,p,[z,o]),y)),t),
-			L1,
-			L[j] *= L1
+			Tp = mfheckemat(S,p);
+			L1 = polresultant(Z,
+				liftpol(polresultant(charpoly(Tp,y),x^2-y*x+p*chareval(G,chi,p,[z,o]),y)),t);
+			Tp = matconcat(subst(liftpol(Tp),t,MZ));
+			Tp = matfrobenius(Tp);
+			[L1,Tp];
+			,
+			X,
+			L[j][1] *= X[1];
+			L[j][2] = concat(L[j][2],[X[2]]);
 		);
   );
   vector(np,i,L[sort1[i]]);

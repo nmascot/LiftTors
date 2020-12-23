@@ -160,15 +160,14 @@ ModJacInit(N,H,p,a,e,qprec,Lp,UseTp)=
 			sum(k=0,n-1,page[k+1,V2gens[j][1]]*page[n-k,V2gens[j][2]])
 		)
 	,V1qexps);
+	print("M6(GammaH)(-3C0) (dim ",3*d0+1-g,")");
+  V3 = DivAdd1(V2,V1,3*d0+1-g,p,ceil(3*d0/2),0);
+  V = apply(liftall,[V1,V2,V3]);
 	print("Eval data");
 	export(MRRsubspace);
 	[U1,U2] = parapply(Ei->
 		liftall(V2*MRRsubspace(V2qexps,Ei,2*C0,T,pe,p,e)),
 	[E1,E2]);
-	print("M6(GammaH)(-3C0) (dim ",3*d0+1-g,")");
-	V3 = DivAdd1(V2,V1,3*d0+1-g,p,ceil(3*d0/2),0);
-	V = apply(liftall,[V1,V2,V3]);
-	print("Eval data");
 	IU = matindexrank(Mod(liftint(V2),p))[1]; \\ rows of V2 forming invertible block
 	MU = vecextract(V2,IU,".."); \\ this invertible block
 	MU = ZpXQMinv(liftall(MU),T,pe,p,e); \\ inverse
@@ -189,14 +188,14 @@ ModJacInit(N,H,p,a,e,qprec,Lp,UseTp)=
 PicTp(J,W)=
 { /* Action of Tp on ModJac (p = the prime s.t. we work p-adically) */
   my(a,W1,W2); /* TODO optimise */
-	if(JgeAutsCyc(J)==[],
+	if(JgetAutsCyc(J)==[],
 		error("This Jacobian does not contain the extra data required to compute the action of Tp. Pass UseTp=1 to ModJacInit().")
 	);
   a = poldegree(JgetT(J));
   W1 = PicFrob(J,W);
-  W2 = PicMul(J,W,p,2);
+  W2 = PicMul(J,W,Jgetp(J),2);
   for(i=1,a-1,W2=PicFrob(J,W2)); /* TODO implement FrobInv */
   W2 = PicAut(J,W2,1);
   PicAdd(J,W1,W2);
 }
-
+export(PicTp);

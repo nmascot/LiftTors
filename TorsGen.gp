@@ -39,10 +39,9 @@ export(TorsOrd);
 RandTorsPt(J,l,a,Lp,Chi,Phi,seed)=
 {
 	/* Get a random nonzero pt in J[l] using randseed = seed
-		 Actually returns [W,o,T,b,B(x)],
+		 Actually returns [W,o,T,B(x)],
 		 where W has order l^o,
 		 T = l^(o-1)*W has order l,
-		 b >= deg Ann T,
 		 B(x) monic multiple of Ann T.
 		 Parameters:
 		 Lp = charpoly(Frob|J)
@@ -50,7 +49,46 @@ RandTorsPt(J,l,a,Lp,Chi,Phi,seed)=
 		 Chi: Actually get a point in J[l,Chi]
 		 Phi: work in the submodule J[Phi] of J=J[x^a-1]
 	*/
-  my(N,v,M,Psid,Psi,ChiPhi,fa,W,o,T);
+	my(A,B,W,N,v,M,chi,Psi,d,T,o);
+	setrand(seed);
+	A = B = 'x^a-1;
+	W = PicRand(J,0);
+	if(Phi,
+		W = PicFrobPoly(J,W,B/Phi); \\ Project onto J[Phi]
+		A = B = Phi
+	);
+  \\ Order of the submodule we work in
+  N = polresultant(Lp,B);
+  v = valuation(N,l); \\ N = l^v*M
+  if(v==0,error("No l-torsion!"));
+  M = N/l^v; \\ Cofactor, used to project on l-power part
+	W = PicMul(J,W,M,0); \\ Project onto l-power part (main bottleneck!)
+	B = gcd(Mod(Lp,l),Mod(B,l)); \\ now [l^...]W in J[l,B]
+	if(Chi,
+		chi = gcd(Chi,B);
+		Psi = B/chi;
+		d = poldegree(Psi);
+		if(d,
+			Psi /= polcoef(Psi,d);
+			if(v>1,
+				\\ lift cofactor l-adically
+      	Psi = Mod(polhensellift(A,[liftint(A/Psi),liftint(Psi)],l,v)[2],l^v);
+			);
+			Psi = centerlift(Psi);
+			W = PicFrobPoly(J,W,Psi) \\ Project onto J[chi]
+		);
+		B = chi;
+		d = poldegree(B);
+		B = centerlift(B/polcoef(B,d))
+	);
+	[T,o] = TorsOrd(J,W,l);
+  if(o,return([W,o,T,B]));
+  if(default(debug),print("RandTorsPt got zero (Phi=",Phi,")"));
+  return(0);
+}
+  /* Old code
+		 TODO make sure new version has all these ideas
+		 my(N,v,M,PsiPhi,Psi,ChiPhi,fa,W,o,T);
   setrand(seed);
 	\\ Order of the submodule we work in
   N = polresultant(Lp,if(Phi,Phi,'x^a-1));
@@ -65,13 +103,14 @@ RandTorsPt(J,l,a,Lp,Chi,Phi,seed)=
   );
   ChiPhi /= polcoef(ChiPhi,poldegree(ChiPhi));
 	\\ Cofactor, used to project on the Phi part
-	if(Phi, Psid = ('x^a-1)/Phi);
+	if(Phi, PsiPhi = ('x^a-1)/Phi);
 	\\ Exact cofactor, used to project on Chi part
 	if(Chi, 
   	Psi = Mod(Lp,l)/Chi;
-    if(Phi, Psi = Psi / gcd(Psi,Mod(Psid,l)));
+    if(Phi, Psi = Psi / gcd(Psi,Mod(PsiPhi,l)));
 		if(v>1,
     	fa = apply(liftint,[Lp/Psi,Psi]);
+			breakpoint();
       fa = polhensellift(Lp,fa,l,v); \\ lift cofactor l-adically
       Psi = fa[2];
       Psi = centerlift(Mod(Psi,l^v)) \\ center mod l^v
@@ -87,7 +126,7 @@ RandTorsPt(J,l,a,Lp,Chi,Phi,seed)=
   if(o,return([W,o,T,ChiPhi]));
   if(default(debug),print("RandTorsPt got zero (Phi=",Phi,")"));
 	return(0);
-}
+}*/
 
 Tors_TestPt(J,T,l,LinTests,FRparams)=
 {
@@ -179,9 +218,10 @@ TorsBasis(J,l,Lp,chi,GetPairings)=
 		 Assumes Lp = charpoly(Frob|J), so chi | Lp
 		 If chi==0, then we take T=J[l]
 		 Also computes the matrix M of Frob w.r.t B, and returns the vector [B,M]
-		 If GetPairings=1, returns [B,M,WT,R], where WT is a list of dim T points on J,
-		 and R is the matrix of pairings <B_j,WT_i>,
-		 which is square and guaranted to be nonsingular.
+		 If GetPairings=1, returns [B,M,WT,R,X], where WT is a list of dim T points on J,
+		 R is the matrix of pairings <B_j,WT_i>,
+		 which is square and guaranted to be nonsingular,
+		 and X are params needed for Frey-Rück.
 	*/
 	my(a,d,Phi,BW,Bo,BT,LinTests,R,matFrob,ddC,W0,z,FRparams,r,iPhi,nBatch,UsedPhi,Batch);
 	my(W,o,T,B,iFrob,res,rel,m,S,M);
@@ -245,7 +285,9 @@ TorsBasis(J,l,Lp,chi,GetPairings)=
 						print(" B = ",centerlift(B), " says we'll get linear dependency next time");
 						for(i=1,poldegree(B)-1,matFrob[r+1-i,r-i]=Mod(1,l));
             for(i=0,poldegree(B)-1,matFrob[r+1-poldegree(B)+i,r]=Mod(-polcoef(B,i),l));
-						if(r==d,return([BT,matFrob]));
+						if(r==d,
+							return(if(GetPairings,[BT,matFrob,LinTests,R,FRparams],[BT,matFrob]))
+						);
 						break(2);
 					);
 					if(r==d,
@@ -261,7 +303,7 @@ TorsBasis(J,l,Lp,chi,GetPairings)=
 							rel = rel[,1];
 							for(i=1,d,matFrob[i,d] = -rel[i]/rel[d+1])
 						);	
-						return(if(GetPairings,[BT,matFrob,LinTests,R],[BT,matFrob]));
+						return(if(GetPairings,[BT,matFrob,LinTests,R,FRparams],[BT,matFrob]));
 					);
 					\\ Apply Frob and start over
 					print(" Applying Frobenius");
