@@ -184,18 +184,3 @@ ModJacInit(N,H,p,a,e,qprec,Lp,UseTp)=
 	Auts=if(UseTp,[PtsDiamp],[]);
 	[0,g,d0,[],T,p,e,pe,FrobMat,V,KV,W0,[[U1],[U2],IU,MU],[],PtsFrob,Auts];
 }
-
-PicTp(J,W)=
-{ /* Action of Tp on ModJac (p = the prime s.t. we work p-adically) */
-  my(a,W1,W2); /* TODO optimise */
-	if(JgetAutsCyc(J)==[],
-		error("This Jacobian does not contain the extra data required to compute the action of Tp. Pass UseTp=1 to ModJacInit().")
-	);
-  a = poldegree(JgetT(J));
-  W1 = PicFrob(J,W);
-  W2 = PicMul(J,W,Jgetp(J),2);
-  for(i=1,a-1,W2=PicFrob(J,W2)); /* TODO implement FrobInv */
-  W2 = PicAut(J,W2,1);
-  PicAdd(J,W1,W2);
-}
-export(PicTp);

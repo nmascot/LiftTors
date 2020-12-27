@@ -519,6 +519,28 @@ GEN PicFrob(GEN J, GEN W)
 	return W2;
 }
 
+GEN PicFrobInv(GEN J, GEN W)
+{
+  GEN W2,T,pe,FrobMatInv,FrobCyc;
+  ulong nW,nZ,i,j;
+
+	T = JgetT(J);
+  pe = Jgetpe(J);
+	FrobMatInv = FpM_powu(JgetFrobMat(J),degpol(T)-1,pe); /* TODO carry in J? */
+  FrobCyc = JgetFrobCyc(J);
+  nW = lg(W);
+  nZ = lg(FrobCyc);
+
+  W2 = cgetg(nW,t_MAT);
+  for(j=1;j<nW;j++)
+  {
+    gel(W2,j) = cgetg(nZ,t_COL);
+    for(i=1;i<nZ;i++)
+      gcoeff(W2,i,j) = Frob(gcoeff(W,FrobCyc[i],j),FrobMatInv,T,pe);
+  }
+  return W2;
+}
+
 GEN PicFrobPoly(GEN J, GEN W, GEN F)
 {
 	pari_sp av = avma;

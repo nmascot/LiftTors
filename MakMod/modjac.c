@@ -1,5 +1,6 @@
 #include "zn.h"
 #include "../linalg.h"
+#include "../pic.h"
 
 GEN l2(GEN EN, GEN P, GEN Q, GEN T, GEN pe, GEN p, long e)
 {
@@ -70,7 +71,6 @@ GEN M2mat(GEN M2gens, GEN Ml1, GEN TH, GEN MPts, GEN T, GEN pe)
 	worker = snm_closure(is_entry("M2_worker"),vFixedParams);
 	pending = 0;
 	M2 = cgetg(d,t_MAT);
-	//for(j=1;j<d;j++) gel(M2,j) = M2_worker(gel(M2gens,j),Ml1,TH,MPts,T,pe);
 	mt_queue_start_lim(&pt,worker,d-1);
 	for(j=1;j<d||pending;j++)
 	{
@@ -80,4 +80,18 @@ GEN M2mat(GEN M2gens, GEN Ml1, GEN TH, GEN MPts, GEN T, GEN pe)
 	}
 	mt_queue_end(&pt);
 	return gerepilecopy(av,M2);
+}
+
+GEN PicTp(GEN J, GEN W)
+{ /* Assumes <p> is given by the 1st aut of J */
+	/* TODO check aut 1 is present? */
+	/* Use Eichler-Shimura Tp = Frob + p <p> Frob^-1 */
+	pari_sp av = avma;
+	GEN W1,W2,W3;
+	W1 = PicFrob(J,W);
+	W2 = PicAut(J,W,1);
+	W2 = PicFrobInv(J,W2);
+	W2 = PicMul(J,W2,Jgetp(J),2);
+	W3 = PicAdd(J,W1,W2);
+	return gerepileupto(av,W3);
 }

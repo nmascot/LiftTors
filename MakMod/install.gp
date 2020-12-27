@@ -9,6 +9,7 @@ install("GetCoef","GG","GetCoef","libzn.so");
 install("l1","GGGGGGL","l1","libmodjac.so");
 install("M2_worker","GGGGGG",,"libmodjac.so");
 install("M2mat","GGGGGG",,"libmodjac.so");
+install("PicTp","GG",,"libmodjac.so");
 install("elladd_padic","GGGGGGL","elladd_padic","libelladd_padic.so");
 install("TrE2qexp","GUGGUGUGGGL","TrE2qexp","libqexp.so");
 
