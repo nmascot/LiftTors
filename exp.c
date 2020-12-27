@@ -95,6 +95,7 @@ GEN AddChain(GEN n, long signmatters)
 		gel(A,j) = mkvec2(negi(m),mkvecsmall2(j-1,0));
 	}
 	setlg(A,j+1);
+	setsigne(n,sn);
 	avma = av;
 	return gerepilecopy(av,A);
 }

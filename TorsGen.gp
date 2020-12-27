@@ -1,23 +1,3 @@
-/*PicLC(J,C,W)=
-\\ Computes sum_i C[i]*W[i] in J
-\\ C vector of integer coefficients, W vector of points on J
-{
-  my(I1,C1,W1,S,n);
-  \\ Remove zeros
-  I1=select(c->c,C,1);
-  C1=vecextract(C,I1);
-  W1=vecextract(W,I1);
-  n=#I1;
-  if(n==0,return(JgetW0(J)));
-  S = PicMul(J,W1[1],(-1)^(n-1)*C1[1],2);
-  for(i=2,n,
-    \\ Now S = (-1)^(n-i+1) sum_{j<i} C1[j]*W1[j]   
-    S = PicChord(J,S,PicMul(J,W1[i],(-1)^(n-i+1)*C1[i],2),0);
-    \\ Now S = (-1)^(n-i) sum_{j<=i} C1[j]*W1[j]  
-  );
-  S;
-}*/
-
 TorsOrd(J,W,l)=
 \\ Given that W is an l-power torsion point of J,
 \\ finds v s.t. the order of W is l^v,
