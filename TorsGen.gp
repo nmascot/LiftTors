@@ -1,4 +1,4 @@
-PicLC(J,C,W)=
+/*PicLC(J,C,W)=
 \\ Computes sum_i C[i]*W[i] in J
 \\ C vector of integer coefficients, W vector of points on J
 {
@@ -16,7 +16,7 @@ PicLC(J,C,W)=
     \\ Now S = (-1)^(n-i) sum_{j<=i} C1[j]*W1[j]  
   );
   S;
-}
+}*/
 
 TorsOrd(J,W,l)=
 \\ Given that W is an l-power torsion point of J,
@@ -144,7 +144,7 @@ Tors_UpdateLinTests(J,BT,Tnew,l,LinTests,R,FRparams)=
 		 If Tnew is indep of BT, return [1,[LinTests,R']]
 		 where R' of rank d+1
 		 (may require modifying LinTests).
-		 Else, return [0, coords of Tnew on BT].
+		 Else, return [0, relation between BT and Tnew].
 	*/
 	my(d,Rnew,BT2,R2,KR2,rel,NewTest,i);
 	d = #BT;

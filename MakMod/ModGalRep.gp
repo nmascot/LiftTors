@@ -1,5 +1,6 @@
 read("GalRep.gp");
 read("ModJac.gp");
+read("TpEigen.gp");
 
 mfyt(f,l,coeffs)=
 {
@@ -99,30 +100,7 @@ mfgalrep(f,l,coeffs,pmax,D,qprec,UseTp,threadlim)=
 	J1 = PicRed(J,1);
 	if(UseTp,
 		print("Using Tp");
-		chiOO = chi;
-		while(1,
-			gcdchi = gcd(Lp/chiOO,chi);
-			if(poldegree(gcdchi)==0,break);
-			chiOO *= gcdchi
-		);
-		B = TorsBasis(J1,l,Lp,chiOO,1);
-		[B,matFrob,LinTests,R,FRparams] = B;
-		print("The matrix of Frob_",p," is");
-  	printp(centerlift(matfrobenius(Mod(matFrob,l))));
-  	i=1;M=Mod(matFrob,l);
-  	while(M!=1,M*=matFrob;i++);
-  	print("It has order ",i);
-		TpB = parapply(W->PicTp(J1,W),B);
-		TpR = matconcat(apply(W->Tors_TestPt(J1,W,l,LinTests,FRparams),TpB)); \\ TODO parapply?
-		Tp = Mod(R,l)^(-1)*TpR; \\ Matrix of Tp on B
-		print("The matrix of Tp is");
-    printp(centerlift(Tp));
-		KTp = matker(Tp-ap);
-		print("Eigenspace of dim ",#KTp);
-		if(#KTp!=2,error("Bug: Tp does not cut the rep"));
-		B = vector(2,j,PicLC(J1,centerlift(KTp[,j]),B)); \\ Eigenspace
-		matFrob = matker(matconcat([KTp,matFrob*KTp]));
-		matFrob = -matFrob[3..4,]^(-1)*matFrob[1..2,];
+		[B,matFrob] = TpEigen(J1,l,Lp,chi,ap);
 	,
 		[B,matFrob] = TorsBasis(J1,l,Lp,chi,0); \\ Basis of the mod p^1 space and matrix of Frob_p
 	);

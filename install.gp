@@ -53,6 +53,7 @@ install("PicAdd","GGG","PicAdd","libpic.so");
 install("PicSub","GGG","PicSub","libpic.so");
 install("PicNeg","GG","PicNeg","libpic.so");
 install("PicMul","GGGL","PicMul","libpic.so");
+install("PicLC","GGG",,"libpic.so");
 install("PicFrob","GG","PicFrob","libpic.so");
 install("PicFrobPoly","GGG","PicFrobPoly","libpic.so");
 install("PicAut","GGU","PicAut","libpic.so");

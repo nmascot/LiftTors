@@ -454,6 +454,46 @@ GEN PicMul(GEN J, GEN W, GEN n, long flag)
 	return gerepileupto(av,gel(Wlist,nC-1));
 }
 
+GEN PicLC(GEN J, GEN C, GEN W)
+{
+/* Computes sum_i C[i]*W[i] in J
+   C vector of t_INT coefficients, W vector of points on J */
+	pari_sp av = avma;
+	ulong i,j,n;
+	GEN C1,W1,c,S;
+	/* select nonzero coeffs */
+	n = lg(C);
+	C1 = cgetg(n,t_VEC);
+	W1 = cgetg(n,t_VEC);
+	j=1;
+	for(i=1;i<n;i++)
+	{
+		if(!gequal0(gel(C,i)))
+		{
+			gel(C1,j) = gel(C,i);
+			gel(W1,j) = gel(W,i);
+			j++;
+		}
+	}
+	if(j==1)
+	{ /* 0 linear combination */
+		avma = av;
+		return JgetW0(J);
+	}
+	c = gel(C1,1);
+	if(j%2) c = negi(c);
+	S = PicMul(J,gel(W1,1),c,2);
+	for(i=2;i<j;i++)
+	{
+		/* Now S = (-1)^(j-i) sum_{k<i} C1[k]*W1[k] */
+		c = gel(C1,i);
+		if((j-i)%2) c = negi(c);
+		S = PicChord(J,S,PicMul(J,gel(W1,i),c,2),0);
+		/* Now S = (-1)^(j-i-1) sum_{k<=i} C1[i]*W1[k] */
+	}
+	return gerepileupto(av,S);
+}
+
 GEN ZpXQ_FrobMat(GEN T, GEN p, long e, GEN pe)
 { /* Matrix of Frob on basis 1,t,t²,... of Z[t]/(T,p^e) */
 	pari_sp av = avma;
