@@ -103,10 +103,8 @@ ModJacInit(N,H,p,a,e,qprec,Lp,UseTp)=
 	\\ Extract basis
 	M2 = Mod(vecextract(M2,B),pe);
 	M2gens = vecextract(M2gens,B);
-	\\ TODO
 	\\ Prepare divisors to know min qprec
-	\\ Prune: M2 -> S2(3 cusps) = M2(-C0)
-	\\ TODO sort
+	\\ Prune: M2 -> S2(>=3 cusps) = M2(-C0)
 	if(UseTp,
   	C0o = BalancedDivInf(nCusps-3,CuspsGalDiampDegs);
   	C0 = Divo2Div(C0o,CuspsGalDiamp,CuspTags,nCusps);

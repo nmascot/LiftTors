@@ -28,7 +28,6 @@ mfyt(f,l,coeffs)=
 mfbestp(f,l,coeffs,pmax,UseTp)=
 {
 	my(N,k,eps,P,Phi,yl,tl,o,ZNX,pmin=5,lN,H,listp,qf,best,p,ap,epsp,chi,Lp,Psi,a1,a2,a,mulTp);
-	UseTp=1; \\ TODO
 	[N,k,eps,P,Phi]=mfparams(f);
 	[yl,tl] = mfyt(f,l,coeffs);
 	[ZNX,eps] = znchar(f);

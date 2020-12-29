@@ -6,9 +6,13 @@ TpClosure(J,l,BW,matTp,W,LinTests,R,FRparams)=
 	while(1,
 		X = Tors_UpdateLinTests(J,BW,W,l,LinTests,R,FRparams);
 		if(X[1]==0, \\ W in span BW
-			matTp_new = matrix(dim+extradim,dim+extradim,i,j,if(i<=dim && j<=dim,matTp[i,j]));
-			for(i=1,extradim-1,matTp_new[dim+i+1,dim+i] = 1);
-			for(i=1,dim+extradim,matTp_new[i,dim+extradim]=-X[2][i]/X[2][dim+extradim+1]);
+			if(extradim,
+				matTp_new = matrix(dim+extradim,dim+extradim,i,j,if(i<=dim && j<=dim,matTp[i,j]));
+				for(i=1,extradim-1,matTp_new[dim+i+1,dim+i] = 1);
+				for(i=1,dim+extradim,matTp_new[i,dim+extradim]=-X[2][i]/X[2][dim+extradim+1])
+			,
+				matTp_new = matTp
+			);
 			return([extradim,BW,matTp_new,LinTests,R]);
 		);
 		[LinTests,R]=X[2];
@@ -67,8 +71,11 @@ TpEigen(J,l,Lp,chi,ap)=
     print(" Batch of points generated.");
 		\\ Loop through batch
     for(iBatch=1,nBatch,
-      if(Batch[iBatch]==0,next); \\ Did we unluckily genrate the 0 pt?
-      [W,o,T,B] = Batch[iBatch];
+			W = Batch[iBatch];
+      if(W==0,
+				print(" Point ",iBatch, " of batch is 0.");
+				next); \\ Did we unluckily generate the 0 pt?
+      [W,o,T,B] = W;
       print(" Picking point ",iBatch," from batch; its order is ",l,"^",o);
       iFrob = 0;
 			while(1,
