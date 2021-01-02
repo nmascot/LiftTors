@@ -66,47 +66,6 @@ RandTorsPt(J,l,a,Lp,Chi,Phi,seed)=
   if(default(debug),print("RandTorsPt got zero (Phi=",Phi,")"));
   return(0);
 }
-  /* Old code
-		 TODO make sure new version has all these ideas
-		 my(N,v,M,PsiPhi,Psi,ChiPhi,fa,W,o,T);
-  setrand(seed);
-	\\ Order of the submodule we work in
-  N = polresultant(Lp,if(Phi,Phi,'x^a-1));
-  v = valuation(N,l); \\ N = l^v*M
-  if(v==0,error("No l-torsion!"));
-  M = N/l^v; \\ Cofactor, used to project on l-power part
-	\\ Get bound B(x)
-	ChiPhi = if(Phi||Chi, 
-      gcd(Mod(Chi,l),Mod(Phi,l))
-  ,
-    gcd(Mod(Lp,l),Mod('x^a-1,l))
-  );
-  ChiPhi /= polcoef(ChiPhi,poldegree(ChiPhi));
-	\\ Cofactor, used to project on the Phi part
-	if(Phi, PsiPhi = ('x^a-1)/Phi);
-	\\ Exact cofactor, used to project on Chi part
-	if(Chi, 
-  	Psi = Mod(Lp,l)/Chi;
-    if(Phi, Psi = Psi / gcd(Psi,Mod(PsiPhi,l)));
-		if(v>1,
-    	fa = apply(liftint,[Lp/Psi,Psi]);
-			breakpoint();
-      fa = polhensellift(Lp,fa,l,v); \\ lift cofactor l-adically
-      Psi = fa[2];
-      Psi = centerlift(Mod(Psi,l^v)) \\ center mod l^v
-    ,
-      Psi = centerlift(Psi)
-    )
-	);
-  W = PicRand(J,0);
-  if(Phi,W = PicFrobPoly(J,W,Psid)); \\ Project in the submodule we work in
-  W = PicMul(J,W,M,0); \\ Project onto l-power part (main bottleneck!)
-  if(Chi,W = PicFrobPoly(J,W,Psi)); \\ Project onto the Chi part
-	[T,o] = TorsOrd(J,W,l);
-  if(o,return([W,o,T,ChiPhi]));
-  if(default(debug),print("RandTorsPt got zero (Phi=",Phi,")"));
-	return(0);
-}*/
 
 Tors_TestPt(J,T,l,LinTests,FRparams)=
 {

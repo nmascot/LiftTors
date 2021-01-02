@@ -264,10 +264,6 @@ GEN RRspaceEval(GEN L, GEN vars, GEN pts, GEN T, GEN p, long e, GEN pe)
 	ulong i;
 
 	W = RRspace_FieldOfDef(L,vars);
-	/* TODO delete
-	 * L1 = gel(L,1);
-	coeff1 = pollead(numerator(pollead(numerator(L1),vars[1])),vars[2]);
-	ty = typ(coeff1);*/
 	if(W) /* Algebraic case */
 	{
 		/* Get field of definition */
