@@ -37,6 +37,7 @@ GEN PicSub(GEN J, GEN WA, GEN WB);
 GEN PicMul(GEN J, GEN W, GEN n, long flag);
 GEN PicFrob(GEN J, GEN W);
 GEN PicFrobInv(GEN J, GEN W);
+GEN PicFrobPow(GEN J, GEN W, long n);
 GEN PicFrobPoly(GEN J, GEN W, GEN F);
 GEN PicAut(GEN J, GEN W, ulong n);
 ulong PicEq_val(GEN J, GEN WA, GEN WB);

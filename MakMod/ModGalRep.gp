@@ -65,14 +65,14 @@ mfbestp(f,l,coeffs,pmax,UseTp)=
 		a = lcm(a1,a2);
 		print("p="p,": Needs deg ",a," (",a1," to split rep, ",a2," for roots of 1), log #J=",round(log(polresultant(Lp[i][1],'x^a-1))),")");
 		a = lcm(a1,a2);
-		if(best==[] || a < best[2], best=[p,a,Lp[i][1],ap,chi]);
+		if(best==[] || a < best[2], best=[p,a,Lp[i][1],ap,epsp,chi]);
 	);
 	[H,best];
 }
 
 mfgalrep(f,l,coeffs,pmax,D,qprec,UseTp,threadlim)=
 {
-	my(N,k,H,best,p,a,Lp,ap,chi,chiOO,gcdchi,e,pe,J,CuspsQ,J1,B,matFrob,LinTests,R,TpB,TpR,Tp,KTp,i,M,WB,cWB,TI,Z,AF,def_threads,t0);
+	my(N,k,H,best,p,a,Lp,ap,epsp,chi,chiOO,gcdchi,e,pe,J,CuspsQ,J1,B,matFrob,matAuts,i,M,WB,cWB,TI,Z,AF,def_threads,t0);
 	if(threadlim,
 		def_threads = default(nbthreads);
 		if(#threadlim!=4,error("Give 4 thread limits: Jacobian initialisation, generation of points mod p, p-adic lift, and evaluation"))
@@ -81,7 +81,7 @@ mfgalrep(f,l,coeffs,pmax,D,qprec,UseTp,threadlim)=
 	t0 = [getabstime(),getwalltime()];
 	print("--> Finding prime p with small residual degree");
 	[H,best] = mfbestp(f,l,coeffs,pmax,UseTp);
-	[p,a,Lp,ap,chi] = best;
+	[p,a,Lp,ap,epsp,chi] = best;
 	gcdchi = gcd(Lp,chi);
 	\\ If cst, can disable Tp
 	print("Chosen p=",p,", residual degree ",a);
@@ -103,12 +103,13 @@ mfgalrep(f,l,coeffs,pmax,D,qprec,UseTp,threadlim)=
 	,
 		[B,matFrob] = TorsBasis(J1,l,Lp,chi,0); \\ Basis of the mod p^1 space and matrix of Frob_p
 	);
+	matAuts = [epsp*matid(2)];
 	print("The matrix of Frob_",p," is");
 	printp(centerlift(matfrobenius(Mod(matFrob,l))));
 	i=1;M=Mod(matFrob,l);
 	while(M!=1,M*=matFrob;i++);
 	print("It has order ",i);
-	[WB,cWB] = TorsSpaceFrobGen(J1,l,B,matFrob);
+	[WB,cWB] = TorsSpaceFrobGen(J1,l,B,matFrob); \\ TODO use auts
 	print("Time getting basis over F_",p,": ",timestr(~t0));
 	J1 = B = 0;
 	if(threadlim,default(nbthreads,threadlim[3]));
@@ -118,7 +119,7 @@ mfgalrep(f,l,coeffs,pmax,D,qprec,UseTp,threadlim)=
 	print("Size W: ",mysize(sizebyte(WB[1])));
 	if(threadlim,default(nbthreads,threadlim[4]));
 	print("\n--> All of representation space");
-	Z = TorsSpaceFrobEval(J,WB,cWB,l,matFrob);
+	Z = TorsSpaceFrobEval(J,WB,cWB,l,matFrob,matAuts);
 	WB = 0;
 	print("Time span and eval: ",timestr(~t0));
 	print("\n--> Expansion and identification");

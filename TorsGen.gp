@@ -149,20 +149,32 @@ GuessColFromCharpoly(A,chi)=
 	for(i=1,n-1,A[i,n] = M[i,1]/M[n,1]);
 	A;
 }
-	
 
+TorsGetMatAuts(J,B,l,LinTests,R,FRparams)=
+{
+	my(nAuts,matAuts,Ri);
+	nAuts = #JgetAutsCyc(J);
+	matAuts = vector(nAuts);
+	for(i=1,nAuts,
+		Ri = apply(W->Tors_TestPt(J,PicAut(J,W,i),l,LinTests,FRparams),B);
+		matAuts[i] = Mod(R,l)^(-1)*matconcat(Ri);
+	);
+	matAuts;
+}
+	
 TorsBasis(J,l,Lp,chi,GetPairings)=
 {
 	/* Computes a basis B of the subspace T of J[l] on which Frob acts with charpoly chi
 		 Assumes Lp = charpoly(Frob|J), so chi | Lp
 		 If chi==0, then we take T=J[l]
-		 Also computes the matrix M of Frob w.r.t B, and returns the vector [B,M]
+		 Also computes the matrix M of Frob and list of matrices MA of Auts w.r.t B, and returns the vector [B,M,MA]
 		 If GetPairings=1, returns [B,M,WT,R,X], where WT is a list of dim T points on J,
 		 R is the matrix of pairings <B_j,WT_i>,
 		 which is square and guaranted to be nonsingular,
 		 and X are params needed for Frey-Rück.
 	*/
-	my(a,d,Phi,BW,Bo,BT,LinTests,R,matFrob,ddC,W0,z,FRparams,r,iPhi,nBatch,UsedPhi,Batch);
+	/* TODO use Auts */
+	my(a,d,Phi,BW,Bo,BT,LinTests,R,matFrob,matAuts,AddC,W0,z,FRparams,r,iPhi,nBatch,UsedPhi,Batch);
 	my(W,o,T,B,iFrob,res,rel,m,S,M);
 	a = poldegree(JgetT(J)); \\ work over Fq=Fp[t]/T, q=p^a
   d = if(chi,poldegree(chi),poldegree(Lp)); \\ dim T
@@ -225,7 +237,8 @@ TorsBasis(J,l,Lp,chi,GetPairings)=
 						for(i=1,poldegree(B)-1,matFrob[r+1-i,r-i]=Mod(1,l));
             for(i=0,poldegree(B)-1,matFrob[r+1-poldegree(B)+i,r]=Mod(-polcoef(B,i),l));
 						if(r==d,
-							return(if(GetPairings,[BT,matFrob,LinTests,R,FRparams],[BT,matFrob]))
+							matAuts = TorsGetMatAuts(J,BT,l,LinTests,R,FRparams);
+							return(if(GetPairings,[BT,matFrob,matAuts,LinTests,R,FRparams],[BT,matFrob,matAuts]))
 						);
 						break(2);
 					);
@@ -241,8 +254,9 @@ TorsBasis(J,l,Lp,chi,GetPairings)=
 							if(#rel!=1,error("Bug in TorsGen, please report"));
 							rel = rel[,1];
 							for(i=1,d,matFrob[i,d] = -rel[i]/rel[d+1])
-						);	
-						return(if(GetPairings,[BT,matFrob,LinTests,R,FRparams],[BT,matFrob]));
+						);
+						matAuts = TorsGetMatAuts(J,BT,l,LinTests,R,FRparams);
+						return(if(GetPairings,[BT,matFrob,matAuts,LinTests,R,FRparams],[BT,matFrob,matAuts]));
 					);
 					\\ Apply Frob and start over
 					print(" Applying Frobenius");

@@ -84,7 +84,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 	 and if chi is nonzero,
 	 we must have chi || (Lp mod l).*/
 {
-	my([f,Auts,g,d0,L,LL,L1,L2,Bad]=C,pe=p^e,d,J,J1,B,matFrob,WB,cWB,Z,AF,F,ZF,M,i,JT,e1=1,t0);
+	my([f,Auts,g,d0,L,LL,L1,L2,Bad]=C,pe=p^e,d,J,J1,B,matFrob,matAuts,WB,cWB,Z,AF,F,ZF,M,i,JT,e1=1,t0);
 	t0 = [getabstime(),getwalltime()];
 	L = RR_rescale(L,p);
   LL = RR_rescale(LL,p);
@@ -103,14 +103,18 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 	print("Working with q=",p,"^",a);
 	J=PicInit(f,Auts,g,d0,[L,LL,L1,L2],Bad,p,a,e);
 	J1 = PicRed(J,1); \\ Reduction mod p
-	[B,matFrob] = TorsBasis(J1,l,Lp,chi); \\ Basis of the mod p^1 space and matrix of Frob_p
+	[B,matFrob,matAuts] = TorsBasis(J1,l,Lp,chi); \\ Basis of the mod p^1 space and matrix of Frob_p
 	print("The matrix of Frob_",p," is");
 	printp(centerlift(matfrobenius(Mod(matFrob,l))));
 	i=1;M=Mod(matFrob,l);
 	while(M!=1,M*=matFrob;i++);
 	print("It has order ",i);
 	if(i<a,warning("Therefore working in degree a=",a," is not optimal. Consider restarting the computation while forcing a=",i,"."));
-	[WB,cWB] = TorsSpaceFrobGen(J1,l,B,matFrob); \\ Generating set of T under Frob and coordinates of these generators on B
+	for(i=1,#matAuts,
+		print("The matrix of Aut #",i," (possibly on a different basis) is");
+  	printp(centerlift(matfrobenius(Mod(matAuts[i],l))));
+	);
+	[WB,cWB] = TorsSpaceFrobGen(J1,l,B,matFrob); \\ Generating set of T under Frob and coordinates of these generators on B TODO use Auts
 	print("Time getting basis of T over F_",p,": ",timestr(~t0));
 	J1 = B = 0;
 	while(1,
@@ -122,7 +126,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 		);
 		print("Time lifting: ",timestr(~t0));
 		print("\n--> All of T");
-		Z = TorsSpaceFrobEval(J,WB,cWB,l,matFrob);
+		Z = TorsSpaceFrobEval(J,WB,cWB,l,matFrob,matAuts);
 		print("Time span and eval: ",timestr(~t0));
 		print("\n--> Expansion and identification");
 		JT = JgetT(J);

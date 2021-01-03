@@ -83,7 +83,7 @@ install("Fq_zeta_l","GGG","Fq_zeta_l","libfreyruck.so");
 install("Fq_mu_l_log","GGGGG","Fq_mu_l_log","libfreyruck.so");
 
 install("TorsSpaceFrob_worker","GGGGG",,"libtorsspace.so");
-install("TorsSpaceFrobEval","GGGUG",,"libtorsspace.so");
+install("TorsSpaceFrobEval","GGGUGG",,"libtorsspace.so");
 install("OnePol","GGGGUGGG",,"libtorsspace.so");
 install("AllPols","GUGGGGGL",,"libtorsspace.so");
 install("c2i","uGU",,"libtorsspace.so");
