@@ -1,8 +1,6 @@
 #include "linalg.h"
 #include "pic.h"
 
-GEN RREval(GEN J, GEN W);
-
 ulong c2i(GEN c, ulong l)
 {
 	ulong i,d,n;
@@ -101,15 +99,20 @@ GEN TorsSpaceFrobEval(GEN J, GEN gens, GEN cgens, ulong l, GEN matFrob, GEN matA
 
 	d = lg(matFrob)-1; // Dim of rep
 	ld = upowuu(l,d);
-	VmodF = cgetg(ld+1,t_VEC);
-	ImodF = cgetg(ld+1,t_VECSMALL);
-	done = cgetg(ld+1,t_VEC);
-	for(n=1;n<ld;n++)
+	VmodF = cgetg(ld+1,t_VEC); // list of W's mod Frob
+	ImodF = cgetg(ld+1,t_VECSMALL); // list of indices of these W's
+	done = cgetg(ld+1,t_VEC); // All space: each entry is either
+	// NULL: we don't have this pt yet
+	// gen_m1: we will get this pt by applying Auts and Frob
+	// Vecmall([n,m]): this pt is Frob^m * VmodF[n]
+	// Vecsmall([0,0]): this is the origin
+	for(n=1;n<ld;n++) // Initalise
 		gel(done,n) = NULL;
 	gel(done,ld) = mkvecsmall2(0,0);
-	ndone = 1;
-	nmodF = 0;
+	ndone = 1; // Number of pts; we stop when this reaches ld
+	nmodF = 0; // Number of pts mod Frob
 	ngens = lg(gens)-1;
+	// Prepare cloure for parallel code
 	vJ = cgetg(2,t_VEC);
   gel(vJ,1) = J;
 	worker = snm_closure(is_entry("TorsSpaceFrob_worker"),vJ);
@@ -119,8 +122,7 @@ GEN TorsSpaceFrobEval(GEN J, GEN gens, GEN cgens, ulong l, GEN matFrob, GEN matA
 	mauts = cgetg(nAuts,t_VEC);
 	for(a=1;a<nAuts;a++) gel(mauts,a) = M2Flm(gel(matAuts,a),l,d,d);
 	// Now we are ready to begin
-	// We store one W per Frob orbit in VmodF
-	// We always keep done closed under Frob
+	// We will always keep done closed under Frob
 	
 	// Throw in generators and their Frob orbits
 	c = cgetg(d+1,t_VECSMALL);
@@ -142,28 +144,24 @@ GEN TorsSpaceFrobEval(GEN J, GEN gens, GEN cgens, ulong l, GEN matFrob, GEN matA
 		}
 	}
 	// Loop until everything is covered
-	todo = cgetg(ld,t_VEC);
+	todo = cgetg(ld,t_VEC); // list of operations to be executed in parallel; used later
 	while(ndone<ld)
 	{
 		printf("Main loop, touched %lu/%lu\n",ndone,ld);
-		printf("nmodF=%lu\n",nmodF);
 		// Use Auts as much as possible
 		do
 		{
-			printf("a ");
 			newmodF = 0; // number of new Fob orbs we get at this iteration. If it's still 0 in the end, we are done with Auts.
-			for(j=1;j<=ld;j++) // Try to apply to all pts...
-			{
-				W = gel(done,j);
-				if(W==NULL || W==gen_m1) continue; // ... that we already have ...
+			for(i=1;i<=nmodF;i++) // Try to apply to all pts mod Frob...
+			{ // TODO only new orbits need to be checked
+				j = ImodF[i];
 				for(a=1;a<nAuts;a++) // ... all auts
 				{
 					k = ActOni(gel(mauts,a),j,l);
 					W = gel(done,k);
 					if(W==NULL || W==gen_m1) // does this yield a new pt, and therefore a new Frob orbit?
 					{
-						W = gel(VmodF,gel(done,j)[1]); // this new pt, before Aut and Frob
-						W = PicFrobPow(J,W,gel(done,j)[2]);
+						W = gel(VmodF,i); // this new pt, before Aut
 						W = PicAut(J,W,a); // after Aut
 						nmodF++; // new Frob orbit
 						newmodF++; // new Frob orbit at this iteration
@@ -182,8 +180,7 @@ GEN TorsSpaceFrobEval(GEN J, GEN gens, GEN cgens, ulong l, GEN matFrob, GEN matA
 					}
 				}
 			}
-		printf("nmodF=%lu\n",nmodF);
-			printf("Applying auts gave %lu new Frob orbits\n",newmodF);
+			//printf("Applying auts gave %lu new Frob orbits\n",newmodF);
 		} while(newmodF);
 		printf("Done with auts, now touched %lu/%lu\n",ndone,ld);
 		if(ndone==ld) break; // Are we done?
@@ -262,7 +259,6 @@ GEN TorsSpaceFrobEval(GEN J, GEN gens, GEN cgens, ulong l, GEN matFrob, GEN matA
 			}
   	}
   	mt_queue_end(&pt);
-		printf("nmodF=%lu\n",nmodF);
 	}
 
 	printf("Evaluating %lu points\n",nmodF);
