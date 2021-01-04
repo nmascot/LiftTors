@@ -100,10 +100,13 @@ mfgalrep(f,l,coeffs,pmax,D,qprec,UseTp,threadlim)=
 	if(UseTp,
 		print("Using Tp");
 		[B,matFrob] = TpEigen(J1,l,Lp,chi,ap);
+		matAuts = p^(k-2)*epsp;
+		print("<p> acts on T by ",matAuts);
+		matAuts = [matAuts*matid(2)];
 	,
 		[B,matFrob] = TorsBasis(J1,l,Lp,chi,0); \\ Basis of the mod p^1 space and matrix of Frob_p
+		matAuts = [];
 	);
-	matAuts = [epsp*matid(2)];
 	print("The matrix of Frob_",p," is");
 	printp(centerlift(matfrobenius(Mod(matFrob,l))));
 	i=1;M=Mod(matFrob,l);
