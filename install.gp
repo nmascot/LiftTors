@@ -61,6 +61,7 @@ install("PicEq_val","uGGG",,"libpic.so");
 install("PicIsZero_val","uGG",,"libpic.so");
 install("PicChart","GGU","PicChart","libpic.so");
 install("PicRand0","GG","PicRand","libpic.so");
+install("TorsOrd","GGG",,"libpic.so");
 
 install("JgetW0","G","JgetW0","libpic.so");
 install("Jgetg","lG","Jgetg","libpic.so");
@@ -81,6 +82,7 @@ install("PicFreyRuckMulti","GGGGGG","PicFreyRuckMulti","libfreyruck.so");
 install("PicTorsRels","GGGU","PicTorsRels","libfreyruck.so");
 install("Fq_zeta_l","GGG","Fq_zeta_l","libfreyruck.so");
 install("Fq_mu_l_log","GGGGG","Fq_mu_l_log","libfreyruck.so");
+install("TorsTestPt","GGGGG",,"libfreyruck.so");
 
 install("TorsSpaceFrob_worker","GGGGG",,"libtorsspace.so");
 install("TorsSpaceFrobEval","GGGUGG",,"libtorsspace.so");

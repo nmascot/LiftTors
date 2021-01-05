@@ -100,6 +100,6 @@ Smooth2RR(f0,P01,P02)=
 	L1 = M*matker(matconcat(L1));
 	L2 = apply(P->subst(subst(M,x,P[1]),y,P[2]),P2)~;
 	L2 = M*matker(matconcat(L2));
-	[f,[],g,d0,L,LL,L1,L2]; \\ TODO auts
+	[f,[],0,g,d0,L,LL,L1,L2]; \\ TODO auts
 }
 

@@ -341,3 +341,21 @@ GEN PicTorsRels(GEN J, GEN Wtors, GEN l, ulong excess)
 	}
 	return gerepileupto(av,FpM_ker(R,l));
 }
+
+GEN TorsTestPt(GEN J, GEN W, GEN l, GEN LinTests, GEN FRparams)
+{
+	pari_sp av = avma;
+	GEN T,p,AddC,W0,z,fr,res;
+	ulong n,i;
+	T = JgetT(J);
+	p = Jgetp(J);
+	AddC = gel(FRparams,1);
+	W0 = gel(FRparams,2);
+	z = gel(FRparams,3);
+	fr = PicFreyRuckMulti(J,W,l,LinTests,W0,AddC);
+	n = lg(fr);
+	res = cgetg(n,t_COL);
+	for(i=1;i<n;i++)
+		gel(res,i) = Fq_mu_l_log(gel(fr,i),z,T,p,l);
+	return gerepileupto(av,res);
+}

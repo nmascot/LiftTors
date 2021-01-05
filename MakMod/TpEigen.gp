@@ -87,9 +87,13 @@ TpEigen(J,l,Lp,chi,ap)=
 				Eig = matker(Mod(matTp-ap,l));
 				print("Eigenspace of dim ",#Eig);
 				if(#Eig==dim,
+					/* Debug code
+					print("Mat of <p>:");
+					printp(centerlift(TorsGetMatAuts(J,BT,l,LinTests,R,FRparams)[1]));
+					*/
 					BT = parvector(dim,j,PicLC(J,centerlift(Eig[,j]),BT));
 					R = R*Eig;
-					FrobR = matconcat(apply(W->Tors_TestPt(J,PicFrob(J,W),l,LinTests,FRparams),BT));
+					FrobR = matconcat(parapply(W->TorsTestPt(J,PicFrob(J,W),l,LinTests,FRparams),BT));
 					matFrob = Mod(R,l)^(-1)*FrobR;
 					return([BT,matFrob]);
 				);

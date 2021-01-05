@@ -69,8 +69,10 @@ RR_rescale(L,p)=
 
 GalRep(C,l,p,e,Lp,chi,force_a)=
 /* Main function.
-	 Given C=[f,g,d0,L,LL,L1,L2,Bad]
+	 Given C=[f,Auts,KnownAuts,g,d0,L,LL,L1,L2,Bad]
 	 where f(x,y)=0 defines a curve C of genus g
+	 Auts is a list of automorphisms of C
+	 KnownAUts is a list of scalars by which Aut act, or 0 if unknown
 	 and L=L(D0), LL=L(2D0), L1=L(2D0-E1), L(2D0-E2)
 	 Riemann-Roch spaces where D0, E1 and E2 are effective
 	 of degrees d0, d0-g, and d0-g,
@@ -84,7 +86,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 	 and if chi is nonzero,
 	 we must have chi || (Lp mod l).*/
 {
-	my([f,Auts,g,d0,L,LL,L1,L2,Bad]=C,pe=p^e,d,J,J1,B,matFrob,matAuts,WB,cWB,Z,AF,F,ZF,M,i,JT,e1=1,t0);
+	my([f,Auts,KnownAuts,g,d0,L,LL,L1,L2,Bad]=C,pe=p^e,d,J,J1,B,matFrob,matAuts,WB,cWB,Z,AF,F,ZF,M,i,JT,e1=1,t0);
 	t0 = [getabstime(),getwalltime()];
 	L = RR_rescale(L,p);
   LL = RR_rescale(LL,p);
@@ -103,7 +105,7 @@ GalRep(C,l,p,e,Lp,chi,force_a)=
 	print("Working with q=",p,"^",a);
 	J=PicInit(f,Auts,g,d0,[L,LL,L1,L2],Bad,p,a,e);
 	J1 = PicRed(J,1); \\ Reduction mod p
-	[B,matFrob,matAuts] = TorsBasis(J1,l,Lp,chi); \\ Basis of the mod p^1 space and matrix of Frob_p
+	[B,matFrob,matAuts] = TorsBasis(J1,l,Lp,chi,KnownAuts); \\ Basis of the mod p^1 space and matrix of Frob_p
 	print("The matrix of Frob_",p," is");
 	printp(centerlift(matfrobenius(Mod(matFrob,l))));
 	i=1;M=Mod(matFrob,l);

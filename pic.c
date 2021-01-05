@@ -689,6 +689,26 @@ ulong PicIsZero_val(GEN J, GEN W)
 	return r;
 }
 
+GEN TorsOrd(GEN J, GEN W, GEN l)
+{
+/*Given that W is an l-power torsion point of J,
+finds v s.t. the order of W is l^v,
+and returns [+-l^(v-1)W, v]*/
+	pari_sp av = avma;
+	GEN lW;
+	ulong e,v;
+	
+	e = Jgete(J);
+	lW = W;
+	for(v=0;PicIsZero_val(J,lW)<e;v++)
+	{
+		W = lW;
+		lW = PicMul(J,W,l,0);
+	}
+	W = mkvec2(W,utoi(v));
+	return gerepilecopy(av,W);
+}
+
 GEN PicChart(GEN J, GEN W, ulong P0, GEN P1) /* /!\ Not Galois-equivariant ! */
 {
 	pari_sp av = avma;

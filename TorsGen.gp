@@ -1,21 +1,3 @@
-TorsOrd(J,W,l)=
-\\ Given that W is an l-power torsion point of J,
-\\ finds v s.t. the order of W is l^v,
-\\ and returns [+-l^(v-1)W, v]
-{
-  my(v=0,lW);
-  v = 0;
-  lW = W;
-  while(PicIsZero_val(J,lW)<Jgete(J),
-    v += 1;
-    W = lW;
-    lW = PicMul(J,W,l,0)
-  );
-  [W,v];
-}
-
-export(TorsOrd);
-
 RandTorsPt(J,l,a,Lp,Chi,Phi,seed)=
 {
 	/* Get a random nonzero pt in J[l] using randseed = seed
@@ -67,14 +49,6 @@ RandTorsPt(J,l,a,Lp,Chi,Phi,seed)=
   return(0);
 }
 
-Tors_TestPt(J,T,l,LinTests,FRparams)=
-{
-	my([AddC,W0,z]=FRparams);
-	apply(x->Fq_mu_l_log(x,z,JgetT(J),Jgetp(J),l),PicFreyRuckMulti(J,T,l,LinTests,W0,AddC));
-}
-
-export(Tors_TestPt);
-
 Tors_UpdateLinTests(J,BT,Tnew,l,LinTests,R,FRparams)=
 {
 	/* BT contains d=#BT pts of J[l]
@@ -89,7 +63,7 @@ Tors_UpdateLinTests(J,BT,Tnew,l,LinTests,R,FRparams)=
 	d = #BT;
 	print("  Computing pairings...");
   \\ New col of R
-  Rnew = Tors_TestPt(J,Tnew,l,LinTests,FRparams);
+  Rnew = TorsTestPt(J,Tnew,l,LinTests,FRparams);
   print("  Looking for relations...");
 	BT2 = concat([BT,[Tnew]]);
 	R2 = matconcat([R,Rnew]);
@@ -111,7 +85,7 @@ Tors_UpdateLinTests(J,BT,Tnew,l,LinTests,R,FRparams)=
   print("  Changing linear tests so that we don't get a false positive again.");
   until(Mod(Rnew*rel,l), \\ loop until new pairing breaks pseudo-relation
 		NewTest = PicChord(J,PicRand(J,0),PicRand(J,0),1);
-		Rnew = parapply(T->Tors_TestPt(J,T,l,[NewTest],FRparams)[1],BT2);
+		Rnew = parapply(T->TorsTestPt(J,T,l,[NewTest],FRparams)[1],BT2);
 		if(default(debug),print("  New test gives parings ",Rnew));
 	);
   \\ So now we have r+1 forms of rank r.
@@ -150,19 +124,25 @@ GuessColFromCharpoly(A,chi)=
 	A;
 }
 
-TorsGetMatAuts(J,B,l,LinTests,R,FRparams)=
+TorsGetMatAuts(J,KnownAuts,B,l,LinTests,R,FRparams)=
 {
 	my(nAuts,matAuts,Ri);
 	nAuts = #JgetAutsCyc(J);
+	if(KnownAuts==0,KnownAuts=vector(nAuts));
 	matAuts = vector(nAuts);
 	for(i=1,nAuts,
-		Ri = apply(W->Tors_TestPt(J,PicAut(J,W,i),l,LinTests,FRparams),B);
-		matAuts[i] = Mod(R,l)^(-1)*matconcat(Ri);
+		if(KnownAuts[i],
+			print(" Aut #",i," claimed to act as ",KnownAuts[i]);
+			matAuts[i] = Mod(KnownAuts[i]*matid(#B),l);
+		,
+			Ri = parapply(W->TorsTestPt(J,PicAut(J,W,i),l,LinTests,FRparams),B);
+			matAuts[i] = Mod(R,l)^(-1)*matconcat(Ri)
+		)
 	);
 	matAuts;
 }
 	
-TorsBasis(J,l,Lp,chi,GetPairings)=
+TorsBasis(J,l,Lp,chi,KnownAuts,GetPairings)=
 {
 	/* Computes a basis B of the subspace T of J[l] on which Frob acts with charpoly chi
 		 Assumes Lp = charpoly(Frob|J), so chi | Lp
@@ -237,7 +217,7 @@ TorsBasis(J,l,Lp,chi,GetPairings)=
 						for(i=1,poldegree(B)-1,matFrob[r+1-i,r-i]=Mod(1,l));
             for(i=0,poldegree(B)-1,matFrob[r+1-poldegree(B)+i,r]=Mod(-polcoef(B,i),l));
 						if(r==d,
-							matAuts = TorsGetMatAuts(J,BT,l,LinTests,R,FRparams);
+							matAuts = TorsGetMatAuts(J,KnownAuts,BT,l,LinTests,R,FRparams);
 							return(if(GetPairings,[BT,matFrob,matAuts,LinTests,R,FRparams],[BT,matFrob,matAuts]))
 						);
 						break(2);
@@ -249,13 +229,13 @@ TorsBasis(J,l,Lp,chi,GetPairings)=
 						if(M,
 							matFrob = M
 						,
-							M = Tors_TestPt(J,PicFrob(J,BT[d]),l,LinTests,FRparams);
+							M = TorsTestPt(J,PicFrob(J,BT[d]),l,LinTests,FRparams);
 							rel = matker(Mod(matconcat([R,M]),l));
 							if(#rel!=1,error("Bug in TorsGen, please report"));
 							rel = rel[,1];
 							for(i=1,d,matFrob[i,d] = -rel[i]/rel[d+1])
 						);
-						matAuts = TorsGetMatAuts(J,BT,l,LinTests,R,FRparams);
+						matAuts = TorsGetMatAuts(J,KnownAuts,BT,l,LinTests,R,FRparams);
 						return(if(GetPairings,[BT,matFrob,matAuts,LinTests,R,FRparams],[BT,matFrob,matAuts]));
 					);
 					\\ Apply Frob and start over

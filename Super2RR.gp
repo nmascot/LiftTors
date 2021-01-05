@@ -11,7 +11,7 @@ LSuper(n,d,m)= /* L(n*oo) for y^m=f(x) where f has deg d */
 
 Super2RR(f0,m,P)= \\ y^m = f(x), requies d,m coprime and f sqfree
 { \\ P must be a rational point
-	my(v,f,d,g,d0,L,LL,L1,L2,E2);
+	my(v,f,d,g,d0,L,LL,L1,L2,E2,Auts,KnownAuts);
 	v = variable(f0);
 	f = subst(f0,v,'x); \\ make sure var(f) == 'x
 	if(!issquarefree(f),error(f0," is not squarefree"));
@@ -26,5 +26,12 @@ Super2RR(f0,m,P)= \\ y^m = f(x), requies d,m coprime and f sqfree
 	L2 = LSuper(d0+g+1,d,m);
 	E2 = subst(subst(L2,'x,P[1]),'y,P[2]);
 	L2 = L2*matker(Mat(E2));
-	[y^m-f,[],g,d0,L,LL,L1,L2]; \\ TODO auts
+	if(Mod(m,2),
+		Auts=[];
+		KnownAuts=0;
+	,
+		Auts=[['x,-'y,1]];
+		KnownAuts=if(m==2,[-1],0);
+	);
+	[y^m-f,Auts,KnownAuts,g,d0,L,LL,L1,L2];
 }

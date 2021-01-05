@@ -182,7 +182,7 @@ GEN TorsSpaceFrobEval(GEN J, GEN gens, GEN cgens, ulong l, GEN matFrob, GEN matA
 			}
 			//printf("Applying auts gave %lu new Frob orbits\n",newmodF);
 		} while(newmodF);
-		printf("Done with auts, now touched %lu/%lu\n",ndone,ld);
+		if(nAuts>1) printf("Done with auts, now touched %lu/%lu\n",ndone,ld);
 		if(ndone==ld) break; // Are we done?
 		// TODO gerepile?
 		// Now use group law
