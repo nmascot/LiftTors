@@ -4,15 +4,20 @@ read("GammaH.gp");
 read("Perms.gp");
 read("Div.gp");
 
-ModJacInit(N,H,p,a,e,qprec,Lp,UseTp)=
+ModJacInit(N,H,p,a,e,qprec,Lp,UseTp=0,nbE=1)=
 { \\ J_H(N) over Zq/p^e, q=p^a
 	my(Hlist,Hlist1,TH);
 	my(g,Cusps,nCusps,CuspsGal,CuspsGalDegs,CuspTags,CuspQexp,CuspsQexp_list,CuspsGalDiamp,CuspsGalDiampDegs);
-	my(E,P0,Q0,zN,zNpows,MFrobE,tMFrobE,T,pe=p^e,EN,todo,done,x,y,Ml1);
-	my(d,d1,Pts,nPts,PtTags,MPts,PtsFrob,PtsDiamp,Perms);
+	my(E,P0,Q0,zN,zNpows,MFrobE,tMFrobE,T,t1,pe=p^e,EN,todo,done,x,y,Ml1);
+	my(d,d1,Pts,nPts,PtTags,MPts,PtsFrob,PtsDiamp,PtsDiamp0,Perms);
 	my(E1o,E2o,E1,E2,C0o,C0,Emax);
 	my(M2,M2gens,v,w,M,sprec,M2qexps,B,d0,U0,V1,V2,V3,V2gens,V1qexps,V2qexps,U1,U2,KV,f2,W0);
 	my(M4Q,IU,MU,Auts);
+	my(j,list_j=vector(nbE),Ell2,Ml12,PtsFrob2);
+  \\ Data about unramified extension of Qp of degree a and its residue field
+	T=ffinit(p,a,'t);
+  t1=ffgen(T,'t);
+  T = lift(T);
 	\\ Get H and H/+-1
   [Hlist,Hlist1] = GetHlist(N,H);
   if(Mod(6*N*#Hlist,p)==0,error("Bad p"));
@@ -38,50 +43,19 @@ ModJacInit(N,H,p,a,e,qprec,Lp,UseTp)=
   nPts = #Pts;
   print(nPts," points on the fibre of X_H(",N,") -> X(1)");
 	if(UseTp,
-		PtsDiamp = Vecsmall(apply(v->GetCoef(PtTags,p*v),Pts)) \\ Perm of fibre induced by <p>
+		PtsDiamp = PtsDiamp0 = Vecsmall(apply(v->GetCoef(PtTags,p*v),Pts)) \\ Perm of fibre induced by <p>
 	);
 	MPts = apply(s->BotToSL2(s,N),Pts); \\ Matrices having these bottom rows
 	\\ P_g = P_g' on X_H(N) <=> g,g' have same bottom row mod H
 	\\ Get a curve E and a basis of E[N]
-	print("Finding elliptic curve E such that E[",N,"] is defined over GF(",p,"^",a,")");
-	[E,P0,Q0,zN,MFrobE] = EBasis(N,p,a,e);
-	T = zN.mod;
-  print("E:y²=x³+",E.a4,"x+",E.a6," with accuracy O(",p,"^",e,") and residual degree a=",a);
-  for(i=1,a,
-    if(MFrobE^i==1,
-      print("MFrobE has order ",i);
-      break
-    )
-  );
+	print("Finding elliptic curve(s) E such that E[",N,"] is defined over GF(",p,"^",a,")");
+	[E,Ml1,PtsFrob,zN] = GetMl1(N,Pts,PtTags,p,T,t1,e,0,[]); \\ 0: no pref for zN, []: no j to avoid
+  list_j[1] = Mod(E.j,p);
 	zNpows = vector(N);
 	zNpows[1] = liftall(zN);
 	for(i=2,N,
 		zNpows[i] = liftall(zNpows[i-1]*zN)
 	);
-	\\ Get action of Frob on fibre
-	tMFrobE = mattranspose(MFrobE);
-  PtsFrob = Vecsmall(apply(P->GetCoef(PtTags,liftint(P*tMFrobE)),Pts)); \\ Frob([c,d]) = [c,d]*(t^MFrobE)
-	\\ Write down all N-torsion: : this is a naive level structure alpha: (Z/NZ)² ~ E[N]
-	EN=matrix(N,N); \\ [[ m P0 + n Q0 ]]
-  EN[1,N]=P0;
-  EN[N,1]=Q0;
-  for(x=2,N-1,
-    EN[x,N]=elladd_padic(E.a4,EN[x-1,N],P0,T,pe,p,e);
-    EN[N,x]=elladd_padic(E.a4,EN[N,x-1],Q0,T,pe,p,e);
-  );
-	todo = List();
-	for(x=1,N-1,for(y=1,N-1,listput(todo,[x,y])));
-	done = parapply(X->elladd_padic(E.a4,EN[X[1],N],EN[N,X[2]],T,pe,p,e),Vec(todo));
-	for(i=1,#todo,[x,y]=todo[i];EN[x,y]=done[i]);
-	\\ Matrix of l(P) for P in E[N]
-	print("Ml1");
-	Ml1=matrix(N,N);
-	\\ TODO do we use non coprime entries?
-	todo = List();
-	for(x=1,N-1,listput(todo,[[x,N],[0,1]])); \\ P=alpha(x,0) -> Q=alpha(0,1)
-	for(x=1,N,for(y=1,N-1,listput(todo,[[x,y],[1,0]]))); \\ P=alpha(x,y), y!=0 -> Q=alpha(1,0)
-	done = parapply(X->l1(EN,X[1],X[2],T,pe,p,e),Vec(todo));
-	for(i=1,#todo,[x,y]=todo[i][1];Ml1[x,y]=done[i]); 
 	\\ Find a basis for M2(GammaH(N))
 	d = g+nCusps-1; \\ dim M2(GammaH(N))
 	print("M2(GammaH) (dim ",d,")");
@@ -101,8 +75,19 @@ ModJacInit(N,H,p,a,e,qprec,Lp,UseTp)=
 		d1 += d-#B;
 	);
 	\\ Extract basis
-	M2 = Mod(vecextract(M2,B),pe);
+	M2 = vecextract(M2,B);
 	M2gens = vecextract(M2gens,B);
+	\\ Take extra ell curves
+	for(i=2,nbE,
+    print("Getting elliptic curve ",i,"/",nbE);
+    [Ell2,Ml12,PtsFrob2,zN2] = GetMl1(N,Pts,PtTags,p,T,t1,e,zN,list_j[1..i-1]);
+    j=Mod(Ell2.j,p);
+    list_j[i]=j;
+    M2 = matconcat([M2,M2mat(M2gens,Ml12,TH,MPts,T,pe)]~);
+    PtsFrob = PermConcat(PtsFrob,PtsFrob2);
+		PtsDiamp = PermConcat(PtsDiamp,PtsDiamp0);
+  );
+	M2 = Mod(Mod(M2,pe),T);
 	\\ Prepare divisors to know min qprec
 	\\ Prune: M2 -> S2(>=3 cusps) = M2(-C0)
 	if(UseTp,

@@ -80,6 +80,15 @@ SubPerm_multi(S,M)=
 		Orbs = concat(Orbs,[[Orb,SOrb]])
 	);
 	\\ So we have split the set into orbs.
+	\\ Shuffle them randomly
+  for(n=1,#Orbs,
+    i=1+random(#Orbs);
+    j=1+random(#Orbs);
+    Orb = Orbs[i];
+    Orbs[i]=Orbs[j];
+    Orbs[j]=Orb;
+  );
+	\\ Sort them by decreasing size
 	Orbs = vecsort(Orbs,o->#o[1],4); \\ Sort orbs by decreasing size
 	\\ Now select orbits to form subset of size >=M
 	m=0;
@@ -110,4 +119,11 @@ SubPerm_multi(S,M)=
     m+=l
 	);
 	[Vecsmall(Sub),apply(s->Vecsmall(s),SubS)];
+}
+
+PermConcat(s,t)=
+{
+  my(n=#s,u=t,m=#t);
+  for(i=1,m,u[i]+=n);
+  concat([s,u]);
 }

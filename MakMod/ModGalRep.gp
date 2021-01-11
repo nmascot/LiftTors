@@ -70,7 +70,7 @@ mfbestp(f,l,coeffs,pmax,UseTp)=
 	[H,best];
 }
 
-mfgalrep(f,l,coeffs,pmax,D,qprec,UseTp,threadlim)=
+mfgalrep(f,l,coeffs,pmax,D,qprec,UseTp,nbE=1,threadlim)=
 {
 	my(N,k,H,best,p,a,Lp,ap,epsp,chi,chiOO,gcdchi,e,pe,J,CuspsQ,J1,B,matFrob,matAuts,i,M,WB,cWB,TI,Z,AF,def_threads,t0);
 	if(threadlim,
@@ -91,7 +91,7 @@ mfgalrep(f,l,coeffs,pmax,D,qprec,UseTp,threadlim)=
 	[N,k] = mfparams(f)[1..2];
 	if(k>2,N*=l);
 	print("\n--> Initialising modular Jacobian");
-	J=ModJacInit(N,H,p,a,e,qprec,Lp,UseTp);
+	J=ModJacInit(N,H,p,a,e,qprec,Lp,UseTp,nbE);
 	print("Time ModJacInit: ",timestr(~t0));
 	print("Size J: ",mysize(sizebyte(J)));
 	if(threadlim,default(nbthreads,threadlim[2]));

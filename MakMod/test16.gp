@@ -7,7 +7,7 @@ coeffs=[[3,1]];
 rangep=[100,105];
 qprec=3;
 
-X=mfgalrep(f,l,coeffs,[58,60],10,qprec,1);
+X=mfgalrep(f,l,coeffs,[58,60],10,qprec,1,3);
 print(X[1]);
 breakpoint();
 print("--> Finding prime p with small residual degree");
