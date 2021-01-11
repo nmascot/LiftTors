@@ -232,7 +232,8 @@ GEN ZpXQMinv(GEN A, GEN T, GEN pe, GEN p, long e)
 	GEN Fq0,Fq1;
 
 	n = lg(A)-1;
-	I = cgetg(n,t_VECSMALL); /* Vector of permutation of rows */
+	if(n==0) return cgetg(1,t_MAT);
+	I = cgetg(n+1,t_VECSMALL); /* Vector of permutation of rows */
 	for(i=1;i<=n;i++) I[i] = i;
 	Fq0 = pol_0(varn(T));
 	Fq1 = pol_1(varn(T));
@@ -251,7 +252,7 @@ GEN ZpXQMinv(GEN A, GEN T, GEN pe, GEN p, long e)
 		/* Col is now vcat Ak,Ik */
 		/* The last k cols of B are known */
 		/* Upper part of B is UT1, lower part is LT */
-		/* Reduce Ck uing Cj for j=n..k+1 */
+		/* Reduce Ck using Cj for j=n..k+1 */
 		/* Actually only need coeffs for i<k and i>=n+k */
 		for(j=n;j>k;j--)
 		{
