@@ -155,7 +155,7 @@ GEN PicLift_RandLift_U(GEN U, GEN U0, GEN KM, GEN T, GEN p, GEN pe1, GEN pe21, l
 
 GEN PicLiftTors_Chart_worker(GEN randseed, GEN J, GEN l, GEN U, GEN U0, GEN I, GEN KM, GEN pe1, GEN pe21, long e21, GEN c0, ulong P0, GEN P1)
 {
-  pari_sp avU;
+  pari_sp av=avma,avU;
 	GEN T,p,pe2;
 	long e2;
 	GEN W,c,res;
@@ -173,6 +173,11 @@ GEN PicLiftTors_Chart_worker(GEN randseed, GEN J, GEN l, GEN U, GEN U0, GEN I, G
 	W = gerepileupto(avU,W);
   /* Mul by l, get coordinates, and compare them to those of W0 */
   c = PicChart(J,W,P0,P1);
+	if(c==NULL)
+	{
+		avma = av;
+		return gen_0;
+	}
 	c = gerepileupto(avU,c);
   for(i=1;i<=nc;i++) /* The coords are c0 mod pe1 -> divide */
 		gel(c,i) = ZX_Z_divexact(FpX_sub(gel(c,i),gel(c0,i),pe2),pe1);
@@ -195,7 +200,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
   ulong g,nZ,nW;
   ulong nGW=2,nV,d0,nc,P0=0;
 	GEN c0=NULL,P1=NULL;
-	int P0_tested=0;
+	int P0_tested=0,liftsOK=0;
 	GEN Clifts,Ulifts,Ktors;
 	struct pari_mt pt;
   GEN randseed,vFixedParams,args,worker,done;
@@ -333,14 +338,22 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
 				avma = av3;
     		if(c0==NULL) /* Compute coords of 0 if not already done */
     		{
-					if(DEBUGLEVEL) printf("Computing coords of 0\n");
       		/* Find coords of 0 */
-      		c0 = PicChart(J,JgetW0(J),P0,NULL);
+					for(;;)
+					{
+						if(DEBUGLEVEL) printf("Computing coords of 0, P0=%lu\n",P0);
+						c0 = PicChart(J,JgetW0(J),P0,NULL);
+						if(c0) break;
+						P0++;
+						if(P0>nZ+g-d0)
+							pari_err(e_MISC,"Run out of charts while computing coords of 0");
+					}
+					c0 = gerepileupto(av3,c0);
       		nc = lg(c0)-1;
       		/* Find indep set of rows to normalize */
 					c0 = col2mat(c0,nc/nW,nW);
 					P1 = FqM_indexrank(c0,T,p);
-					P1= gel(P1,1);
+					P1 = gel(P1,1);
 					c0 = Subspace_normalize(c0,P1,T,pefin,p,efin,1);
 					c0 = mat2col(c0);
 					gerepileall(av2,2,&c0,&P1);
@@ -361,6 +374,7 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
       	gel(vFixedParams,12) = P1;
       	worker = snm_closure(is_entry("PicLiftTors_Chart_worker"),vFixedParams);
     		pending = 0;
+				liftsOK = 1;
     		mt_queue_start_lim(&pt,worker,g+1);
     		for(i=1;i<=g+1||pending;i++)
     		{
@@ -373,19 +387,41 @@ GEN PicLiftTors(GEN J, GEN W, long eini, GEN l)
       		done = mt_queue_get(&pt,&workid,&pending);
       		if(done)
       		{
-        		gel(Ulifts,workid) = gel(done,1);
-        		gel(Clifts,workid) = gel(done,2);
+						if(done==gen_0)
+						{
+							printf("Lift %ld had a chart issue\n",workid);
+							liftsOK = 0;
+						}
+						else
+						{
+        			gel(Ulifts,workid) = gel(done,1);
+        			gel(Clifts,workid) = gel(done,2);
+						}
       		}
     		}
     		mt_queue_end(&pt);
+				if(liftsOK==0)
+        { /* This chart does not work. Take the next one, reset data, and restart */
+         	printf("Changing chart\n");
+					P0++; /* New chart */
+          printf("P0=%lu\n",P0);
+          if(P0>nZ+g-d0)
+            pari_err(e_MISC,"Run out of charts while computing coords of 0");
+          P0_tested = 0;
+          c0 = NULL; /* Coords of 0 must be recomputed */
+          av3 = av2;
+          continue; /* Try again with this new chart */
+        }
 				Ktors = matkerpadic(Clifts,T,pe21,p,e21); /* Find comb with coord = 0 */
     		n = lg(Ktors)-1;
-				if(DEBUGLEVEL || n!=1) printf("dim ker tors: %ld\n",n);
     		if(n!=1)
     		{ /* l-tors is étale, so this can only happen if Chart is not diffeo - > change chart */
-      		printf("Dim ker tors = %ld, changing charts\n",n);
-      		P0++; /* New chart */
+      		printf("Dim ker tors = %ld (expected 1), changing charts\n",n);
+      		printf("nZ=%lu, g=%lu, d0=%lu\n",nZ,g,d0);
+					P0++; /* New chart */
 					printf("P0=%lu\n",P0);
+					if(P0>nZ+g-d0)
+            pari_err(e_MISC,"Run out of charts while computing coords of 0");
 					P0_tested = 0;
 					c0 = NULL; /* Coords of 0 must be recomputed */
 					av3 = av2;
